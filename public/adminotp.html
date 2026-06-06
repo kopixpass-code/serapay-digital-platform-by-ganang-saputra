@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - Serapay</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  background:#fce7f3;
+}
+
+.wrapper{ display:flex; }
+
+.sidebar{
+  width:220px;
+  background:#be185d;
+  color:#fff;
+  height:100vh;
+  padding:15px;
+}
+
+.sidebar a{
+  display:block;
+  color:#fff;
+  padding:10px;
+  text-decoration:none;
+  margin-bottom:8px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.sidebar a:hover{
+  background:rgba(255,255,255,0.2);
+}
+
+.main{
+  flex:1;
+  padding:20px;
+}
+
+.card{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+}
+
+input{
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  border:1px solid #ddd;
+  border-radius:6px;
+}
+
+button{
+  padding:8px 12px;
+  margin-top:8px;
+  background:#be185d;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#9d174d;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  border-bottom:1px solid #ddd;
+  padding:8px;
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h3>ADMIN PANEL</h3>
+  <a onclick="loadUsers()">👤 Users</a>
+  <a onclick="loadTopup()">💰 Topup</a>
+  <a onclick="loadRefund()">🔄 Refund</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- SALDO CONTROL -->
+<div class="card">
+  <h3>Tambah / Kurangi Saldo</h3>
+
+  <input id="keyUser" placeholder="Email / ID / No HP">
+  <input id="nominalSaldo" type="number" placeholder="Nominal (+ / -)">
+
+  <button onclick="updateSaldo()">Proses</button>
+</div>
+
+<!-- USERS -->
+<div class="card">
+  <h3>Users</h3>
+  <div id="users"></div>
+</div>
+
+<!-- TOPUP -->
+<div class="card">
+  <h3>Topup Request</h3>
+  <div id="topup"></div>
+</div>
+
+<!-- REFUND -->
+<div class="card">
+  <h3>Refund Request</h3>
+  <div id="refund"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+if (!token) {
+  alert("Token tidak ditemukan. Silakan login ulang.");
+  window.location.href = "/login";
+}
+window.onerror = function(msg){
+  console.log("ERROR JS:", msg);
+};
+
+const token = localStorage.getItem("token");
+
+/* ================= USERS ================= */
+async function loadUsers(){
+  const res = await fetch("/api/admin/users");
+  const data = await res.json();
+
+  if (!data.success || !data.users) {
+    document.getElementById("users").innerHTML = "Data gagal dimuat";
+    return;
+  }
+
+  let html = `<table>
+    <tr>
+      <th>ID</th>
+      <th>Email</th>
+      <th>HP</th>
+      <th>Saldo</th>
+      <th>Status</th>
+      <th>Aksi</th>
+    </tr>`;
+
+  data.users.forEach(u=>{
+    html += `
+    <tr>
+      <td>${u.id}</td>
+      <td>${u.email}</td>
+      <td>${u.phone}</td>
+      <td>${u.saldo}</td>
+      <td>${u.active ? "Aktif" : "Nonaktif"}</td>
+      <td>
+        <button onclick="toggleUser('${u.email}')">
+          ${u.active ? "Nonaktifkan" : "Aktifkan"}
+        </button>
+      </td>
+    </tr>`;
+  });
+
+  html += "</table>";
+  document.getElementById("users").innerHTML = html;
+}
+
+/* ================= TOGGLE USER ================= */
+async function toggleUser(email){
+  await fetch("/api/admin/user/toggle", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      authorization: token
+    },
+    body: JSON.stringify({ email })
+  });
+
+  loadUsers();
+}
+
+/* ================= SALDO EDIT ================= */
+async function updateSaldo(){
+  const key = document.getElementById("keyUser").value;
+  const nominal = parseInt(document.getElementById("nominalSaldo").value);
+
+  if (!key || isNaN(nominal)) {
+    alert("Input tidak valid");
+    return;
+  }
+
+  const res = await fetch("/api/admin/saldo", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({ key, nominal })
+  });
+
+  const data = await res.json();
+
+  if (!data.success) {
+    alert(data.message || "Gagal update saldo");
+    return;
+  }
+
+  alert("Saldo diupdate");
+  loadUsers();
+}
+
+
+/* ================= TOPUP ================= */
+async function loadTopup(){
+  const res = await fetch("/api/admin/topup");
+  const data = await res.json();
+
+  if (!data.success || !Array.isArray(data.data)) {
+    document.getElementById("topup").innerHTML = "Tidak ada data topup";
+    return;
+  }
+
+  let html = "";
+
+  data.data.forEach((t,i)=>{
+    html += `
+    <div class="card">
+      <b>${t.email}</b><br>
+      Rp ${t.nominal}
+
+      <button onclick="approveTopup(${i})">Approve</button>
+      <button onclick="rejectTopup(${i})">Reject</button>
+    </div>`;
+  });
+
+  document.getElementById("topup").innerHTML = html;
+}
+
+
+/* ================= APPROVE TOPUP ================= */
+async function approveTopup(i){
+  const res = await fetch("/api/admin/topup/approve", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({ index:i })
+  });
+
+  const data = await res.json();
+
+  if (!data.success) {
+    alert("Gagal approve topup");
+    return;
+  }
+
+  loadTopup();
+  loadUsers();
+}
+
+
+/* ================= REJECT TOPUP ================= */
+async function rejectTopup(i){
+  const res = await fetch("/api/admin/topup/reject", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({ index:i })
+  });
+
+  const data = await res.json();
+
+  if (!data.success) {
+    alert("Gagal reject topup");
+    return;
+  }
+
+  loadTopup();
+}
+
+
+/* ================= REFUND ================= */
+async function loadRefund(){
+  const res = await fetch("/api/admin/refund");
+  const data = await res.json();
+
+  if (!data.success || !Array.isArray(data.data)) {
+    document.getElementById("refund").innerHTML = "Tidak ada data refund";
+    return;
+  }
+
+  let html = "";
+
+  data.data.forEach((r,i)=>{
+    html += `
+    <div class="card">
+      <b>${r.email}</b><br>
+      ${r.type} - Qty: ${r.qty}
+
+      <button onclick="approveRefund(${i})">Approve</button>
+      <button onclick="rejectRefund(${i})">Reject</button>
+    </div>`;
+  });
+
+  document.getElementById("refund").innerHTML = html;
+}
+
+
+/* ================= APPROVE REFUND ================= */
+async function approveRefund(i){
+  const res = await fetch("/api/admin/refund/approve", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({ index:i })
+  });
+
+  const data = await res.json();
+
+  if (!data.success) {
+    alert("Gagal approve refund");
+    return;
+  }
+
+  loadRefund();
+  loadUsers();
+}
+
+
+/* ================= REJECT REFUND ================= */
+async function rejectRefund(i){
+  const res = await fetch("/api/admin/refund/reject", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({ index:i })
+  });
+
+  const data = await res.json();
+
+  if (!data.success) {
+    alert("Gagal reject refund");
+    return;
+  }
+
+  loadRefund();
+}
+
+
+/* ================= INIT ================= */
+loadUsers();
+loadTopup();
+loadRefund();
+</script>
+
+</body>
+</html>

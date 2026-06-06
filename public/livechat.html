@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Chat - Serapay</title>
+	<link rel="icon" href="/img/favicon.png" sizes="32x32">
+    <link rel="icon" href="/img/favicon.png" sizes="16x16">
+    <link rel="shortcut icon" href="/img/favicon.png">
+
+<style>
+
+
+/* RESET */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+html, body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#f8fafc;
+}
+
+/* CENTER APP */
+body{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+/* MAIN CONTAINER */
+.container{
+  width:100%;
+  max-width:500px;
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+  background:#fff;
+  overflow:hidden;
+  position:relative;
+}
+
+/* HEADER */
+.header{
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 18px;
+  background:linear-gradient(135deg,#ec4899,#be185d);
+  color:#fff;
+}
+
+.header-avatar{
+  position:relative;
+  width:44px;
+  height:44px;
+  flex-shrink:0;
+}
+
+.header-avatar img{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid rgba(255,255,255,.25);
+}
+
+.header-info h2{
+  font-size:15px;
+  font-weight:700;
+}
+
+.header-info p{
+  font-size:12px;
+  opacity:.85;
+}
+
+/* START SCREEN */
+.start-box{
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.start-box input{
+  padding:14px;
+  border-radius:12px;
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  outline:none;
+}
+
+.start-box button{
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#ec4899;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* CHAT BOX FIX STRUCTURE */
+.chat-box{
+  flex:1;
+  display:none;
+  flex-direction:column;
+  min-height:0; /* PENTING BANGET */
+}
+
+/* SYSTEM INFO */
+.system-info{
+  flex-shrink:0;
+  text-align:center;
+  font-size:12px;
+  color:#64748b;
+  padding:8px;
+  background:#fff1f8;
+  border-bottom:1px solid #fce7f3;
+}
+
+/* MESSAGES AREA (FIX SCROLL BUG) */
+.messages{
+  flex:1;
+  min-height:0;            /* FIX SCROLL BUG UTAMA */
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:16px;
+  background:#fafafa;
+  scroll-behavior:smooth;
+  overscroll-behavior:contain;
+}
+
+/* CHAT BUBBLE */
+.msg{
+  max-width:78%;
+  padding:10px 14px;
+  font-size:14px;
+  line-height:1.4;
+  word-break:break-word;
+  animation:fadeIn .15s ease;
+}
+
+/* USER */
+.user-msg{
+  align-self:flex-end;
+  background:#ec4899;
+  color:#fff;
+  border-radius:16px 16px 4px 16px;
+}
+
+/* ADMIN */
+.admin-msg{
+  align-self:flex-start;
+  background:#e2e8f0;
+  color:#0f172a;
+  border:1px solid #cbd5e1;
+  border-radius:16px 16px 16px 4px;
+}
+
+/* IMAGE */
+.msg img{
+  max-width:220px;
+  width:100%;
+  border-radius:10px;
+  margin-top:6px;
+}
+
+/* INPUT AREA FIX (NO STICKY BUG) */
+.input-area{
+  flex-shrink:0;
+  display:flex;
+  gap:8px;
+  padding:12px;
+  border-top:1px solid #e2e8f0;
+  background:#fff;
+}
+
+/* INPUT */
+.input-area input[type="text"]{
+  flex:1;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #cbd5e1;
+  background:#f1f5f9;
+  outline:none;
+}
+
+/* BUTTON */
+.input-area button{
+  padding:0 14px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.send-btn{
+  background:#ec4899;
+  color:#fff;
+}
+
+.file-btn{
+  background:#f1f5f9;
+  color:#64748b;
+}
+
+/* SCROLLBAR CLEAN */
+.messages::-webkit-scrollbar{
+  width:4px;
+}
+
+.messages::-webkit-scrollbar-thumb{
+  background:#f9a8d4;
+  border-radius:10px;
+}
+
+/* ANIMATION FIX (lebih ringan biar tidak delay render) */
+@keyframes fadeIn{
+  from{ opacity:0; transform:translateY(2px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+/* DESKTOP */
+@media (min-width:768px){
+  body{
+    background:#fce7f3;
+  }
+
+  .container{
+    height:85vh;
+    border-radius:18px;
+    box-shadow:0 10px 40px rgba(0,0,0,.08);
+  }
+}
+html, body, *{
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.chat-close{
+  margin-left:auto; /* dorong ke kanan */
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.chat-close svg{
+  width:22px;
+  height:22px;
+  stroke:#fff;
+  stroke-width:2;
+}
+
+.chat-close:hover{
+  background:rgba(255,255,255,0.2);
+}
+.online-dot{
+  position:absolute;
+  right:0;
+  bottom:0;
+  width:12px;
+  height:12px;
+  background:#22c55e;
+  border:2px solid white;
+  border-radius:50%;
+}
+/* UPLOAD LOADING */
+.upload-loading{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.upload-spinner{
+  width:18px;
+  height:18px;
+  border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+  flex-shrink:0;
+}
+
+.upload-text{
+  font-size:13px;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+/* IMAGE MESSAGE FIX */
+.msg:has(img){
+
+  padding:1px 6px 10px;
+
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+<div class="header">
+  
+  <div class="header-avatar">
+    <img src="/img/admin.png" alt="Admin">
+    <div class="online-dot"></div>
+  </div>
+
+  <div class="header-info">
+    <h2>SeraPay ID</h2>
+    <p>Menghubungkan...</p>
+  </div>
+  
+  <div class="chat-close" onclick="endChat()">
+  <svg viewBox="0 0 24 24">
+    <line x1="6" y1="6" x2="18" y2="18"/>
+    <line x1="18" y1="6" x2="6" y2="18"/>
+  </svg>
+</div>
+
+</div>
+
+<!-- START -->
+<div class="start-box" id="startBox" style="display:none">
+
+  <input 
+    type="text" 
+    id="name" 
+    placeholder="Nama"
+  >
+
+  <input 
+    type="email" 
+    id="email" 
+    placeholder="Email"
+  >
+
+  <button onclick="startChat()">
+    Mulai Chat
+  </button>
+
+</div>
+
+  <!-- CHAT -->
+  <div class="chat-box" id="chatBox">
+
+    <div class="system-info">
+      HaloSer akan segara membantu kamu!
+    </div>
+
+    <div class="messages" id="messages">
+      <!-- livechat.js inject messages -->
+    </div>
+
+    <!-- INPUT -->
+<div class="input-area">
+  <input type="file" id="fileInput" hidden>
+
+  <input 
+    type="text" 
+    id="chatInput" 
+    placeholder="Ketik pesan..." 
+    onkeypress="if(event.key==='Enter') sendMessage()"
+  >
+
+  <button 
+    class="file-btn" 
+    onclick="document.getElementById('fileInput').click()"
+  >
+    📎
+  </button>
+
+  <button class="send-btn" onclick="sendMessage()">
+    Kirim
+  </button>
+</div>
+
+<script defer src="/socket.io/socket.io.js"></script>
+<script defer src="/js/livechat.js"></script>
+
+</body>
+</html>

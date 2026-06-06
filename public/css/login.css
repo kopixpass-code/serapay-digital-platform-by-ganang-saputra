@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login • SeraBot</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-pink-100 via-pink-50 to-white min-h-screen flex items-center justify-center">
+
+  <!-- Card Login -->
+  <div class="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md">
+
+    <!-- Logo / Title -->
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-bold text-pink-600">SeraBot</h1>
+      <p class="text-gray-500 text-sm mt-1">Login ke akun kamu</p>
+    </div>
+
+    <!-- Form -->
+    <form id="loginForm" class="space-y-4">
+
+      <div>
+        <label class="text-sm font-semibold">Email</label>
+        <input type="email" id="email"
+          class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+          placeholder="Masukkan email" required>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold">Password</label>
+        <input type="password" id="password"
+          class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+          placeholder="Masukkan password" required>
+      </div>
+
+      <!-- Button -->
+      <button type="submit"
+        class="w-full bg-pink-500 hover:bg-pink-600 text-white py-2 rounded-lg font-semibold transition">
+        Login
+      </button>
+
+    </form>
+
+    <!-- Extra -->
+    <div class="text-center text-sm mt-4">
+      <a href="#" class="text-pink-500 hover:underline">Lupa Password?</a>
+      <span class="mx-2">•</span>
+      <a href="#" class="text-pink-500 hover:underline">Daftar</a>
+    </div>
+
+  </div>
+
+  <!-- Script Login -->
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      let email = document.getElementById("email").value;
+      let password = document.getElementById("password").value;
+
+      // simulasi login
+      if(email === "admin@gmail.com" && password === "123456") {
+        alert("Login berhasil!");
+        window.location.href = "index.html";
+      } else {
+        alert("Email atau password salah!");
+      }
+    });
+  </script>
+
+</body>
+</html>

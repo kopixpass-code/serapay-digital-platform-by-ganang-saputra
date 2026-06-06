@@ -1,0 +1,112 @@
+<style>
+    body{
+        font-family: Arial, sans-serif;
+        background:#fdf2f8;
+        margin:0;
+        padding:0;
+        color:#111827;
+        line-height:1.6;
+    }
+
+    header{
+        background:#ec4899;
+        color:white;
+        padding:15px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+
+    header h1{
+        margin:0;
+        color:white;
+        font-size:16px;
+        flex:1;
+        text-align:center;
+    }
+
+    .back-in-header{
+        color:white;
+        text-decoration:none;
+        font-size:14px;
+        font-weight:bold;
+        background:rgba(255,255,255,0.15);
+        padding:6px 10px;
+        border-radius:8px;
+        white-space:nowrap;
+    }
+
+    .container{
+        max-width:900px;
+        margin:20px auto;
+        background:white;
+        padding:25px;
+        border-radius:12px;
+        box-shadow:0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    h2{
+        color:#be185d;
+        font-size:18px;
+        margin-top:25px;
+        border-left:4px solid #be185d;
+        padding-left:10px;
+    }
+
+    p, li{
+        font-size:14px;
+        margin-bottom: 8px;
+    }
+
+    ul{
+        padding-left:20px;
+    }
+
+    .warning{
+        background:#fff1f2;
+        border:1px solid #fecdd3;
+        padding:15px;
+        border-radius:8px;
+        color:#9f1239;
+        font-weight:bold;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .info-box {
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+
+    .info-box code {
+        background: #fff;
+        padding: 2px 5px;
+        border-radius: 4px;
+        color: #be185d;
+        font-weight: bold;
+    }
+
+    footer{
+        text-align:center;
+        padding:15px;
+        font-size:12px;
+        color:#6b7280;
+    }
+
+    @media (max-width:600px){
+        header h1{
+            font-size:14px;
+        }
+        .back-in-header{
+            font-size:12px;
+            padding:5px 8px;
+        }
+        .container {
+            margin: 10px;
+            padding: 15px;
+        }
+    }
+</style>

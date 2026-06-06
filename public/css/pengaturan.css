@@ -1,0 +1,227 @@
+<style>
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  background:#fce7f3;
+}
+
+/* ================= LAYOUT ================= */
+.wrapper{
+  display:flex;
+}
+
+/* ================= TOPBAR ================= */
+.topbar{
+  height:70px;
+  background:#fff;
+  padding:0 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:10;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+.topbar .left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.title{
+  font-size:16px;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar{
+  width:240px;
+  background:#ec4899;
+  color:#fff;
+  position:fixed;
+  top:70px;
+  left:0;
+  height:calc(100vh - 70px);
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+}
+
+.menu{
+  flex:1;
+}
+
+.menu a{
+  display:block;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:8px;
+  color:#fff;
+  text-decoration:none;
+}
+
+.menu a:hover{
+  background:rgba(255,255,255,0.2);
+}
+
+/* ================= MAIN ================= */
+.main{
+  margin-left:240px;
+  margin-top:70px;
+  width:100%;
+}
+
+/* ================= USER ================= */
+.user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:2px solid #ec4899;
+}
+
+.user-info{
+  font-size:13px;
+}
+
+.saldo{
+  display:inline-block;
+  background:#ec4899;
+  color:#fff;
+  padding:4px 10px;
+  border-radius:6px;
+  font-size:12px;
+  margin-top:3px;
+}
+
+/* ================= CONTENT ================= */
+.container{
+  padding:20px;
+  display:flex;
+  justify-content:center;
+}
+
+/* ================= CARD ================= */
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  width:100%;
+  max-width:420px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
+
+button{
+  width:100%;
+  margin-top:15px;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:#ec4899;
+  color:#fff;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#db2777;
+}
+
+/* ================= MOBILE ================= */
+.menu-toggle{
+  display:none;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.overlay{
+  position:fixed;
+  top:70px;
+  left:0;
+  width:100%;
+  height:calc(100vh - 70px);
+  background:rgba(0,0,0,0.3);
+  z-index:8;
+  opacity:0;
+  pointer-events:none;
+  transition:0.3s;
+}
+
+.overlay.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.overlay.active{
+  opacity:1;
+  pointer-events:auto;
+  touch-action: none;
+}
+
+@media(max-width:768px){
+
+  .sidebar{
+    left:-100%;
+    transition:0.3s;
+  }
+
+  .sidebar.active{
+    left:0;
+  }
+
+  .main{
+    margin-left:0;
+  }
+
+  .menu-toggle{
+    display:block;
+  }
+}
+/* ================= FIX MOBILE CLICK ================= */
+.sidebar{
+  z-index:1001;
+}
+
+.overlay{
+  z-index:1000;
+}
+
+.main{
+  position:relative;
+  z-index:1;
+}
+
+/* LOCK SCROLL & CLICK SAAT MENU OPEN */
+body.menu-open{
+  overflow:hidden;
+}
+.menu a svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:white;
+  stroke-width:2;
+  flex-shrink:0;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+}
+
+.menu a:hover{
+  background:rgba(255,255,255,0.2);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.35);
+}
+</style>

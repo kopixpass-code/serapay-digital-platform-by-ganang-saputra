@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter',sans-serif;
+}
+
+html{
+  height:100%;
+}
+
+body{
+  min-height:100dvh;
+  width:100%;
+  background:linear-gradient(
+      135deg,
+      #fdf2f8,
+      #fbcfe8
+  );
+  overflow-x:hidden;
+}
+
+/* WRAPPER */
+.auth-container{
+  width:100%;
+  min-height:100dvh;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  padding:20px;
+}
+
+/* CARD */
+.auth-box{
+  width:100%;
+  max-width:400px;
+
+  background:#fff;
+
+  border-radius:22px;
+
+  padding:28px;
+
+  border-top:5px solid #ec4899;
+
+  box-shadow:
+  0 10px 40px rgba(0,0,0,.08);
+
+  animation:fadeIn .4s ease;
+}
+
+/* LOGO */
+.logo-box{
+  display:flex;
+  justify-content:center;
+  margin-bottom:12px;
+}
+
+.logo-box img{
+  width:42px;
+  height:42px;
+  object-fit:contain;
+}
+
+/* TITLE */
+.auth-box h2{
+  text-align:center;
+  color:#ec4899;
+  margin-bottom:22px;
+  font-size:22px;
+}
+
+/* INPUT */
+.form-group{
+  margin-bottom:15px;
+}
+
+.form-group label{
+  display:block;
+  margin-bottom:6px;
+  font-size:13px;
+  font-weight:600;
+}
+
+.form-group input{
+  width:100%;
+  padding:13px;
+
+  border-radius:12px;
+  border:1px solid #ddd;
+
+  font-size:14px;
+}
+
+.form-group input:focus{
+  outline:none;
+  border-color:#ec4899;
+
+  box-shadow:
+  0 0 0 4px rgba(236,72,153,.15);
+}
+
+/* BUTTON */
+.btn{
+  width:100%;
+  border:none;
+  padding:13px;
+
+  border-radius:12px;
+
+  background:#ec4899;
+  color:white;
+
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* LOGIN */
+.extra-links{
+  text-align:center;
+  margin-top:15px;
+  font-size:13px;
+}
+
+.extra-links a{
+  color:#ec4899;
+  text-decoration:none;
+}
+
+/* ANIM */
+@keyframes fadeIn{
+from{
+opacity:0;
+transform:translateY(15px)
+}
+to{
+opacity:1;
+transform:translateY(0)
+}
+}
+
+/* HP */
+@media(max-width:480px){
+
+.auth-container{
+  padding:12px;
+  align-items:flex-start;
+  padding-top:25px;
+}
+
+.auth-box{
+  border-radius:18px;
+  padding:22px;
+}
+
+.logo-box img{
+  width:36px;
+  height:36px;
+}
+
+.auth-box h2{
+  font-size:20px;
+}
+
+}

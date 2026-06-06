@@ -1,127 +1,122 @@
-# SeraPay
+# SeraPay Digital Platform
 
-SeraPay v1 is a full-stack digital services platform designed to automate the purchase, management, and delivery of digital products, including virtual numbers, email services, digital accounts, OTP verification, and automated customer support.
+SeraPay merupakan platform layanan digital berbasis web yang dikembangkan untuk mengelola transaksi produk digital secara otomatis, mulai dari jual beli akun, nomor virtual, sewa email OTP, sistem pembayaran online, hingga pengelolaan pelanggan dalam satu dashboard terintegrasi.
 
-The system was developed to handle thousands of digital transactions efficiently through a centralized dashboard, real-time order processing, integrated payment gateway, automated stock management, and AI-powered communication tools.
+Project ini dibangun dengan arsitektur full-stack menggunakan Node.js dan berbagai integrasi API untuk menghadirkan sistem yang cepat, efisien, dan dapat menangani proses transaksi secara real-time.
 
-## Key Features
+## Fitur Utama
 
-### User Management
+### Manajemen Pengguna
 
-* User registration and authentication system
-* JWT-based secure login
-* Password encryption using bcrypt
-* Profile and account management
-* Password recovery and reset functionality
+* Registrasi dan login pengguna
+* Autentikasi menggunakan JWT
+* Enkripsi password menggunakan bcrypt
+* Ganti password dan reset password
+* Manajemen profil pengguna
 
-### Digital Product Marketplace
+### Marketplace Produk Digital
 
-* Gmail Fresh account marketplace
-* Gmail Used account marketplace
-* Facebook Fresh account marketplace
-* Custom Email services
-* Backup Email services
-* Automated stock management
-* Real-time inventory monitoring
+* Penjualan akun Gmail Fresh
+* Penjualan akun Gmail Bekas
+* Penjualan akun Facebook Fresh
+* Penjualan Email Custom
+* Penjualan Email Backup
+* Sistem stok otomatis
+* Monitoring stok secara real-time
 
-### Automated Order Processing
+### Sistem Pemesanan Otomatis
 
-* Instant product delivery after purchase
-* Automatic stock deduction
-* Order history tracking
-* Active order management
-* Batch order processing
-* Order completion workflow
+* Pemrosesan order otomatis
+* Pengiriman data akun secara instan setelah pembayaran
+* Riwayat transaksi pengguna
+* Manajemen order aktif
+* Sistem batch order
+* Tracking status pesanan
 
-### OTP & Email Services
+### Layanan OTP & Email
 
-* OTP Email rental system
-* Real-time OTP monitoring
-* Gmail API integration
-* Automatic OTP retrieval
-* Email history tracking
-* Multi-order email management
+* Sewa email OTP
+* Monitoring OTP secara real-time
+* Integrasi Gmail API
+* Deteksi email masuk otomatis
+* Riwayat OTP
+* Sinkronisasi email dengan pesanan pengguna
 
-### Virtual Number Services
+### Sistem Nomor Virtual
 
-* Virtual number ordering
-* OTP verification support
-* Real-time status updates
-* Automated delivery workflow
+* Pemesanan nomor virtual
+* Verifikasi OTP
+* Monitoring status layanan
+* Pengelolaan nomor secara otomatis
 
-### Wallet & Payment System
+### Dompet Digital & Pembayaran
 
-* User balance management
-* QRIS payment integration
-* iPaymu payment gateway integration
-* Automated payment verification
-* Transaction history
-* Payment status tracking
-* Deposit management
+* Sistem saldo pengguna
+* Top up saldo menggunakan QRIS
+* Integrasi Payment Gateway iPaymu
+* Verifikasi pembayaran otomatis
+* Riwayat top up
+* Monitoring transaksi pembayaran
 
-### Refund Management
+### Sistem Refund
 
-* User refund requests
-* Admin refund approval system
-* Refund rejection workflow
-* Automatic balance restoration
-* Refund reporting system
-* Refund transaction logging
+* Pengajuan refund oleh pengguna
+* Persetujuan refund oleh admin
+* Penolakan refund dengan status terintegrasi
+* Pengembalian saldo otomatis
+* Pencatatan histori refund
 
-### Affiliate & Reward System
+### Sistem Reward & Withdraw
 
-* Reward balance management
-* Sales commission tracking
-* Reward accumulation
-* Withdrawal request system
-* Bank account management
-* Daily withdrawal control
+* Akumulasi saldo reward
+* Pengelolaan komisi pengguna
+* Penarikan saldo reward
+* Penyimpanan data rekening
+* Pembatasan withdraw harian
+* Monitoring histori withdraw
 
-### Administrative Dashboard
+### Dashboard Admin
 
-* Centralized admin panel
-* User management
-* Transaction monitoring
-* Refund processing
-* Top-up verification
-* Order management
-* Inventory management
-* Financial monitoring
+* Manajemen pengguna
+* Monitoring transaksi
+* Pengelolaan stok produk
+* Verifikasi top up
+* Persetujuan refund
+* Monitoring aktivitas sistem
+* Pengelolaan layanan digital
 
-### Real-Time Communication
+### Komunikasi Real-Time
 
-* Socket.IO real-time communication
-* Live chat support system
-* Instant notifications
-* Real-time order updates
-* Real-time payment updates
-* Real-time OTP updates
+* Socket.IO untuk komunikasi real-time
+* Notifikasi transaksi langsung
+* Update status pesanan secara langsung
+* Monitoring pembayaran real-time
+* Sinkronisasi data tanpa refresh halaman
 
-### AI AutoResponder Platform
+### Live Chat Support
 
-* AI-powered chat automation
-* Multi-language support
-* License management system
-* API authentication
-* Auto-responder deployment
-* Subscription and license extension system
+* Sistem live chat antara pengguna dan admin
+* Riwayat percakapan
+* Pengiriman pesan real-time
+* Monitoring aktivitas pelanggan
 
-### Note & Productivity System
+### AI AutoResponder
 
-* Personal notes management
-* Shared notes functionality
-* Public note sharing
-* Transaction note management
+* Sistem AutoResponder berbasis AI
+* Dukungan multi bahasa
+* Sistem lisensi pengguna
+* Integrasi API eksternal
+* Pengelolaan masa aktif lisensi
+* Otomatisasi percakapan pelanggan
 
-### Data Management
+### Sistem Catatan Digital
 
-* Excel-based inventory management
-* JSON database architecture
-* File upload management
-* Automated reporting
-* Historical transaction records
+* Catatan pribadi pengguna
+* Berbagi catatan melalui tautan publik
+* Manajemen data transaksi
+* Penyimpanan catatan terpusat
 
-## Technology Stack
+## Teknologi Yang Digunakan
 
 ### Backend
 
@@ -132,18 +127,18 @@ The system was developed to handle thousands of digital transactions efficiently
 * bcrypt
 * Axios
 
-### APIs & Integrations
+### Integrasi API
 
 * Gmail API
 * Google OAuth 2.0
 * iPaymu Payment Gateway
-* Telegram Bot Integration
-* External OTP Services
+* Telegram Bot API
+* Layanan OTP dan Email
 
-### Storage & Data Processing
+### Penyimpanan Data
 
-* XLSX Spreadsheet Processing
-* JSON Database Management
+* JSON Database
+* XLSX Spreadsheet Management
 * File System Storage
 
 ### Frontend
@@ -151,20 +146,23 @@ The system was developed to handle thousands of digital transactions efficiently
 * HTML5
 * CSS3
 * JavaScript
-* Responsive Mobile Interface
+* Responsive Mobile Design
 
-## Highlights
+## Keunggulan Project
 
-* Full-stack application architecture
-* Real-time communication system
-* Payment gateway integration
-* AI-powered automation
-* OTP and email automation
-* Admin dashboard development
-* Authentication and authorization system
-* API integration and automation
-* Digital product marketplace implementation
+* Full-Stack Web Application
+* Sistem Real-Time berbasis Socket.IO
+* Integrasi Payment Gateway
+* Integrasi Gmail API
+* Sistem OTP Otomatis
+* Dashboard Admin Lengkap
+* Sistem Marketplace Produk Digital
+* AI AutoResponder
+* Pengelolaan Stok Otomatis
+* Sistem Reward dan Withdraw
+* Manajemen Refund Terintegrasi
+* Mobile Friendly Interface
 
 ## Developer
 
-Developed by Ganang Saputra as a portfolio project showcasing full-stack web development, payment gateway integration, API automation, real-time systems, digital commerce solutions, and scalable backend architecture.
+Dikembangkan oleh Ganang Saputra sebagai proyek portfolio untuk menunjukkan kemampuan dalam pengembangan Full-Stack Web Application, Integrasi API, Payment Gateway, Sistem Real-Time, Otomatisasi Layanan Digital, serta Pengelolaan Infrastruktur Backend yang kompleks.

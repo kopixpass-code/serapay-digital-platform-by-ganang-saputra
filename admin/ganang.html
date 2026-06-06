@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Admin Control</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter,sans-serif;
+}
+
+body{
+  background:linear-gradient(135deg,#fdf2f8,#fce7f3);
+  padding:20px 5%;
+  color:#be185d;
+}
+
+/* TITLE */
+h2{
+  margin:0 auto 15px auto;
+  color:#be185d;
+  font-size:20px;
+  max-width:1200px;   /* samakan dengan table-card */
+  width:100%;
+}
+
+/* SEARCH */
+input{
+  width:100%;
+  max-width:1200px;   /* samakan dengan table-card */
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  margin:0 auto 20px auto;   /* center */
+  display:block;
+  outline:none;
+  background:#fff;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* CARD WRAPPER */
+.table-card{
+  background:#fff;
+  border-radius:16px;
+  padding:15px;
+  margin:0 auto 25px auto;   /* center */
+  max-width:1200px;           /* batasi lebar */
+  width:100%;
+  box-shadow:0 6px 20px rgba(0,0,0,0.06);
+}
+
+/* TABLE SCROLL */
+.table-wrapper{
+  overflow-x:auto;
+  width:100%;
+}
+
+/* TABLE */
+table{
+  width:100%;
+  min-width:700px;
+  border-collapse:collapse;
+}
+
+th{
+  background:#ec4899;
+  color:white;
+  padding:12px;
+  font-size:15px;
+}
+
+td{
+  padding:10px;
+  border-bottom:1px solid #f3f4f6;
+  text-align:center;
+  font-size:14px;
+}
+
+tr:hover{
+  background:#fff1f7;
+}
+
+/* BUTTON */
+button{
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  margin:2px;
+  transition:.2s;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+.ok{
+  background:#22c55e;
+  color:white;
+}
+
+.no{
+  background:#ef4444;
+  color:white;
+}
+
+/* STATUS */
+.status{
+  font-weight:bold;
+}
+
+.pending{
+  color:#f59e0b;
+}
+
+.success{
+  color:#22c55e;
+}
+
+.failed{
+  color:#ef4444;
+}
+
+.empty{
+  text-align:center;
+  padding:20px;
+  color:#999;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+  body{
+    padding:10px;
+  }
+
+  h2{
+    font-size:18px;
+  }
+
+  input{
+    font-size:14px;
+    padding:10px;
+  }
+
+  th,td{
+    font-size:11px;
+    padding:8px;
+  }
+
+  button{
+    width:100%;
+    margin-bottom:5px;
+    font-size:11px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<h2>🚀 ADMIN PANEL</h2>
+
+<input type="text" id="search" placeholder="Cari email..." onkeyup="render()">
+
+<!-- ================= TOPUP ================= -->
+<h2>💰 ISI SALDO</h2>
+<div class="table-card">
+<div class="table-wrapper">
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>ID</th>
+<th>Nominal</th>
+<th>Waktu</th>
+<th>Status</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody id="topupTable"></tbody>
+</table>
+</div>
+</div>
+
+<!-- ================= REFUND ================= -->
+<h2>🔄 REFUND</h2>
+<div class="table-card">
+<div class="table-wrapper">
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>ID</th>
+<th>Alasan</th>
+<th>Nominal</th>
+<th>Waktu</th>
+<th>Status</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody id="refundTable"></tbody>
+</table>
+</div>
+</div>
+
+<script>
+
+let allData = [];
+
+// ================= LOAD =================
+async function load(){
+  try{
+    const res = await fetch("/api/admin/data");
+    const json = await res.json();
+
+    if(json.success){
+      allData = json.data || [];
+      render();
+    }
+  }catch(e){
+    console.log("Gagal load admin");
+  }
+}
+
+// ================= FORMAT =================
+function formatRupiah(n){
+  return "Rp " + Number(n || 0).toLocaleString("id-ID");
+}
+
+function formatTime(t){
+  return new Date(t).toLocaleString("id-ID");
+}
+
+function getStatus(s){
+  if(s === "pending") return `<span class="status pending">PENDING</span>`;
+  if(s === "success") return `<span class="status success">BERHASIL</span>`;
+  if(s === "failed") return `<span class="status failed">DITOLAK</span>`;
+  return s;
+}
+
+// ================= RENDER =================
+function render(){
+
+  const keyword = document.getElementById("search").value.toLowerCase();
+
+  const topupBox = document.getElementById("topupTable");
+  const refundBox = document.getElementById("refundTable");
+
+  topupBox.innerHTML = "";
+  refundBox.innerHTML = "";
+
+let topupData = allData.filter(x =>
+  x.type === "topup" &&
+  x.status === "pending" &&   // hanya tampil pending
+  (x.email || "").toLowerCase().includes(keyword)
+);
+
+let refundData = allData.filter(x =>
+  x.type === "refund" &&
+  x.status === "pending" &&   // hanya tampil pending
+  (x.email || "").toLowerCase().includes(keyword)
+);
+
+  // ===== TOPUP =====
+  if(topupData.length === 0){
+    topupBox.innerHTML = `<tr><td colspan="6" class="empty">Tidak ada data</td></tr>`;
+  } else {
+    topupData.forEach(x => {
+
+      let aksi = "-";
+
+if(x.status === "pending" && x.nominal){
+  aksi = `
+    <button 
+      class="ok"
+      onclick="approveTopup('${x.email}', '${x.time}')"
+    >
+      ✔ Konfirmasi
+    </button>
+
+    <button 
+      class="no"
+      onclick="rejectTopup('${x.email}', '${x.time}')"
+    >
+      ✖ Tolak
+    </button>
+  `;
+}
+
+      topupBox.innerHTML += `
+        <tr>
+          <td>${x.email}</td>
+          <td>${x.id}</td>
+          <td>${formatRupiah(x.nominal)}</td>
+          <td>${formatTime(x.time)}</td>
+          <td>${getStatus(x.status)}</td>
+          <td>${aksi}</td>
+        </tr>
+      `;
+    });
+  }
+
+  // ===== REFUND =====
+  if(refundData.length === 0){
+    refundBox.innerHTML = `<tr><td colspan="7" class="empty">Tidak ada data</td></tr>`;
+  } else {
+    refundData.forEach(x => {
+
+      let aksi = "-";
+
+if(x.status === "pending"){
+  aksi = `
+    <button class="ok" onclick="approveRefund('${x.email}', '${x.orderId}')">
+      ✔ Setujui
+    </button>
+
+    <button class="no" onclick="rejectRefund('${x.email}', '${x.orderId}')">
+      ✖ Tolak
+    </button>
+  `;
+}
+
+      refundBox.innerHTML += `
+        <tr>
+          <td>${x.email}</td>
+<td>${x.id}</td>
+<td>${x.alasan || "-"}</td>
+<td>${formatRupiah(x.nominal)}</td>
+          <td>${formatTime(x.time)}</td>
+          <td>${getStatus(x.status)}</td>
+          <td>${aksi}</td>
+        </tr>
+      `;
+    });
+  }
+}
+
+
+
+// ================= ACTION =================
+
+async function approveTopup(email,time){
+  console.log("TOMBOL DIKLIK");
+  console.log("email:", email);
+  console.log("time:", time);
+
+  try{
+    const res = await fetch("/api/admin/topup/approve",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        email: email,
+        time: Number(time)
+      })
+    });
+
+    console.log("status fetch:", res.status);
+
+    const text = await res.text();
+    console.log("raw response:", text);
+
+    let data = JSON.parse(text);
+
+    if(data.success){
+      alert("Topup berhasil diapprove");
+      load();
+    }else{
+      alert(data.message || "Approve gagal");
+    }
+
+  }catch(err){
+    console.log("ERROR FETCH:", err);
+    alert("Request gagal");
+  }
+}
+
+async function rejectTopup(email,time){
+  await fetch("/api/admin/topup/reject",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ email, time })
+  });
+  load();
+}
+
+async function approveRefund(email,orderId){
+  await fetch("/api/admin/refund/approve",{
+    method:"POST",
+    headers:{ 
+      "Content-Type":"application/json" 
+    },
+    body: JSON.stringify({
+      email,
+      orderId
+    })
+  });
+
+  load();
+}
+
+async function rejectRefund(email,orderId){
+  await fetch("/api/admin/refund/reject",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      email,
+      orderId
+    })
+  });
+
+  load();
+}
+
+
+
+// ================= AUTO REFRESH =================
+setInterval(load, 5000);
+
+// ================= INIT =================
+load();
+
+</script>
+
+</body>
+</html>

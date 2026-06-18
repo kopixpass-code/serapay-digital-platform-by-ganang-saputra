@@ -1,4 +1,19 @@
 require("dotenv").config();
+
+const mysql = require("mysql2/promise");
+
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
+
+const db = pool;
+
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -25,40 +40,115 @@ function generateSignature(body, apiKey, va) {
     .digest("hex");
 }
 
-function getOtpHistory(){
+async function getOtpHistory(userEmail = null) {
 
-    try{
+    let sql =
+    `SELECT *
+     FROM otp_history`;
 
-        return JSON.parse(
-            fs.readFileSync(
-                "./database/otp-history.json",
-                "utf8"
-            )
-        );
+    const params = [];
 
-    }catch{
+    if (userEmail) {
 
-        return [];
+        sql +=
+        ` WHERE user_email=?`;
+
+        params.push(userEmail);
 
     }
 
+    sql +=
+    ` ORDER BY time DESC`;
+
+    const [rows] =
+    await pool.execute(
+        sql,
+        params
+    );
+
+    return rows;
+
 }
 
-function saveOtpHistory(data){
+async function addOtpHistory(data) {
 
-    fs.writeFileSync(
-        "./database/otp-history.json",
-        JSON.stringify(data,null,2)
+    await pool.execute(
+        `INSERT INTO otp_history (
+            activation_id,
+            duration,
+            user_email,
+            service,
+            service_name,
+            country,
+            country_name,
+            country_logo,
+            operator,
+            number,
+            harga,
+            status,
+            messages,
+            sms_received,
+            time
+        )
+        VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )`,
+        [
+            data.activation_id,
+            data.duration,
+            data.user_email,
+            data.service,
+            data.service_name,
+            data.country,
+            data.country_name,
+            data.country_logo,
+            data.operator,
+            data.number,
+            data.harga,
+            data.status,
+            JSON.stringify(
+                data.messages || []
+            ),
+            data.sms_received ? 1 : 0,
+            data.time
+        ]
     );
 
 }
 
-const EMAIL_HISTORY_FILE =
-path.join(
-__dirname,
-"database",
-"otp-email.json"
-);
+async function updateOtpHistory(
+    activationId,
+    updateData
+) {
+
+    const fields = [];
+    const values = [];
+
+    Object.keys(updateData)
+    .forEach(key => {
+
+        fields.push(
+            `${key}=?`
+        );
+
+        values.push(
+            updateData[key]
+        );
+
+    });
+
+    values.push(
+        activationId
+    );
+
+    await pool.execute(
+        `UPDATE otp_history
+         SET ${fields.join(", ")}
+         WHERE activation_id=?`,
+        values
+    );
+
+}
 
 function getEmailHistory(){
 
@@ -117,7 +207,6 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   },
 
-  // UBAH INI
   transports: ["websocket", "polling"],
 
   pingTimeout: 120000,
@@ -148,8 +237,6 @@ app.use(
     }
   })
 );
-
-require("./api-shopee-monitor")(app);
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
@@ -430,37 +517,62 @@ async(req,res)=>{
 
 try{
 
-const tipe=
+const tipe =
 String(
-req.body.tipe||""
+req.body.tipe || ""
 )
 .toLowerCase()
 .trim();
 
-let fileName="";
+const users =
+getUsers();
+
+const user =
+users.find(
+u =>
+u.email ===
+req.body.userEmail
+);
+
+if(!user){
+
+return res.json({
+success:false,
+message:"User tidak ditemukan"
+});
+
+}
+
+const transaksiId =
+Date.now();
+
+let table = "";
 
 if(
-tipe==="facebook fresh"
+tipe ===
+"facebook fresh"
 ){
 
-fileName=
-"setoran-facebook-fresh.xlsx";
+table =
+"setoran_facebook_fresh";
 
 }
 else if(
-tipe==="gmail fresh"
+tipe ===
+"gmail fresh"
 ){
 
-fileName=
-"setoran-gmail-fresh.xlsx";
+table =
+"setoran_gmail_fresh";
 
 }
 else if(
-tipe==="gmail bekas"
+tipe ===
+"gmail bekas"
 ){
 
-fileName=
-"setoran-gmail-bekas.xlsx";
+table =
+"setoran_gmail_bekas";
 
 }
 else{
@@ -472,174 +584,121 @@ message:"tipe tidak dikenal"
 
 }
 
-const excelPath=
-path.join(
-setoranDir,
-fileName
-);
-
-let data=[];
-if(
-fs.existsSync(
-excelPath
-)
-){
-
-const wb=
-XLSX.readFile(
-excelPath
-);
-
-const sheet=
-wb.Sheets[
-wb.SheetNames[0]
-];
-
-data=
-XLSX.utils.sheet_to_json(
-sheet
-);
-
-}
-
-const users=
-getUsers();
-
-const user=
-users.find(
-u=>
-u.email===
-req.body.userEmail
-);
-
-const row={
+const row = {
 
 ID:
-Date.now(),
+transaksiId,
 
 Nama:
-user?.name || "-",
+user.name || "-",
 
 Email:
 req.body.email || "-",
+
+UID:
+req.body.uid || "-",
 
 Password:
 req.body.password || "-",
 
 Status:"",
 
+Produk:
+req.body.tipe || "-",
+
 EmailUser:
 req.body.userEmail || "",
 
 Harga:
 Number(
-req.body.harga||0
+req.body.harga || 0
 ),
 
 Waktu:
 new Date()
-.toLocaleString(
-"id-ID"
-)
 
 };
 
 if(
-tipe==="facebook fresh"
+table ===
+"setoran_facebook_fresh"
 ){
 
-row.UID=
-req.body.uid || "-";
-
-data.unshift({
-
-Email:
+await pool.execute(
+`
+INSERT INTO setoran_facebook_fresh
+(
+transaksi_id,
+email,
+uid,
+password,
+status_akun,
+produk,
+nama,
+email_user,
+harga,
+waktu,
+sudah_diproses
+)
+VALUES
+(
+?,?,?,?,?,?,?,?,?,
+NOW(),
+0
+)
+`,
+[
+transaksiId,
 row.Email,
-
-UID:
 row.UID,
-
-Password:
 row.Password,
-
-Status:
-row.Status,
-
-Produk:
+"",
 "Facebook Fresh",
-
-ID:
-row.ID,
-
-Nama:
 row.Nama,
-
-EmailUser:
 row.EmailUser,
-
-Harga:
-row.Harga,
-
-Waktu:
-row.Waktu
-
-});
+row.Harga
+]
+);
 
 }
-
 else{
 
-data.unshift({
-
-Email:
+await pool.execute(
+`
+INSERT INTO ${table}
+(
+transaksi_id,
+email,
+password,
+status_akun,
+produk,
+nama,
+email_user,
+harga,
+waktu,
+sudah_diproses
+)
+VALUES
+(
+?,?,?,?,?,?,?,
+?,
+NOW(),
+0
+)
+`,
+[
+transaksiId,
 row.Email,
-
-Password:
 row.Password,
-
-Status:
-row.Status,
-
-Produk:
-req.body.tipe || "-",
-
-ID:
-row.ID,
-
-Nama:
+"",
+row.Produk,
 row.Nama,
-
-EmailUser:
 row.EmailUser,
-
-Harga:
-row.Harga,
-
-Waktu:
-row.Waktu
-
-});
+row.Harga
+]
+);
 
 }
-
-const wb=
-XLSX.utils.book_new();
-
-const sheet=
-XLSX.utils.json_to_sheet(
-data
-);
-
-XLSX.utils.book_append_sheet(
-wb,
-sheet,
-"Setoran"
-);
-
-XLSX.writeFile(
-wb,
-excelPath
-);
 
 await kirimSetoranTelegram(
 row,
@@ -670,120 +729,66 @@ err.message
 
 app.get(
 "/api/setoran/sync",
-(req,res)=>{
+async(req,res)=>{
 
 try{
 
-const files=[
+const tables=[
 
-"setoran-facebook-fresh.xlsx",
+"setoran_facebook_fresh",
 
-"setoran-gmail-fresh.xlsx",
+"setoran_gmail_fresh",
 
-"setoran-gmail-bekas.xlsx"
+"setoran_gmail_bekas"
 
 ];
 
-let users=
-getUsers();
+for(const table of tables){
 
-files.forEach(file=>{
-
-const excelPath=
-path.join(
-setoranDir,
-file
+const [rows]=await pool.execute(
+`
+SELECT
+id,
+email_user,
+harga
+FROM ${table}
+WHERE
+LOWER(status_akun)='on'
+AND sudah_diproses=0
+`
 );
 
-if(
-!fs.existsSync(
-excelPath
-)
-)return;
+for(const item of rows){
 
-const wb=
-XLSX.readFile(
-excelPath
+await pool.execute(
+`
+UPDATE users
+SET reward =
+COALESCE(reward,0) + ?
+WHERE email=?
+`,
+[
+Number(item.harga||0),
+item.email_user
+]
 );
 
-const sheet=
-wb.Sheets[
-wb.SheetNames[0]
-];
-
-let data=
-XLSX.utils.sheet_to_json(
-sheet
-);
-
-let berubah=false;
-
-data.forEach(item=>{
-
-const status=
-String(
-item.Status||""
-)
-.toLowerCase()
-.trim();
-
-if(
-status!=="on"
-)return;
-
-if(
-item.sudahDiproses
-)return;
-
-const user=
-users.find(
-u=>
-u.email===
-item.EmailUser
-);
-
-if(!user)
-return;
-
-user.reward=
-Number(
-user.reward||0
-)+
-Number(
-item.Harga||0
-);
-
-item.sudahDiproses=true;
-
-berubah=true;
-
-});
-
-if(berubah){
-
-const newSheet=
-XLSX.utils.json_to_sheet(
-data
-);
-
-wb.Sheets[
-wb.SheetNames[0]
-]=newSheet;
-
-XLSX.writeFile(
-wb,
-excelPath
+await pool.execute(
+`
+UPDATE ${table}
+SET sudah_diproses=1
+WHERE id=?
+`,
+[
+item.id
+]
 );
 
 }
 
-});
+}
 
-saveUsers(
-users
-);
-
-res.json({
+return res.json({
 success:true
 });
 
@@ -794,8 +799,9 @@ console.log(
 err
 );
 
-res.json({
-success:false
+return res.json({
+success:false,
+message:err.message
 });
 
 }
@@ -804,67 +810,76 @@ success:false
 
 app.get(
 "/api/setoran",
-(req,res)=>{
+async(req,res)=>{
 
 try{
 
-const files=[
+const [facebook] =
+await pool.execute(
+`
+SELECT
+transaksi_id AS ID,
+email AS Email,
+uid AS UID,
+password AS Password,
+status_akun AS Status,
+produk AS Produk,
+nama AS Nama,
+email_user AS EmailUser,
+harga AS Harga,
+waktu AS Waktu
+FROM setoran_facebook_fresh
+`
+);
 
-"setoran-facebook-fresh.xlsx",
+const [gmailFresh] =
+await pool.execute(
+`
+SELECT
+transaksi_id AS ID,
+email AS Email,
+password AS Password,
+status_akun AS Status,
+produk AS Produk,
+nama AS Nama,
+email_user AS EmailUser,
+harga AS Harga,
+waktu AS Waktu
+FROM setoran_gmail_fresh
+`
+);
 
-"setoran-gmail-fresh.xlsx",
+const [gmailBekas] =
+await pool.execute(
+`
+SELECT
+transaksi_id AS ID,
+email AS Email,
+password AS Password,
+status_akun AS Status,
+produk AS Produk,
+nama AS Nama,
+email_user AS EmailUser,
+harga AS Harga,
+waktu AS Waktu
+FROM setoran_gmail_bekas
+`
+);
 
-"setoran-gmail-bekas.xlsx"
+const semua = [
+
+...facebook,
+
+...gmailFresh,
+
+...gmailBekas
 
 ];
-
-let semua=[];
-
-files.forEach(file=>{
-
-const excelPath=
-path.join(
-setoranDir,
-file
-);
-
-if(
-!fs.existsSync(
-excelPath
-)
-){
-return;
-}
-
-const wb=
-XLSX.readFile(
-excelPath
-);
-
-const sheet=
-wb.Sheets[
-wb.SheetNames[0]
-];
-
-const data=
-XLSX.utils.sheet_to_json(
-sheet
-);
-
-semua.push(
-...data
-);
-
-});
 
 semua.sort(
 (a,b)=>
-Number(
-b.ID||0
-)-
-Number(
-a.ID||0
-)
+Number(b.ID) -
+Number(a.ID)
 );
 
 return res.json({
@@ -896,41 +911,43 @@ data:[]
 
 app.post(
 "/api/withdraw",
-(req,res)=>{
+async(req,res)=>{
 
 try{
 
-console.log(
-"WITHDRAW:",
-req.body
-);
-
-const users=
-getUsers();
-
-const user=
-users.find(
-u=>
-u.email===
+const [users] =
+await pool.execute(
+`
+SELECT *
+FROM users
+WHERE email=?
+LIMIT 1
+`,
+[
 req.body.userEmail
+]
 );
 
-if(!user){
+if(!users.length){
 
 return res.json({
 success:false,
-message:"User tidak ditemukan"
+message:
+"User tidak ditemukan"
 });
 
 }
 
-const jumlah=
+const user =
+users[0];
+
+const jumlah =
 Number(
-req.body.jumlah||0
+req.body.jumlah || 0
 );
 
 if(
-jumlah < 50000
+jumlah < 10000
 ){
 
 return res.json({
@@ -942,232 +959,327 @@ message:
 }
 
 if(
-jumlah<=0
+jumlah <= 0
 ){
 
 return res.json({
 success:false,
-message:"Nominal tidak valid"
+message:
+"Nominal tidak valid"
 });
 
 }
 
 if(
-Number(user.reward||0)
+Number(
+user.reward || 0
+)
 <
 jumlah
 ){
 
 return res.json({
 success:false,
-message:"Saldo tidak cukup"
+message:
+"Saldo tidak cukup"
 });
 
 }
 
-let data=
-bacaJson(wdPath);
-
-const wdTerakhir=
-data.find(
-x=>
-x.EmailUser===
+const [cekWd] =
+await pool.execute(
+`
+SELECT id
+FROM data_wd
+WHERE
+email_user=?
+AND DATE(waktu)=CURDATE()
+LIMIT 1
+`,
+[
 req.body.userEmail
+]
 );
 
-if(wdTerakhir){
-
-const sekarang=
-new Date();
-
-const terakhir=
-new Date(
-wdTerakhir.Waktu
-);
-
-const hariSekarang=
-sekarang.toDateString();
-const hariTerakhir=
-terakhir.toDateString();
 if(
-hariSekarang===
-hariTerakhir
+cekWd.length
 ){
 
 return res.json({
 success:false,
 message:
-"Anda hanya bisa menarik saldo 1x sehari, coba lagi setelah jam 00:00"
+"Anda hanya bisa menarik saldo 1x sehari, coba lagi besok"
 });
-}
+
 }
 
-user.reward=
-Number(
-user.reward||0
-)
--
-jumlah;
-
-saveUsers(
-users
+await pool.execute(
+`
+UPDATE users
+SET reward =
+reward - ?
+WHERE email=?
+`,
+[
+jumlah,
+req.body.userEmail
+]
 );
 
-data.unshift({
+const wdData = {
 
 ID:
 Date.now(),
 
 Nama:
-user?.name || "-",
+user.name || "-",
 
 EmailUser:
-req.body.userEmail || "-",
+req.body.userEmail,
 
 Bank:
-req.body.bank || "-",
+req.body.bank,
 
 NomorRekening:
-req.body.norek || "-",
+req.body.norek,
 
 NamaRekening:
-req.body.nama || "-",
+req.body.nama,
 
 Jumlah:
 jumlah,
 
 Status:
-"Pending",
+"Pending"
 
-Waktu:
-new Date()
-.toLocaleString(
-"id-ID"
+};
+
+await pool.execute(
+`
+INSERT INTO data_wd
+(
+id,
+nama,
+email_user,
+bank,
+nomor_rekening,
+nama_rekening,
+jumlah,
+status,
+waktu
 )
-
-});
-
-simpanJson(
-wdPath,
-data
+VALUES
+(
+?,?,?,?,?,?,?,
+'Pending',
+NOW()
+)
+`,
+[
+wdData.ID,
+wdData.Nama,
+wdData.EmailUser,
+wdData.Bank,
+wdData.NomorRekening,
+wdData.NamaRekening,
+wdData.Jumlah
+]
 );
 
-kirimWithdrawTelegram(
-data[0]
+await kirimWithdrawTelegram(
+wdData
 );
 
-const excelPath=
-path.join(
-setoranDir,
-"withdraw.xlsx"
-);
-
-const wb=
-XLSX.utils.book_new();
-const sheet=
-XLSX.utils.json_to_sheet(
-data
-);
-XLSX.utils.book_append_sheet(
-wb,
-sheet,
-"Withdraw"
-);
-XLSX.writeFile(
-wb,
-excelPath
-);
 return res.json({
 success:true
 });
 
 }catch(err){
+
 console.log(
 "WITHDRAW ERROR:",
 err
 );
 
 return res.json({
-success:false
+success:false,
+message:
+err.message
 });
+
 }
+
 });
 
 app.post(
 "/api/rekening",
-(req,res)=>{
-const users=
-getUsers();
-const user=
-users.find(
-u=>
-u.email===
-req.body.userEmail
+async(req,res)=>{
+
+try{
+
+await pool.execute(
+`
+INSERT INTO rekening
+(
+email_user,
+bank,
+norek,
+nama
+)
+VALUES
+(
+?,?,?,?
+)
+ON DUPLICATE KEY UPDATE
+bank=VALUES(bank),
+norek=VALUES(norek),
+nama=VALUES(nama)
+`,
+[
+req.body.userEmail,
+req.body.bank,
+req.body.norek,
+req.body.nama
+]
 );
 
-if(!user){
+return res.json({
+success:true
+});
+
+}catch(err){
+
+console.log(
+"REKENING:",
+err
+);
+
 return res.json({
 success:false
 });
+
 }
-user.rekening={
-bank:req.body.bank,
-norek:req.body.norek,
-nama:req.body.nama
-};
-saveUsers(users);
-res.json({
-success:true
-});
+
 });
 
 app.get(
 "/api/rekening/:email",
-(req,res)=>{
-const users=
-getUsers();
-const user=
-users.find(
-u=>
-u.email===
+async(req,res)=>{
+
+try{
+
+const [rows] =
+await pool.execute(
+`
+SELECT
+bank,
+norek,
+nama
+FROM rekening
+WHERE email_user=?
+LIMIT 1
+`,
+[
 req.params.email
+]
 );
-res.json({
+
+return res.json({
+
 success:true,
+
 rekening:
-user?.rekening||null
+rows.length
+?
+rows[0]
+:
+null
+
 });
+
+}catch(err){
+
+console.log(
+"GET REKENING:",
+err
+);
+
+return res.json({
+
+success:false,
+
+rekening:null
+
+});
+
+}
+
 });
 
 app.get(
 "/api/status-akun",
 (req,res)=>{
+
 res.json({
+
 success:true,
+
 penuh:
 akunPenuh
+
 });
+
 });
 
 app.get(
 "/api/withdraw",
-(req,res)=>{
+async(req,res)=>{
+
 try{
-const data=
-bacaJson(
-wdPath
+
+const [rows] =
+await pool.execute(
+`
+SELECT
+id,
+nama,
+email_user,
+bank,
+nomor_rekening,
+nama_rekening,
+jumlah,
+status,
+waktu
+FROM data_wd
+ORDER BY waktu DESC
+`
 );
+
 return res.json({
+
 success:true,
-data
+
+data:rows
+
 });
 
-}catch{
+}catch(err){
+
+console.log(
+"GET WD:",
+err
+);
+
 return res.json({
+
 success:false,
+
 data:[]
+
 });
+
 }
+
 });
 
 app.get("/", (req, res) => {
@@ -1200,62 +1312,74 @@ fs.writeFileSync("token.json", JSON.stringify(tokens, null, 2));
 });
 
 const locks = new Set();
-app.get("/api/produk", (req, res) => {
-  try {
-    const gmailWb = XLSX.readFile(gmailPath);
-    const gaslurWb = XLSX.readFile(gaslurPath);
-	const fbWb = XLSX.readFile(fbPath);
-    const gmailData = XLSX.utils.sheet_to_json(gmailWb.Sheets[gmailWb.SheetNames[0]]);
-	const gmailBekasWb = XLSX.readFile(gmailBekasPath);
-const gmailBekasData = XLSX.utils.sheet_to_json(
-  gmailBekasWb.Sheets[gmailBekasWb.SheetNames[0]]
-);
-const gmailBekasStok = gmailBekasData.filter(
-  d => (d.statusGmail || "").toLowerCase() !== "terjual"
-).length;
-    const gaslurData = XLSX.utils.sheet_to_json(gaslurWb.Sheets[gaslurWb.SheetNames[0]]);
-	const fbData = XLSX.utils.sheet_to_json(fbWb.Sheets[fbWb.SheetNames[0]]);
-    const gmailStok = gmailData.filter(
-      d => (d.statusGmail || "").toLowerCase() !== "terjual"
-    ).length;
 
-    const backupStok = gaslurData.filter(
-      d => (d.Status || "").toLowerCase() !== "terjual"
-    ).length;
-	
-	const fbStok = fbData.filter(
-  d => (d.statusEmail || "").toLowerCase() !== "terjual"
-).length;
+app.get("/api/produk", async (req, res) => {
+
+  try {
+
+    const [[gmail]] =
+      await pool.query(`
+        SELECT COUNT(*) stok
+        FROM gmail
+        WHERE status='tersedia'
+      `);
+
+    const [[gmailBekas]] =
+      await pool.query(`
+        SELECT COUNT(*) stok
+        FROM gmail_bekas
+        WHERE status='tersedia'
+      `);
+
+    const [[backup]] =
+      await pool.query(`
+        SELECT COUNT(*) stok
+        FROM gaslur
+        WHERE status='tersedia'
+      `);
+
+    const [[fb]] =
+      await pool.query(`
+        SELECT COUNT(*) stok
+        FROM facebook_fresh
+        WHERE status='tersedia'
+      `);
 
     res.json({
       produk: [
         {
           nama: "gmail fresh",
           harga: 4500,
-          stok: gmailStok
+          stok: gmail.stok
         },
-		{
-  nama: "gmail bekas",
-  harga: 1500,
-  stok: gmailBekasStok
-},
+        {
+          nama: "gmail bekas",
+          harga: 1500,
+          stok: gmailBekas.stok
+        },
         {
           nama: "email custom",
           harga: 1000,
-          stok: backupStok
+          stok: backup.stok
         },
-{
-  nama: "facebook fresh",
-  harga: 3300,
-  stok: fbStok
-},
+        {
+          nama: "facebook fresh",
+          harga: 3300,
+          stok: fb.stok
+        }
       ]
     });
 
   } catch (err) {
+
     console.log(err);
-    res.json({ produk: [] });
+
+    res.json({
+      produk: []
+    });
+
   }
+
 });
 
 app.post("/api/order", authMiddleware, async (req, res) => {
@@ -1278,9 +1402,16 @@ app.post("/api/order", authMiddleware, async (req, res) => {
       throw new Error("Data tidak lengkap atau jumlah tidak valid");
     }
 
-    const users = getUsers();
-    const userIndex = users.findIndex(u => u.email === userKey);
-    if (userIndex === -1) throw new Error("User tidak ditemukan");
+const [users] = await pool.query(
+  "SELECT * FROM users WHERE email=?",
+  [userKey]
+);
+
+if (!users.length) {
+  throw new Error("User tidak ditemukan");
+}
+
+const user = users[0];
 const produkKey = produk.toLowerCase().trim();
 const hargaList = {
   "gmail": 4500,
@@ -1302,119 +1433,25 @@ if (hargaList[produkKey] === undefined) {
 
 const totalHarga = hargaList[produkKey] * qty;
 
-    if (users[userIndex].saldo < totalHarga) {
-      throw new Error("Saldo tidak cukup");
-    }
+if (Number(user.saldo) < totalHarga) {
+  throw new Error("Saldo tidak cukup");
+}
 
 let hasil = [];
 
-let wbG, wbGB, wbB, wbF;
-let sheetG, sheetGB, sheetB, sheetF;
-
-let gmailData = [];
-let gmailBekasData = [];
-let backupData = [];
-let fbData = [];
 if (
   produk === "gmail" ||
   produk === "gmail fresh"
 ) {
 
-  wbG = XLSX.readFile(gmailPath);
-
-  sheetG =
-    wbG.Sheets[wbG.SheetNames[0]];
-
-  gmailData =
-    XLSX.utils.sheet_to_json(sheetG);
-
-}
-
-if (produk === "gmail bekas") {
-
-  wbGB = XLSX.readFile(gmailBekasPath);
-
-  sheetGB =
-    wbGB.Sheets[wbGB.SheetNames[0]];
-
-  gmailBekasData =
-    XLSX.utils.sheet_to_json(sheetGB);
-
-}
-
-if (
-  produk === "facebook" ||
-  produk === "facebook fresh"
-) {
-
-  wbF = XLSX.readFile(fbPath);
-
-  sheetF =
-    wbF.Sheets[wbF.SheetNames[0]];
-
-  fbData =
-    XLSX.utils.sheet_to_json(sheetF);
-
-  fbData = fbData.map(row => {
-
-    const newRow = {};
-
-    Object.keys(row).forEach(key => {
-      newRow[key.trim()] = row[key];
-    });
-
-    return newRow;
-
-  });
-
-}
-
-if (
-  produk === "backup" ||
-  produk === "email pengganti" ||
-  produk === "email custom"
-) {
-
-  wbB = XLSX.readFile(gaslurPath);
-
-  sheetB =
-    wbB.Sheets[wbB.SheetNames[0]];
-
-  backupData =
-    XLSX.utils.sheet_to_json(sheetB);
-
-}
-
-if (
-  produk === "gmail" ||
-  produk === "gmail fresh"
-) {
-
-  let gmailBekasWorkbook;
-  let gmailBekasSheet;
-  let gmailBekasIsi = [];
-
-  if (fs.existsSync(gmailBekasPath)) {
-
-    gmailBekasWorkbook =
-      XLSX.readFile(gmailBekasPath);
-
-    gmailBekasSheet =
-      gmailBekasWorkbook.Sheets[
-        gmailBekasWorkbook.SheetNames[0]
-      ];
-
-    gmailBekasIsi =
-      XLSX.utils.sheet_to_json(
-        gmailBekasSheet
-      );
-
-  }
-
-  const tersedia = gmailData.filter(
-    d =>
-      (d.statusGmail || "")
-      .toLowerCase() !== "terjual"
+  const [tersedia] = await pool.query(
+    `
+    SELECT *
+    FROM gmail
+    WHERE status='tersedia'
+    LIMIT ?
+    `,
+    [qty]
   );
 
   if (tersedia.length < qty) {
@@ -1423,70 +1460,81 @@ if (
     );
   }
 
-  for (let i = 0; i < qty; i++) {
+  const ids = [];
 
-    const item = tersedia[i];
+  for (const item of tersedia) {
 
-    item.statusGmail = "terjual";
-
-gmailBekasIsi.push({
-  Gmail: item.Gmail,
-  Password: item.Password,
-  statusGmail: "terjual"
-});
+    ids.push(item.id);
 
     hasil.push({
-      email: item.Gmail,
-      pass: item.Password
+      email: item.email,
+      pass: item.password
     });
 
   }
 
-  const newBekasSheet =
-    XLSX.utils.json_to_sheet(
-      gmailBekasIsi
-    );
-
-  gmailBekasWorkbook.Sheets[
-    gmailBekasWorkbook.SheetNames[0]
-  ] = newBekasSheet;
-
-  XLSX.writeFile(
-    gmailBekasWorkbook,
-    gmailBekasPath
+  await pool.query(
+    `
+    UPDATE gmail
+    SET
+      status='terjual',
+      sold_at=?
+    WHERE id IN (?)
+    `,
+    [
+      Date.now(),
+      ids
+    ]
   );
 
 }
 
-else if (produk === "gmail bekas") {
+else if (
+  produk === "gmail bekas"
+) {
 
-  const tersedia =
-    gmailBekasData.filter(
-      d =>
-        (d.statusGmail || "")
-        .toLowerCase() !== "terjual"
-    );
+  const [tersedia] = await pool.query(
+    `
+    SELECT *
+    FROM gmail_bekas
+    WHERE status='tersedia'
+    LIMIT ?
+    `,
+    [qty]
+  );
 
   if (tersedia.length < qty) {
-
     throw new Error(
       "Stok Gmail Bekas tidak cukup"
     );
-
   }
 
-  for (let i = 0; i < qty; i++) {
+  const ids = [];
 
-    const item = tersedia[i];
+  for (const item of tersedia) {
 
-    item.statusGmail = "terjual";
+    ids.push(item.id);
 
     hasil.push({
-      email: item.Gmail,
-      pass: item.Password
+      email: item.email,
+      pass: item.password
     });
 
   }
+
+  await pool.query(
+    `
+    UPDATE gmail_bekas
+    SET
+      status='terjual',
+      sold_at=?
+    WHERE id IN (?)
+    `,
+    [
+      Date.now(),
+      ids
+    ]
+  );
 
 }
 
@@ -1496,35 +1544,49 @@ else if (
   produk === "email custom"
 ) {
 
-  const tersedia =
-    backupData.filter(
-      d =>
-        (d.Status || "")
-        .toLowerCase() !== "terjual"
-    );
+  const [tersedia] = await pool.query(
+    `
+    SELECT *
+    FROM gaslur
+    WHERE status='tersedia'
+    LIMIT ?
+    `,
+    [qty]
+  );
 
   if (tersedia.length < qty) {
-
     throw new Error(
       "Stok Backup tidak cukup"
     );
-
   }
 
-  for (let i = 0; i < qty; i++) {
+  const ids = [];
 
-    const item = tersedia[i];
+  for (const item of tersedia) {
 
-    item.Status = "terjual";
+    ids.push(item.id);
 
     hasil.push({
-      email:
-        item["Email Pengganti"],
+      email: item.email,
       pass: "-",
       backup: []
     });
 
   }
+
+  await pool.query(
+    `
+    UPDATE gaslur
+    SET
+      status='terjual',
+      sold_at=?
+    WHERE id IN (?)
+    `,
+    [
+      Date.now(),
+      ids
+    ]
+  );
 
 }
 
@@ -1533,700 +1595,822 @@ else if (
   produk === "facebook fresh"
 ) {
 
-  const tersedia = fbData.filter(
-    d =>
-      (d.statusEmail || "")
-      .toLowerCase() !== "terjual"
+  const [tersedia] = await pool.query(
+    `
+    SELECT *
+    FROM facebook_fresh
+    WHERE status='tersedia'
+    LIMIT ?
+    `,
+    [qty]
   );
 
   if (tersedia.length < qty) {
-
     throw new Error(
       "Stok Facebook tidak cukup"
     );
-
   }
 
-  for (let i = 0; i < qty; i++) {
+  const ids = [];
 
-    const item = tersedia[i];
+  for (const item of tersedia) {
 
-    item.statusEmail = "terjual";
+    ids.push(item.id);
 
     hasil.push({
-      email:
-        (
-          item.Email ||
-          item["Email "] ||
-          ""
-        ).trim(),
-
-      pass:
-        (
-          item.Password ||
-          item["Password "] ||
-          ""
-        ).trim()
+      email: (item.email || "").trim(),
+      pass: (item.password || "").trim()
     });
 
   }
 
-}
-
-if (wbG) {
-
-  const newSheetG =
-    XLSX.utils.json_to_sheet(
-      gmailData
-    );
-
-  wbG.Sheets[
-    wbG.SheetNames[0]
-  ] = newSheetG;
-
-  XLSX.writeFile(
-    wbG,
-    gmailPath
+  await pool.query(
+    `
+    UPDATE facebook_fresh
+    SET
+      status='terjual',
+      sold_at=?
+    WHERE id IN (?)
+    `,
+    [
+      Date.now(),
+      ids
+    ]
   );
 
 }
 
-if (wbGB) {
-
-  const newSheetGB =
-    XLSX.utils.json_to_sheet(
-      gmailBekasData
-    );
-
-  wbGB.Sheets[
-    wbGB.SheetNames[0]
-  ] = newSheetGB;
-
-  XLSX.writeFile(
-    wbGB,
-    gmailBekasPath
+if (isNaN(totalHarga)) {
+  throw new Error(
+    "Total harga tidak valid (produk salah)"
   );
-
 }
 
-if (wbB) {
+const saldoBaru =
+  Number(user.saldo) - totalHarga;
 
-  const newSheetB =
-    XLSX.utils.json_to_sheet(
-      backupData
-    );
+await pool.query(
+  "UPDATE users SET saldo=? WHERE id=?",
+  [
+    saldoBaru,
+    user.id
+  ]
+);
 
-  wbB.Sheets[
-    wbB.SheetNames[0]
-  ] = newSheetB;
+const batchId =
+  crypto.randomUUID();
 
-  XLSX.writeFile(
-    wbB,
-    gaslurPath
-  );
-
-}
-
-if (wbF) {
-
-  const newSheetF =
-    XLSX.utils.json_to_sheet(
-      fbData
-    );
-
-  wbF.Sheets[
-    wbF.SheetNames[0]
-  ] = newSheetF;
-
-  XLSX.writeFile(
-    wbF,
-    fbPath
-  );
-
-}
-
-    if (isNaN(totalHarga)) {
-  throw new Error("Total harga tidak valid (produk salah)");
-}
-
-users[userIndex].saldo -= totalHarga;
-
-if (!users[userIndex].history) {
-  users[userIndex].history = [];
-}
-
-const batchId = crypto.randomUUID();
 let createdOrders = [];
 
-hasil.forEach(item => {
-  const orderId = crypto.randomUUID();
+for (const item of hasil) {
 
-  const newOrder = {
+  const orderId =
+    crypto.randomUUID();
+
+  await pool.query(
+    `
+    INSERT INTO history
+    (
+      id,
+      batch_id,
+      user_id,
+      type,
+      qty,
+      status,
+      data,
+      created_at
+    )
+    VALUES
+    (?,?,?,?,?,?,?,?)
+    `,
+    [
+      orderId,
+      batchId,
+      user.id,
+      produk,
+      1,
+      "active",
+      JSON.stringify([item]),
+      Date.now()
+    ]
+  );
+
+  createdOrders.push({
     id: orderId,
-	batchId,
     type: produk,
-    qty: 1,
-    data: [item], 
-    status: "active",
-    time: Date.now()
-  };
+    email: item.email
+  });
 
-  users[userIndex].history.push(newOrder);
-  createdOrders.push(newOrder);
-});
+}
 
-saveUsers(users);
-
-io.to(userKey).emit("orderUpdate", {
-  type: "new_order"
-});
+io.to(userKey).emit(
+  "orderUpdate",
+  {
+    type: "new_order"
+  }
+);
 
 return res.json({
   success: true,
-  saldo: users[userIndex].saldo,
+  saldo: saldoBaru,
   orders: createdOrders
 });
 
   } catch (error) {
+
     return res.json({
       success: false,
-      message: error.message || "Terjadi kesalahan sistem"
+      message:
+        error.message ||
+        "Terjadi kesalahan sistem"
     });
+
   } finally {
+
     locks.delete(userKey);
+
   }
-});
 
-app.post("/api/order/get", authMiddleware, async (req, res) => {
-  try {
-    const { orderId } = req.body;
-
-    const users = getUsers();
-    const user = users.find(u => u.email === req.user.email);
-
-    if (!user) {
-      return res.json({ success: false });
-    }
-
-    const order = (user.history || []).find(
-      o => String(o.id) === String(orderId)
-    );
-
-    if (!order) {
-      return res.json({
-        success: false,
-        message: "Order tidak ditemukan"
-      });
-    }
-
-    await checkOrderById(req.user.email, orderId);
-
-    res.json({ success: true });
-
-  } catch (err) {
-    res.json({
-      success: false,
-      message: err.message
-    });
-  }
 });
 
 app.post(
-"/api/autoresponder/order",
-authMiddleware,
-(req,res)=>{
+    "/api/autoresponder/order",
+    authMiddleware,
+    async (req, res) => {
 
-try{
+        try {
 
-let data=
-getAI();
+            const qty =
+                Number(req.body.qty) || 0;
 
-const qty=
-Number(
-req.body.qty
+            const hari =
+                Number(req.body.expired) || 0;
+
+            const link =
+                req.body.shortlink || "";
+
+            const hargaMap = {
+                3: 5000,
+                7: 10000,
+                30: 25000,
+                365: 200000
+            };
+
+            if (
+                !hargaMap[hari]
+            ) {
+
+                return res.json({
+                    success: false,
+                    message: "Masa aktif tidak valid"
+                });
+
+            }
+
+            if (
+                qty < 1
+            ) {
+
+                return res.json({
+                    success: false,
+                    message: "Qty tidak valid"
+                });
+
+            }
+
+            const total =
+                hargaMap[hari] * qty;
+
+            const [userRows] =
+                await pool.execute(
+                    `
+                    SELECT *
+                    FROM users
+                    WHERE email=?
+                    LIMIT 1
+                    `,
+                    [
+                        req.user.email
+                    ]
+                );
+
+            const user =
+                userRows[0];
+
+            if (!user) {
+
+                return res.json({
+                    success: false,
+                    message: "User tidak ditemukan"
+                });
+
+            }
+
+            if (
+                req.body.metode !== "qris" &&
+                Number(user.saldo) < total
+            ) {
+
+                return res.json({
+                    success: false,
+                    message: "Saldo tidak cukup"
+                });
+
+            }
+
+            if (
+                req.body.metode !== "qris"
+            ) {
+
+                await pool.execute(
+                    `
+                    UPDATE users
+                    SET saldo = saldo - ?
+                    WHERE email = ?
+                    `,
+                    [
+                        total,
+                        req.user.email
+                    ]
+                );
+
+            }
+
+            const now =
+                Date.now();
+
+            for (
+                let i = 0;
+                i < qty;
+                i++
+            ) {
+
+                const id =
+                    "AI" +
+                    now +
+                    "_" +
+                    i;
+
+                const username =
+                    "serapay.id" +
+                    Math.floor(
+                        10000 +
+                        Math.random() * 90000
+                    );
+
+                const password =
+                    "serapay.id_" +
+                    Math.floor(
+                        100000 +
+                        Math.random() * 900000
+                    );
+
+                const apikey =
+                    "serapay-" +
+                    Math.floor(
+                        100000 +
+                        Math.random() * 900000
+                    );
+
+                const expiredAt =
+                    now +
+                    (
+                        hari *
+                        86400000
+                    );
+
+                await pool.execute(
+                    `
+                    INSERT INTO autoresponder
+                    (
+                        id,
+                        user_email,
+                        url,
+                        username,
+                        password,
+                        apikey,
+                        status,
+                        shortlink,
+                        expired_at
+                    )
+                    VALUES
+                    (
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?
+                    )
+                    `,
+                    [
+                        id,
+                        req.user.email,
+                        "https://gaslur.com/api",
+                        username,
+                        password,
+                        apikey,
+                        "belum digunakan",
+                        link,
+                        expiredAt
+                    ]
+                );
+
+            }
+
+            return res.json({
+                success: true,
+                message: "Order berhasil dibuat"
+            });
+
+        } catch (err) {
+
+            console.error(
+                "AUTORESPONDER ORDER ERROR:",
+                err
+            );
+
+            return res.json({
+                success: false,
+                message: "Terjadi kesalahan server"
+            });
+
+        }
+
+    }
 );
-
-const hari=
-Number(
-req.body.expired
-);
-
-const hargaMap={
-
-3:5000,
-7:10000,
-30:25000,
-365:200000
-
-};
-
-const total=
-(
-hargaMap[hari]||0
-)
-*
-qty;
-
-const link=
-req.body.shortlink;
-
-const users=
-getUsers();
-
-const user=
-users.find(
-u=>
-u.email===
-req.user.email
-);
-
-if(
-user.saldo<
-total
-){
-
-return res.json({
-
-success:false,
-message:
-"Saldo tidak cukup"
-
-});
-
-}
-
-if(
-req.body.metode!=="qris"
-){
-
-user.saldo-=
-total;
-
-saveUsers(
-users
-);
-
-}
-
-saveUsers(
-users
-);
-
-for(
-let i=0;
-i<qty;
-i++
-){
-
-data.push({
-
-user:
-req.user.email,
-
-id:
-"AI"+
-Date.now()+i,
-
-url:
-"https://gaslur.site/api",
-
-username:
-"serapay.id"+
-Math.floor(
-Math.random()*99999
-),
-
-password:
-"serapay.id_"+
-Math.floor(
-Math.random()*999999
-),
-
-apikey:
-"serapay-"+
-Math.floor(
-Math.random()*999999
-),
-
-status:
-"belum digunakan",
-
-shortlink:
-link,
-
-expiredAt:
-Date.now()+
-(
-(req.body.expired||30)
-*
-24*
-60*
-60*
-1000
-)
-
-});
-
-}
-
-saveAI(data);
-
-res.json({
-success:true
-});
-
-}catch(err){
-
-console.log(err);
-
-res.json({
-success:false
-});
-
-}
-
-});
 
 app.get(
-"/api/autoresponder",
-authMiddleware,
-(req,res)=>{
+    "/api/autoresponder",
+    authMiddleware,
+    async (req, res) => {
 
-let data=
-getAI();
+        try {
 
-data=
-data.filter(
-x=>
-x.user===
-req.user.email
+            const [data] =
+                await pool.execute(
+                    `
+                    SELECT *
+                    FROM autoresponder
+                    WHERE user_email=?
+                    ORDER BY created_at DESC
+                    `,
+                    [
+                        req.user.email
+                    ]
+                );
+
+            return res.json({
+
+                success: true,
+
+                data
+
+            });
+
+        } catch (err) {
+
+            console.log(err);
+
+            return res.json({
+
+                success: false,
+
+                data: []
+
+            });
+
+        }
+
+    }
 );
-
-res.json({
-
-success:true,
-
-data
-
-});
-
-});
 
 app.post(
-"/api/autoresponder/extend",
-authMiddleware,
-(req,res)=>{
+    "/api/autoresponder/extend",
+    authMiddleware,
+    async (req, res) => {
 
-try{
+        try {
 
-const users=
-getUsers();
+            const hari =
+                Number(req.body.hari);
 
-const user=
-users.find(
-u=>
-u.email===
-req.user.email
+            const hargaMap = {
+                3: 5000,
+                7: 10000,
+                30: 25000,
+                365: 200000
+            };
+
+            if (!hargaMap[hari]) {
+
+                return res.json({
+                    success: false,
+                    message: "Masa aktif tidak valid"
+                });
+
+            }
+
+            const [userRows] =
+                await pool.execute(
+                    `
+                    SELECT *
+                    FROM users
+                    WHERE email=?
+                    LIMIT 1
+                    `,
+                    [req.user.email]
+                );
+
+            const user =
+                userRows[0];
+
+            if (!user) {
+
+                return res.json({
+                    success: false,
+                    message: "User tidak ditemukan"
+                });
+
+            }
+
+            const [licenseRows] =
+                await pool.execute(
+                    `
+                    SELECT *
+                    FROM autoresponder
+                    WHERE id=?
+                    AND user_email=?
+                    LIMIT 1
+                    `,
+                    [
+                        req.body.id,
+                        req.user.email
+                    ]
+                );
+
+            const item =
+                licenseRows[0];
+
+            if (!item) {
+
+                return res.json({
+                    success: false,
+                    message: "Lisensi tidak ditemukan"
+                });
+
+            }
+
+            const harga =
+                hargaMap[hari];
+
+            if (
+                req.body.metode !== "qris"
+            ) {
+
+                if (
+                    Number(user.saldo) < harga
+                ) {
+
+                    return res.json({
+                        success: false,
+                        message: "Saldo tidak cukup"
+                    });
+
+                }
+
+                await pool.execute(
+                    `
+                    UPDATE users
+                    SET saldo = saldo - ?
+                    WHERE email = ?
+                    `,
+                    [
+                        harga,
+                        req.user.email
+                    ]
+                );
+				
+await pool.execute(
+  `INSERT INTO otp_history
+  (
+    activation_id,
+    duration,
+    user_email,
+    service,
+    service_name,
+    country,
+    country_name,
+    country_logo,
+    operator,
+    number,
+    harga,
+    status,
+    messages,
+    sms_received,
+    time
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  [
+    parts[1],
+    duration || "1",
+    req.user.email,
+    service,
+    req.body.serviceName || service,
+    country,
+    req.body.countryName || country,
+    req.body.countryLogo || "",
+    operator,
+    parts[2],
+    hargaJual,
+    "active",
+    JSON.stringify([]),
+    0,
+    Date.now()
+  ]
 );
 
-if(!user){
+            }
 
-return res.json({
-success:false
-});
+            const sekarang =
+                Date.now();
+
+            let expiredAt =
+                Number(item.expired_at) || 0;
+
+            if (
+                expiredAt <= sekarang
+            ) {
+
+                expiredAt =
+                    sekarang +
+                    (
+                        hari *
+                        86400000
+                    );
+
+            } else {
+
+                expiredAt +=
+                    (
+                        hari *
+                        86400000
+                    );
+
+            }
+
+            await pool.execute(
+                `
+                UPDATE autoresponder
+                SET expired_at=?
+                WHERE id=?
+                `,
+                [
+                    expiredAt,
+                    item.id
+                ]
+            );
+
+            return res.json({
+                success: true,
+                expiredAt
+            });
+
+        } catch (err) {
+
+            console.error(
+                "AUTORESPONDER EXTEND ERROR:",
+                err
+            );
+
+            return res.json({
+                success: false,
+                message: "Terjadi kesalahan server"
+            });
+
+        }
+
+    }
+);
+
+let session = {};
+
+if (
+    fs.existsSync(
+        "session.json"
+    )
+) {
+
+    session =
+        JSON.parse(
+            fs.readFileSync(
+                "session.json",
+                "utf8"
+            )
+        );
 
 }
 
-let data=
-getAI();
+function saveSession() {
 
-const item=
-data.find(
-x=>
-x.id===
-req.body.id
-&&
-x.user===
-req.user.email
-);
-
-if(!item){
-
-return res.json({
-
-success:false,
-message:
-"Lisensi tidak ditemukan"
-
-});
-
-}
-
-const hari=
-Number(
-req.body.hari
-);
-
-const hargaMap={
-
-3:5000,
-7:10000,
-30:25000,
-365:200000
-
-};
-
-const harga=
-hargaMap[hari];
-
-if(
-req.body.metode!=="qris"
-){
-
-if(
-user.saldo<
-harga
-){
-
-return res.json({
-
-success:false,
-
-message:
-"Saldo tidak cukup"
-
-});
-
-}
-
-user.saldo-=harga;
-
-saveUsers(
-users
-);
-
-}
-
-const sekarang=
-Date.now();
-
-if(
-item.expiredAt<
-sekarang
-){
-
-item.expiredAt=
-sekarang+
-(
-hari*
-86400000
-);
-
-}else{
-
-item.expiredAt+=
-(
-hari*
-86400000
-);
-
-}
-
-saveAI(
-data
-);
-
-return res.json({
-success:true
-});
-
-}catch(err){
-
-res.json({
-success:false
-});
-
-}
-
-});
-
-let session={};
-
-if(fs.existsSync("session.json")){
-
-session=
-JSON.parse(
-fs.readFileSync(
-"session.json")
-);
-
-}
-
-function saveSession(){
-
-fs.writeFileSync(
-"session.json",
-JSON.stringify(
-session,
-null,
-2
-));
+    fs.writeFileSync(
+        "session.json",
+        JSON.stringify(
+            session,
+            null,
+            2
+        )
+    );
 
 }
 
 app.post(
-"/api",
-async(req,res)=>{
-	
-	console.log(
-JSON.stringify(
-req.body,
-null,
-2
-));
+    "/api",
+    async (req, res) => {
 
-let data=getAI();
+        try {
 
-/* ambil Basic Auth dari AutoResponder */
+            console.log(
+                JSON.stringify(
+                    req.body,
+                    null,
+                    2
+                )
+            );
 
-const authHeader=
-req.headers.authorization||"";
+            /* BASIC AUTH */
 
-let username="";
-let password="";
+            const authHeader =
+                req.headers.authorization || "";
 
-if(
-authHeader.startsWith(
-"Basic "
-)
-){
+            let username = "";
+            let password = "";
 
-const decoded=
-Buffer.from(
+            if (
+                authHeader.startsWith(
+                    "Basic "
+                )
+            ) {
 
-authHeader.replace(
-"Basic ",
-""
-),
+                const decoded =
+                    Buffer.from(
+                        authHeader.replace(
+                            "Basic ",
+                            ""
+                        ),
+                        "base64"
+                    ).toString();
 
-"base64"
+                [
+                    username,
+                    password
+                ] =
+                    decoded.split(":");
 
-).toString();
+            }
 
-[username,password]=
-decoded.split(":");
+            /* FALLBACK BODY */
 
-}
+            username =
+                username ||
+                req.body.username ||
+                "";
 
-/* fallback jika dikirim body */
+            password =
+                password ||
+                req.body.password ||
+                "";
 
-username=
-username ||
-req.body.username ||
-"";
+            /* CEK LISENSI */
 
-password=
-password ||
-req.body.password ||
-"";
+            const [rows] =
+                await pool.execute(
+                    `
+                    SELECT *
+                    FROM autoresponder
+                    WHERE username=?
+                    AND password=?
+                    AND apikey=?
+                    LIMIT 1
+                    `,
+                    [
+                        username,
+                        password,
+                        req.headers[
+                            "x-api-key"
+                        ]
+                    ]
+                );
 
-/* cek lisensi */
+            const lisensi =
+                rows[0];
 
-const lisensi=
-data.find(
-x=>
+            if (!lisensi) {
 
-x.username===username
+                return res.json({
 
-&&
+                    replies: [
+                        {
+                            message:
+                                "Lisensi tidak valid"
+                        }
+                    ]
 
-x.password===password
+                });
 
-&&
+            }
 
-x.apikey===
-req.headers[
-"x-api-key"
-]
+            /* CEK EXPIRED */
 
-);
+            if (
+                Date.now() >
+                Number(
+                    lisensi.expired_at
+                )
+            ) {
 
-if(!lisensi){
+                return res.json({
 
-return res.json({
+                    replies: [
+                        {
+                            message:
+                                "Lisensi sudah expired"
+                        }
+                    ]
 
-replies:[
-{
-message:
-"Lisensi tidak valid"
-}
-]
+                });
 
-});
+            }
 
-}
+            /* UPDATE STATUS */
 
-if(
-lisensi.status!==
-"sudah digunakan"
-){
+            if (
+                lisensi.status !==
+                "sudah digunakan"
+            ) {
 
-lisensi.status=
-"sudah digunakan";
+                await pool.execute(
+                    `
+                    UPDATE autoresponder
+                    SET status='sudah digunakan'
+                    WHERE id=?
+                    `,
+                    [
+                        lisensi.id
+                    ]
+                );
 
-saveAI(data);
+            }
 
-}
+            /* DATA PESAN */
 
-/* PESAN DARI AUTORESPONDER */
+            const sender =
+                req.body.query?.sender ||
+                "User";
 
-const sender=
-req.body.query?.sender||"User";
+            const pesan =
+                req.body.query?.message ||
+                "";
 
-const pesan=
-req.body.query?.message||"";
+            const userId =
+                req.body.query?.sender_id ||
+                sender;
 
-const userId=
-req.body.query?.sender_id
-||
-sender;
+            if (
+                !session[userId]
+            ) {
 
-if(!session[userId]){
+                session[userId] = {
 
-session[userId]={
+                    count: 0,
+                    linkSent: false,
+                    asked: false
 
-count:0,
+                };
 
-linkSent:false,
+            }
 
-asked:false
+            session[userId].count++;
 
-};
+            saveSession();
 
-}
+            const state =
+                session[userId];
 
-session[userId].count++;
+            const link =
+                lisensi.shortlink || "";
 
-saveSession();
+            /* PROMPT */
 
-/* SHORTLINK */
-
-const link=
-lisensi.shortlink||"";
-
-try{
-
-const state=
-session[userId];
-
-const prompt=`
-
+            const prompt = `
 Detect ONLY the language from Message.
 
 Reply ONLY in that language.
 
 Rules:
-
 - Never mix languages
 - Never translate
 - Max 2 short sentences
@@ -2250,73 +2434,47 @@ ${pesan}
 Extra instruction:
 
 ${
-state.count<3
-
-?
-
-"Only normal conversation. No invite. No profile."
-
-:
-
-state.count===3
-&&
-!state.linkSent
-
-?
-
-"If conversation feels natural show curiosity."
-
-:
-
-"Continue naturally."
-
+    state.count < 3
+        ? "Only normal conversation. No invite. No profile."
+        : state.count === 3 &&
+          !state.linkSent
+        ? "If conversation feels natural show curiosity."
+        : "Continue naturally."
 }
-
 `;
 
-const hasil =
-await axios.post(
-"http://127.0.0.1:11434/api/generate",
-{
-model:"qwen2.5:3b",
-prompt,
-stream:false,
-keep_alive:"30m"
-}
-);
+            const hasil =
+                await axios.post(
+                    "http://127.0.0.1:11434/api/generate",
+                    {
+                        model: "qwen2.5:3b",
+                        prompt,
+                        stream: false,
+                        keep_alive: "30m"
+                    }
+                );
 
-/* FORMAT BALAS */
+            let balasan =
+                hasil.data.response.trim();
 
-let balasan=
-hasil.data.response.trim();
+            const lihat =
+                /udah|sudah|lihat|buka|cek/i
+                .test(pesan);
 
-const lihat=
-/udah|sudah|lihat|buka|cek/i
-.test(pesan);
+            if (lihat) {
 
-if(lihat){
+                balasan =
+                    "hehe gimana, cocok nggak sama yang kamu bayangin? 😄";
 
-balasan=
-"hehe gimana, cocok nggak sama yang kamu bayangin? 😄";
+            }
 
-}
+            else if (
+                state.count >= 3 &&
+                !state.linkSent &&
+                link
+            ) {
 
-else if(
-
-state.count>=3
-
-&&
-
-!state.linkSent
-
-&&
-
-link
-
-){
-
-const promoPrompt=`
-
+                const promoPrompt = `
 Message:
 ${pesan}
 
@@ -2325,52 +2483,48 @@ Reply ONLY in sender language.
 Create ONE short natural sentence.
 
 Examples:
+
 Indonesia:
-"kalau penasaran sama aku 😄"
+kalau penasaran sama aku 😄
 
 English:
-"if you're curious about me 😄"
+if you're curious about me 😄
 
 Arabic:
-"إذا حاب تعرفني أكثر 😄"
+إذا حاب تعرفني أكثر 😄
 
 No quotes.
 `;
 
-const promo=
-await axios.post(
-"http://127.0.0.1:11434/api/generate",
-{
-model:"qwen2.5:3b",
-prompt:promoPrompt,
-stream:false
-}
-);
+                const promo =
+                    await axios.post(
+                        "http://127.0.0.1:11434/api/generate",
+                        {
+                            model: "qwen2.5:3b",
+                            prompt: promoPrompt,
+                            stream: false
+                        }
+                    );
 
-balasan+=
-"\n\n"+
-promo.data.response.trim()+
-"\n"+
-link;
+                balasan +=
+                    "\n\n" +
+                    promo.data.response.trim() +
+                    "\n" +
+                    link;
 
-state.linkSent=true;
+                state.linkSent =
+                    true;
 
-saveSession();
+                saveSession();
 
-}
+            }
 
-else if(
+            else if (
+                state.linkSent &&
+                !state.asked
+            ) {
 
-state.linkSent
-
-&&
-
-!state.asked
-
-){
-
-const askPrompt=`
-
+                const askPrompt = `
 Message:
 ${pesan}
 
@@ -2378,59 +2532,349 @@ Reply ONLY in sender language.
 
 Create ONE short sentence asking:
 
-"have you seen my profile yet?"
+have you seen my profile yet?
 
 No quotes.
 `;
 
-const ask=
-await axios.post(
-"http://127.0.0.1:11434/api/generate",
-{
-model:"qwen2.5:3b",
-prompt:askPrompt,
-stream:false
-}
+                const ask =
+                    await axios.post(
+                        "http://127.0.0.1:11434/api/generate",
+                        {
+                            model: "qwen2.5:3b",
+                            prompt: askPrompt,
+                            stream: false
+                        }
+                    );
+
+                balasan +=
+                    "\n\n" +
+                    ask.data.response.trim();
+
+                state.asked =
+                    true;
+
+                saveSession();
+
+            }
+
+            return res.json({
+
+                replies: [
+                    {
+                        message:
+                            balasan
+                    }
+                ]
+
+            });
+
+        } catch (err) {
+
+            console.error(
+                "AUTORESPONDER API ERROR:",
+                err
+            );
+
+            return res.json({
+
+                replies: [
+                    {
+                        message:
+                            "AI sedang sibuk"
+                    }
+                ]
+
+            });
+
+        }
+
+    }
 );
 
-balasan+=
-"\n\n"+
-ask.data.response.trim();
+app.post("/api/login", async (req, res) => {
+  try {
 
-state.asked=true;
+    const { email, password } = req.body;
 
-saveSession();
+    const [rows] = await pool.query(
+      "SELECT * FROM users WHERE email=?",
+      [email.toLowerCase().trim()]
+    );
 
-}
+    if (rows.length === 0) {
+      return res.json({
+        success: false,
+        message: "User tidak ditemukan"
+      });
+    }
 
-/* BALAS KE AUTORESPONDER */
+    const user = rows[0];
+
+    const match = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!match) {
+      return res.json({
+        success: false,
+        message: "Password salah"
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email
+      },
+      SECRET,
+      {
+        expiresIn: "1d"
+      }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        saldo: user.saldo
+      }
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+
+  }
+});
+
+app.post("/api/register", async (req, res) => {
+  try {
+
+    const { name, email, phone, password } = req.body;
+
+    if (!name || !email || !phone || !password) {
+      return res.json({
+        success: false,
+        message: "Data tidak lengkap"
+      });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanPhone = phone.trim();
+
+    const [emailRows] = await pool.query(
+      "SELECT id FROM users WHERE email=?",
+      [cleanEmail]
+    );
+
+    if (emailRows.length) {
+      return res.json({
+        success: false,
+        message: "Email sudah digunakan"
+      });
+    }
+
+    const [phoneRows] = await pool.query(
+      "SELECT id FROM users WHERE phone=?",
+      [cleanPhone]
+    );
+
+    if (phoneRows.length) {
+      return res.json({
+        success: false,
+        message: "Nomor HP sudah digunakan"
+      });
+    }
+
+const hash = await bcrypt.hash(password, 10);
+
+const userId =
+  "USR" + Date.now();
+
+await pool.query(
+  `INSERT INTO users
+  (id,name,email,phone,password,saldo,reward)
+  VALUES (?,?,?,?,?,?,?)`,
+  [
+    userId,
+    name,
+    cleanEmail,
+    cleanPhone,
+    hash,
+    0,
+    0
+  ]
+);
+
+const token = jwt.sign(
+  {
+    id: userId,
+    email: cleanEmail
+  },
+  SECRET,
+  {
+    expiresIn: "1d"
+  }
+);
 
 return res.json({
+  success: true,
+  token,
+  user: {
+    id: userId,
+    name,
+    email: cleanEmail,
+    phone: cleanPhone,
+    saldo: 0
+  }
+});
 
-replies:[
+  } catch (err) {
 
-{
-message: balasan
+    console.error("REGISTER ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+
+  }
+});
+
+app.post("/api/lupa/check", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+
+    const [rows] = await pool.query(
+      "SELECT id FROM users WHERE email=?",
+      [email]
+    );
+
+    if (rows.length === 0) {
+      return res.json({
+        success: false
+      });
+    }
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false
+    });
+
+  }
+});
+
+app.post("/api/lupa/reset", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+
+    const hash = await bcrypt.hash(password, 10);
+
+    const [result] = await pool.query(
+      "UPDATE users SET password=? WHERE email=?",
+      [hash, email]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.json({
+        success: false
+      });
+    }
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false
+    });
+
+  }
+});
+
+/* =========================
+   GET CATATAN
+========================= */
+
+app.get(
+"/api/catatan",
+authMiddleware,
+async (req,res)=>{
+
+try{
+
+const [rows] = await db.query(
+`
+SELECT notes
+FROM catatan
+WHERE email = ?
+LIMIT 1
+`,
+[
+req.user.email
+]
+);
+
+let notes = {};
+
+if(
+rows.length &&
+rows[0].notes
+){
+
+try{
+
+notes =
+JSON.parse(
+rows[0].notes
+);
+
+}catch{
+
+notes = {};
+
 }
 
-]
+}
+
+res.json({
+
+success:true,
+notes
 
 });
 
 }catch(err){
 
-console.log(err);
+console.error(err);
 
-return res.json({
+res.status(500).json({
 
-replies:[
-
-{
-message:
-"AI sedang sibuk"
-}
-
-]
+success:false,
+message:"Server error"
 
 });
 
@@ -2438,314 +2882,273 @@ message:
 
 });
 
-app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
 
-  let users = getUsers();
-  const user = users.find(u => u.email === email);
-
-  if (!user) {
-    return res.json({ success: false, message: "User tidak ditemukan" });
-  }
-
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) {
-    return res.json({ success: false, message: "Password salah" });
-  }
-
-  const token = jwt.sign({
-  id: user.id,
-  email: user.email
-}, SECRET, { expiresIn: "1d" });
-
-  res.json({
-    success: true,
-    token,
-    user: {
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      saldo: user.saldo
-    }
-  });
-});
-
-app.post("/api/register", async (req, res) => {
-  const { name, email, phone, password } = req.body;
-
-  if (!name || !email || !phone || !password) {
-    return res.json({ success: false, message: "Data tidak lengkap" });
-  }
-
-  let users = getUsers();
-
-  const cleanEmail = email.toLowerCase().trim();
-  const cleanPhone = phone.trim();
-  const emailExist = users.find(u => u.email === cleanEmail);
-  if (emailExist) {
-    return res.json({
-      success: false,
-      message: "Email sudah digunakan"
-    });
-  }
-
-  const phoneExist = users.find(u => u.phone === cleanPhone);
-  if (phoneExist) {
-    return res.json({
-      success: false,
-      message: "Nomor HP sudah digunakan"
-    });
-  }
-
-  const hash = await bcrypt.hash(password, 10);
-
-users.push({
-
-id:Date.now(),
-name,
-email:cleanEmail,
-phone:cleanPhone,
-password:hash,
-
-saldo:0,
-
-reward:0,
-
-history:[]
-
-});
-
-  saveUsers(users);
-
-  return res.json({
-    success: true,
-    message: "Registrasi berhasil"
-  });
-});
-
-app.post("/api/lupa/check", (req, res) => {
-  const { email } = req.body;
-  let users = getUsers();
-
-  const user = users.find(u => u.email === email);
-  if (!user) {
-    return res.json({ success: false });
-  }
-
-  res.json({ success: true });
-});
-
-app.post("/api/lupa/reset", async (req, res) => {
-  const { email, password } = req.body;
-  let users = getUsers();
-
-  const index = users.findIndex(u => u.email === email);
-  if (index === -1) {
-    return res.json({ success: false });
-  }
-
-  const hash = await bcrypt.hash(password, 10);
-  users[index].password = hash;
-
-  saveUsers(users);
-
-  res.json({ success: true });
-});
-
-app.get(
-"/api/catatan",
-authMiddleware,
-(req,res)=>{
-
-  const data =
-  getCatatan();
-
-  const userData =
-  data.find(
-    x=>x.email===req.user.email
-  );
-
-  res.json({
-
-    success:true,
-
-    notes:
-    userData?.notes || {}
-
-  });
-
-});
+/* =========================
+   SIMPAN CATATAN
+========================= */
 
 app.post(
 "/api/catatan",
 authMiddleware,
-(req,res)=>{
+async (req,res)=>{
 
-  const data =
-  getCatatan();
+try{
 
-  let userData =
-  data.find(
-    x=>x.email===req.user.email
-  );
+const notes =
+req.body.notes || {};
 
-  if(!userData){
+await db.query(
+`
+INSERT INTO catatan
+(
+email,
+notes
+)
+VALUES
+(
+?,
+?
+)
+ON DUPLICATE KEY UPDATE
+notes = VALUES(notes)
+`,
+[
+req.user.email,
+JSON.stringify(notes)
+]
+);
 
-    userData={
-      email:req.user.email,
-      notes:{}
-    };
+res.json({
 
-    data.push(userData);
-  }
-
-  userData.notes =
-  req.body.notes || {};
-
-  saveCatatan(data);
-
-  res.json({
-    success:true
-  });
+success:true
 
 });
+
+}catch(err){
+
+console.error(err);
+
+res.status(500).json({
+
+success:false,
+message:"Server error"
+
+});
+
+}
+
+});
+
+/* =========================
+   SHARE NOTE
+========================= */
 
 app.post(
 "/api/share-note",
 authMiddleware,
-(req,res)=>{
+async (req,res)=>{
 
-    const users =
-    getUsers();
+try{
 
-    const user =
-    users.find(
-        x=>x.email===req.user.email
-    );
+const [users] =
+await db.query(
+`
+SELECT id,email
+FROM users
+WHERE email = ?
+LIMIT 1
+`,
+[
+req.user.email
+]
+);
 
-    if(!user){
+if(!users.length){
 
-        return res.json({
-            success:false
-        });
+return res.json({
 
-    }
-
-    const noteName =
-    req.body.noteName;
-
-    const slug =
-    noteName
-    .toLowerCase()
-    .replace(/\s+/g,"-");
-
-const url =
-`https://gaslur.site/catatan/${user.id}/${slug}`;
-
-    res.json({
-        success:true,
-        url
-    });
+success:false
 
 });
 
-app.get("/catatan/:userid/:slug",(req,res)=>{
+}
 
-    const data =
-    getCatatan();
+const user =
+users[0];
 
-    const users =
-    getUsers();
+const noteName =
+req.body.noteName;
 
-    const user =
-    users.find(
-        x=>
-        String(x.id)===
-        String(req.params.userid)
-    );
+const slug =
+noteName
+.toLowerCase()
+.replace(/\s+/g,"-");
 
-    if(!user){
+const url =
+`https://gaslur.com/catatan/${user.id}/${slug}`;
 
-        return res.send(
-            "Catatan tidak ditemukan"
-        );
+res.json({
 
-    }
+success:true,
+url
 
-    const catatanUser =
-    data.find(
-        x=>x.email===user.email
-    );
+});
 
-    if(!catatanUser){
+}catch(err){
 
-        return res.send(
-            "Catatan tidak ditemukan"
-        );
+console.error(err);
 
-    }
+res.status(500).json({
 
-    const note =
-    Object.keys(
-        catatanUser.notes||{}
-    ).find(name=>{
+success:false
 
-        const slug =
-        name
-        .toLowerCase()
-        .replace(/\s+/g,"-");
+});
 
-        return slug===
-        req.params.slug;
+}
 
-    });
+});
 
-    if(!note){
 
-        return res.send(
-            "Catatan tidak ditemukan"
-        );
+app.get(
+"/catatan/:userid/:slug",
+async (req,res)=>{
 
-    }
+try{
+
+const [users] =
+await db.query(
+`SELECT id,email
+FROM users
+WHERE id = ?
+LIMIT 1`,
+[
+req.params.userid
+]
+);
+
+if(!users.length){
+
+return res.send(
+"Catatan tidak ditemukan"
+);
+
+}
+
+const user =
+users[0];
+
+const [catatanRows] =
+await db.query(
+`SELECT notes
+FROM catatan
+WHERE email = ?
+LIMIT 1`,
+[
+user.email
+]
+);
+
+if(!catatanRows.length){
+
+return res.send(
+"Catatan tidak ditemukan"
+);
+
+}
+
+let notes = {};
+
+try{
+
+notes =
+JSON.parse(
+catatanRows[0].notes || "{}"
+);
+
+}catch{
+
+notes = {};
+
+}
+
+const note =
+Object.keys(notes)
+.find(name=>{
+
+const slug =
+name
+.toLowerCase()
+.replace(/\s+/g,"-");
+
+return slug === req.params.slug;
+
+});
+
+if(!note){
+
+return res.send(
+"Catatan tidak ditemukan"
+);
+
+}
 
 const noteData =
-catatanUser.notes[note];
+notes[note];
+
+/* =========================
+HALAMAN TRANSAKSI
+========================= */
 
 if(noteData.type === "transaksi"){
 
-let rows="";
+let rows = "";
 
-noteData.data.forEach(row=>{
+(noteData.data || [])
+.forEach(row=>{
+
+if(
+!row.username ||
+!String(row.username).trim()
+){
+return;
+}
 
 let color="#9ca3af";
 
-if(row.status==="Dikemas")
+if(row.status==="Dikemas"){
 color="#3b82f6";
+}
 
-if(row.status==="Dikirim")
+if(row.status==="Dikirim"){
 color="#2563eb";
+}
 
-if(row.status==="Selesai")
+if(row.status==="Selesai"){
 color="#22c55e";
+}
 
-if(row.status==="Dibatalkan")
+if(row.status==="Dibatalkan"){
 color="#ef4444";
+}
 
-if(row.status==="Menunggu Remit Otomatis")
+if(row.status==="Menunggu Remit Otomatis"){
 color="#f59e0b";
+}
 
 rows += `
+
 <tr>
-<td>${row.username||""}</td>
+<td>${row.username || "-"}</td>
 <td>
 <span
 style="
 background:${color};
 color:#fff;
-padding:2px 8px;
-border-radius:6px;
-font-size:11px;
+padding:6px 12px;
+border-radius:999px;
+font-size:12px;
 font-weight:600;
+display:inline-block;
 ">
 ${row.status}
 </span>
@@ -2756,110 +3159,204 @@ ${row.status}
 });
 
 return res.send(`
+
 <!DOCTYPE html>
-<html>
+
+<html lang="id">
 <head>
+
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>${note}</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 
 *{
-box-sizing:border-box;
 margin:0;
 padding:0;
-font-family:Poppins,sans-serif;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
 }
 
 body{
-background:#fff7fb;
-padding:8px;
-max-width:700px;
+
+background:
+linear-gradient(
+180deg,
+#fff7fb,
+#ffffff
+);
+
+padding:20px;
+min-height:100vh;
+
+}
+
+.container{
+max-width:900px;
 margin:auto;
 }
 
 .card{
-    background:#fff;
-    border:1px solid #ffd4ea;
-    border-radius:16px;
-    padding:12px;
-    width:100%;
-    overflow:hidden;
 
-    box-shadow:
-    0 4px 15px rgba(236,72,153,.08);
-}
+background:#fff;
 
-@media(max-width:768px){
+border:1px solid #f3d4e5;
 
-    body{
-        padding:6px;
-    }
+border-radius:24px;
 
-    .card{
-        padding:10px;
-        border-radius:12px;
-    }
+overflow:hidden;
 
-    h1{
-        font-size:16px;
-    }
-
-    th,td{
-        font-size:11px;
-        padding:6px;
-    }
+box-shadow:
+0 10px 35px rgba(236,72,153,.08);
 
 }
 
-h1{
-color:#ec4899;
-font-size:18px;
-margin-bottom:12px;
+.header{
+
+padding:28px;
+
+background:
+linear-gradient(
+135deg,
+#ec4899,
+#db2777
+);
+
+color:#fff;
+
+}
+
+.header h1{
+
+font-size:24px;
+font-weight:700;
+
 word-break:break-word;
+
+}
+
+.header p{
+
+margin-top:6px;
+opacity:.9;
+
+}
+
+.content{
+padding:24px;
 }
 
 .table-wrap{
 overflow-x:auto;
--webkit-overflow-scrolling:touch;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-min-width:450px;
-}
-
-th,td{
-border:1px solid #ffd4ea;
-padding:8px;
-font-size:12px;
-white-space:nowrap;
 }
 
 th{
-background:#fff0f7;
-color:#be185d;
+
+background:#fafafa;
+
+color:#6b7280;
+
+padding:14px;
+
+text-align:left;
+
+font-size:13px;
+
+border-bottom:1px solid #eee;
+
+}
+
+td{
+
+padding:14px;
+
+border-bottom:1px solid #f3f4f6;
+
+font-size:14px;
+
+}
+
+tr:hover{
+background:#fafafa;
+}
+
+.footer{
+
+padding:16px;
+
+text-align:center;
+
+font-size:12px;
+
+color:#9ca3af;
+
+border-top:1px solid #f3f4f6;
+
 }
 
 @media(max-width:768px){
 
 body{
-padding:6px;
+padding:10px;
+}
+
+.header{
+padding:20px;
+}
+
+.header h1{
+font-size:18px;
+}
+
+.content{
+padding:14px;
+}
+
+th,
+td{
+padding:10px;
+font-size:12px;
+}
+
+}
+
+@media(prefers-color-scheme:dark){
+
+body{
+background:#0f172a;
 }
 
 .card{
-padding:10px;
-border-radius:12px;
+background:#111827;
+border-color:#1f2937;
 }
 
-h1{
-font-size:16px;
+th{
+background:#1f2937;
+color:#d1d5db;
+border-bottom-color:#374151;
 }
 
-th,td{
-font-size:11px;
-padding:6px;
+td{
+color:#f3f4f6;
+border-bottom-color:#1f2937;
+}
+
+tr:hover{
+background:#1f2937;
+}
+
+.footer{
+border-top-color:#1f2937;
 }
 
 }
@@ -2870,9 +3367,16 @@ padding:6px;
 
 <body>
 
+<div class="container">
+
 <div class="card">
 
+<div class="header">
 <h1>📦 ${note}</h1>
+<p>Data transaksi yang dibagikan</p>
+</div>
+
+<div class="content">
 
 <div class="table-wrap">
 
@@ -2895,38 +3399,180 @@ ${rows}
 
 </div>
 
+<div class="footer">
+Dibagikan melalui SeraPay
+</div>
+
+</div>
+
+</div>
+
 </body>
 </html>
 `);
 
 }
-else{
+
+/* =========================
+HALAMAN CATATAN
+========================= */
 
 return res.send(`
+
 <!DOCTYPE html>
-<html>
+
+<html lang="id">
 <head>
+
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>${note}</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
 body{
-background:#fff7fb;
+
+background:
+linear-gradient(
+180deg,
+#fff7fb,
+#ffffff
+);
+
 padding:20px;
-font-family:Poppins,sans-serif;
+min-height:100vh;
+
+}
+
+.container{
+max-width:900px;
+margin:auto;
 }
 
 .card{
+
 background:#fff;
-border:1px solid #ffd4ea;
-border-radius:16px;
-padding:20px;
-min-height:500px;
+
+border:1px solid #f3d4e5;
+
+border-radius:24px;
+
+overflow:hidden;
+
+box-shadow:
+0 10px 35px rgba(236,72,153,.08);
+
 }
 
-h1{
-color:#ec4899;
-margin-bottom:15px;
+.header{
+
+padding:28px;
+
+background:
+linear-gradient(
+135deg,
+#ec4899,
+#db2777
+);
+
+color:#fff;
+
+}
+
+.header h1{
+
+font-size:24px;
+font-weight:700;
+
+word-break:break-word;
+
+}
+
+.header p{
+
+margin-top:6px;
+opacity:.9;
+
+}
+
+.content{
+
+padding:28px;
+
+font-size:15px;
+
+line-height:1.9;
+
+color:#374151;
+
+word-break:break-word;
+
+}
+
+.footer{
+
+padding:16px;
+
+text-align:center;
+
+font-size:12px;
+
+color:#9ca3af;
+
+border-top:1px solid #f3f4f6;
+
+}
+
+@media(max-width:768px){
+
+body{
+padding:10px;
+}
+
+.header{
+padding:20px;
+}
+
+.header h1{
+font-size:18px;
+}
+
+.content{
+padding:18px;
+font-size:14px;
+}
+
+}
+
+@media(prefers-color-scheme:dark){
+
+body{
+background:#0f172a;
+}
+
+.card{
+background:#111827;
+border-color:#1f2937;
+}
+
+.content{
+color:#f3f4f6;
+}
+
+.footer{
+border-top-color:#1f2937;
+}
+
 }
 
 </style>
@@ -2935,12 +3581,23 @@ margin-bottom:15px;
 
 <body>
 
+<div class="container">
+
 <div class="card">
 
+<div class="header">
 <h1>📝 ${note}</h1>
+<p>Catatan yang dibagikan</p>
+</div>
 
-<div>
-${noteData.content||""}
+<div class="content">
+${noteData.content || ""}
+</div>
+
+<div class="footer">
+Dibagikan melalui Gaslur
+</div>
+
 </div>
 
 </div>
@@ -2949,120 +3606,214 @@ ${noteData.content||""}
 </html>
 `);
 
+}catch(err){
+
+console.error(err);
+
+res.status(500).send(
+"Server error"
+);
+
 }
 
 });
 
-app.get("/api/me", authMiddleware, (req, res) => {
-  let users = getUsers();
 
-  if(!req.user?.email){
-  return res.json({ success:false });
-}
 
-const user = users.find(u => u.email === req.user.email);
 
-  if (!user) {
-    return res.json({ success: false });
+
+app.get("/api/me", authMiddleware, async (req, res) => {
+
+  try {
+
+    if (!req.user?.email) {
+      return res.json({
+        success: false
+      });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT
+        id,
+        name,
+        email,
+        saldo,
+        reward
+      FROM users
+      WHERE email=?`,
+      [req.user.email]
+    );
+
+    if (rows.length === 0) {
+      return res.json({
+        success: false
+      });
+    }
+
+    const user = rows[0];
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        saldo: Number(user.saldo || 0),
+        reward: Number(user.reward || 0)
+      }
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false
+    });
+
   }
 
-  res.json({
-    success: true,
-user: {
-  id: user.id,
-  name: user.name,
-  email: user.email,
-  saldo:
-  Number(
-    user.saldo||0
-  ),
-
-  reward:
-  Number(
-    user.reward||0
-  )
-}
-  });
 });
 
-app.get("/api/riwayat", authMiddleware, (req, res) => {
-  const users = getUsers();
-  const user = users.find(u => u.email === req.user.email);
+app.get("/api/riwayat", authMiddleware, async (req, res) => {
 
-  if (!user) {
-    return res.json({ success: false });
-  }
-
-  res.json({
-    success: true,
-    history: user.history || []
-  });
-});
-
-app.get("/api/active-orders", authMiddleware, (req, res) => {
-  const users = getUsers();
-
-  const user = users.find(
-    u => u.email === req.user.email
+  const [users] = await pool.query(
+    "SELECT id FROM users WHERE email=?",
+    [req.user.email]
   );
 
-  if (!user) {
+  if (!users.length) {
     return res.json({
       success: false
     });
   }
 
-  const activeOrders = (user.history || []).filter(
-    x =>
-      x.status === "active" ||
-      x.status === "pending_refund" ||
-      x.status === "refunded" ||
-      x.status === "refund_rejected"
+  const userId = users[0].id;
+
+  const [history] = await pool.query(
+    `SELECT *
+     FROM history
+     WHERE user_id=?
+     ORDER BY created_at DESC`,
+    [userId]
   );
 
   res.json({
     success: true,
-    data: activeOrders
+    history: history.map(h => ({
+      ...h,
+      data: JSON.parse(h.data || "[]")
+    }))
   });
+
 });
 
-app.post("/api/order/done", authMiddleware, (req, res) => {
-  const { orderId } = req.body;
+app.get("/api/active-orders", authMiddleware, async (req, res) => {
 
-  const users = getUsers();
-  const user = users.find(
-    u => u.email === req.user.email
+  const [users] = await pool.query(
+    "SELECT id FROM users WHERE email=?",
+    [req.user.email]
   );
 
-  if (!user) {
-    return res.json({ success:false });
-  }
-
-  const order = user.history.find(
-    x => String(x.id) === String(orderId)
-  );
-
-  if (!order) {
+  if (!users.length) {
     return res.json({
-      success:false,
-      message:"Order tidak ditemukan"
+      success: false
     });
   }
 
-  order.status = "done";
+  const userId = users[0].id;
 
-  saveUsers(users);
-io.to(user.email).emit("orderUpdate", {
-  type: "done"
-});
+  const [history] = await pool.query(
+    `SELECT *
+     FROM history
+     WHERE user_id=?
+     AND status IN (
+       'active',
+       'pending_refund',
+       'refunded',
+       'refund_rejected'
+     )
+     ORDER BY created_at DESC`,
+    [userId]
+  );
+
+  const data = history.map(h => ({
+    ...h,
+    data: JSON.parse(h.data || "[]")
+  }));
+
   res.json({
-    success:true
+    success: true,
+    data
   });
+
+});
+
+app.post("/api/order/done", authMiddleware, async (req, res) => {
+
+  try {
+
+    const { orderId } = req.body;
+
+const [users] = await pool.query(
+  "SELECT id FROM users WHERE email=?",
+  [req.user.email]
+);
+
+if (!users.length) {
+  return res.json({
+    success:false
+  });
+}
+
+const userId = users[0].id;
+
+const [result] = await pool.query(
+  `UPDATE history
+   SET status='done'
+   WHERE id=?
+   AND user_id=?`,
+  [
+    orderId,
+    userId
+  ]
+);
+
+    if (result.affectedRows === 0) {
+      return res.json({
+        success: false,
+        message: "Order tidak ditemukan"
+      });
+    }
+
+    io.to(req.user.email).emit(
+      "orderUpdate",
+      {
+        type: "done"
+      }
+    );
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false
+    });
+
+  }
+
 });
 
 app.post("/api/topup/create", authMiddleware, async (req, res) => {
   try {
+
     const { nominal } = req.body;
+
     if (!nominal || isNaN(nominal) || Number(nominal) < 1000) {
       return res.json({
         success: false,
@@ -3070,107 +3821,102 @@ app.post("/api/topup/create", authMiddleware, async (req, res) => {
       });
     }
 
-    const users = getUsers();
-    const user = users.find(u => u.email === req.user.email);
+    const [rows] = await pool.execute(
+      "SELECT * FROM users WHERE email=? LIMIT 1",
+      [req.user.email]
+    );
 
-    if (!user) {
+    if (!rows.length) {
       return res.json({
         success: false,
         message: "User tidak ditemukan"
       });
     }
 
-const referenceId = "TOPUP-" + Date.now();
-const body = {
-  product: ["Topup Saldo"],
-  qty: ["1"],
-  price: [String(nominal)],
-  amount: String(nominal),
-  returnUrl: "https://gaslur.site/success",
-  cancelUrl: "https://gaslur.site/cancel",
-  notifyUrl: "https://gaslur.site/api/ipaymu/callback",
-  referenceId: referenceId,
-  buyerName: user.name,
-  buyerPhone: user.phone,
-  buyerEmail: user.email,
-  paymentMethod: "qris"
-};
+    const user = rows[0];
 
-const method = "POST";
-const endpoint = "/api/v2/payment/direct";
-const timestamp = new Date().toISOString();
+    const referenceId = "TOPUP-" + Date.now();
 
-const signature = generateSignature(
-  body,
-  IPAYMU_API_KEY,
-  IPAYMU_VA
-);
+    const body = {
+      product: ["Topup Saldo"],
+      qty: ["1"],
+      price: [String(nominal)],
+      amount: String(nominal),
+      returnUrl: "https://gaslur.com/success",
+      cancelUrl: "https://gaslur.com/cancel",
+      notifyUrl: "https://gaslur.com/api/ipaymu/callback",
+      referenceId,
+      buyerName: user.name,
+      buyerPhone: user.phone,
+      buyerEmail: user.email,
+      paymentMethod: "qris"
+    };
 
-console.log("TIMESTAMP:", timestamp);
-console.log("BODY:", JSON.stringify(body));
-console.log("SIGNATURE:", signature);
+    const timestamp = new Date().toISOString();
 
-const response = await axios.post(
-  IPAYMU_URL,
-  body,
-{
-  headers:{
-    "Content-Type":"application/json",
-    "Accept":"application/json",
-    "va":IPAYMU_VA,
-    "signature":signature,
-    "timestamp":timestamp
-  }
-});
+    const signature = generateSignature(
+      body,
+      IPAYMU_API_KEY,
+      IPAYMU_VA
+    );
 
-console.log(
- "IPAYMU:",
- JSON.stringify(
-   response.data,
-   null,
-   2
- )
-);
+    console.log("TIMESTAMP:", timestamp);
+    console.log("BODY:", JSON.stringify(body));
+    console.log("SIGNATURE:", signature);
 
-if(!user.topup){
-   user.topup=[];
-}
+    const response = await axios.post(
+      IPAYMU_URL,
+      body,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "va": IPAYMU_VA,
+          "signature": signature,
+          "timestamp": timestamp
+        }
+      }
+    );
 
-const now=Date.now();
+    console.log(
+      "IPAYMU:",
+      JSON.stringify(
+        response.data,
+        null,
+        2
+      )
+    );
 
-user.topup.push({
+    const now = Date.now();
 
-   referenceId,
-
-   nominal:Number(
-      nominal
-   ),
-
-   qrUrl:
+    const qrUrl =
       response.data?.Data?.qrContent ||
       response.data?.Data?.QrString ||
       response.data?.Data?.qrString ||
-      "",
+      "";
 
-   status:
-      "waiting_payment",
-
-   time:now,
-
-   expiredAt:
-      now + (24 * 60 * 60 * 1000)
-
-});
-
-saveUsers(users);
-
-return res.json({
- success:true,
- payment:
- response.data?.Data
-});
-
-    saveUsers(users);
+    await pool.execute(
+      `INSERT INTO topup
+      (
+        reference_id,
+        user_email,
+        nominal,
+        qr_url,
+        status,
+        time,
+        expired_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        referenceId,
+        user.email,
+        Number(nominal),
+        qrUrl,
+        "waiting_payment",
+        now,
+        now + (24 * 60 * 60 * 1000)
+      ]
+    );
 
     return res.json({
       success: true,
@@ -3178,29 +3924,37 @@ return res.json({
     });
 
   } catch (err) {
-    console.log("IPAYMU ERROR:", err.response?.data || err.message);
+
+    console.log(
+      "IPAYMU ERROR:",
+      err.response?.data || err.message
+    );
 
     return res.json({
       success: false,
-      message: err.response?.data?.Message || "Gagal create payment"
+      message:
+        err.response?.data?.Message ||
+        "Gagal create payment"
     });
+
   }
 });
 
-app.post("/api/ipaymu/callback", (req, res) => {
+app.post("/api/ipaymu/callback", async (req, res) => {
+
   try {
+
     const rawBody = req.rawBodyBuffer.toString();
 
     const timestamp = req.headers["x-timestamp"];
     const externalId = req.headers["x-external-id"];
     const receivedSignature = req.headers["x-signature"];
 
-    const apiKey = IPAYMU_API_KEY;
-
-    const stringToSign = `${timestamp}:${externalId}:${rawBody}`;
+    const stringToSign =
+      `${timestamp}:${externalId}:${rawBody}`;
 
     const calculatedSignature = crypto
-      .createHmac("sha256", apiKey)
+      .createHmac("sha256", IPAYMU_API_KEY)
       .update(stringToSign)
       .digest("hex");
 
@@ -3208,505 +3962,829 @@ app.post("/api/ipaymu/callback", (req, res) => {
     console.log("SIGNATURE IPAYMU:", receivedSignature);
     console.log("SIGNATURE KITA:", calculatedSignature);
 
-    const isSandbox = process.env.NODE_ENV !== "production"; 
+    const isSandbox =
+      process.env.NODE_ENV !== "production";
 
     if (calculatedSignature !== receivedSignature) {
-      if (isSandbox) {
-      } else {
-        return res.status(400).send("Invalid Signature");
+
+      if (!isSandbox) {
+        return res
+          .status(400)
+          .send("Invalid Signature");
       }
+
     } else {
+
       console.log("✅ SIGNATURE VALID");
+
     }
 
-const data = req.body;
-const users = getUsers();
+    const data = req.body;
 
-for (let user of users) {
-  const trx = (user.topup || []).find(t =>
-    t.referenceId === data.reference_id ||
-    t.referenceId === data.sid
-  );
+    const referenceId =
+      data.reference_id ||
+      data.sid;
 
-  if (trx) {
+    const [rows] = await pool.execute(
+      `SELECT *
+       FROM topup
+       WHERE reference_id=?
+       LIMIT 1`,
+      [referenceId]
+    );
 
-if (Number(data.status_code) === 1) {
+    if (!rows.length) {
 
-  if (trx.status === "success") {
-    console.log("⚠️ SUDAH DIPROSES");
-    return res.status(200).send("OK");
-  }
+      console.log(
+        "⚠️ TOPUP TIDAK DITEMUKAN:",
+        referenceId
+      );
 
-  trx.status = "success";
+      return res.status(200).send("OK");
+    }
 
-  const amount = Number(
-    data.amount ||
-    data.paid_off ||
-    data.total ||
-    0
-  );
+    const trx = rows[0];
 
-  user.saldo += amount;
+    const statusCode =
+      Number(data.status_code);
 
-  console.log("💰 SALDO MASUK BOLO:", amount);
-}
+    if (statusCode === 1) {
 
-else if (Number(data.status_code) === 0) {
-  trx.status = "pending";
-  console.log("⏳ MASIH PENDING:", trx.referenceId);
-}
+      const amount = Number(
+        data.amount ||
+        data.paid_off ||
+        data.total ||
+        trx.nominal ||
+        0
+      );
 
-else if (Number(data.status_code) === -2) {
-  trx.status = "expired";
-}
+      // Anti saldo dobel
+      const [updateResult] = await pool.execute(
+        `UPDATE topup
+         SET status='success'
+         WHERE reference_id=?
+         AND status!='success'`,
+        [referenceId]
+      );
 
-else {
-  trx.status = "failed";
-  console.log("❌ TRANSAKSI GAGAL:", trx.referenceId);
-}
+      if (updateResult.affectedRows === 0) {
 
-saveUsers(users);
-break;
-  }
-}
+        console.log(
+          "⚠️ SUDAH DIPROSES:",
+          referenceId
+        );
 
-    return res.status(200).send("OK");
+        return res.status(200).send("OK");
+      }
+
+      await pool.execute(
+        `UPDATE users
+         SET saldo = saldo + ?
+         WHERE email=?`,
+        [
+          amount,
+          trx.user_email
+        ]
+      );
+
+      console.log(
+        "💰 SALDO MASUK:",
+        amount
+      );
+
+    }
+
+    else if (statusCode === 0) {
+
+      await pool.execute(
+        `UPDATE topup
+         SET status='pending'
+         WHERE reference_id=?`,
+        [referenceId]
+      );
+
+      console.log(
+        "⏳ MASIH PENDING:",
+        referenceId
+      );
+
+    }
+
+    else if (statusCode === -2) {
+
+      await pool.execute(
+        `UPDATE topup
+         SET status='expired'
+         WHERE reference_id=?`,
+        [referenceId]
+      );
+
+      console.log(
+        "⌛ EXPIRED:",
+        referenceId
+      );
+
+    }
+
+    else {
+
+      await pool.execute(
+        `UPDATE topup
+         SET status='failed'
+         WHERE reference_id=?`,
+        [referenceId]
+      );
+
+      console.log(
+        "❌ TRANSAKSI GAGAL:",
+        referenceId
+      );
+
+    }
+
+    return res
+      .status(200)
+      .send("OK");
 
   } catch (err) {
-    console.log("❌ ERROR:", err.message);
-    return res.status(500).send("Server Error");
+
+    console.log(
+      "❌ ERROR:",
+      err.message
+    );
+
+    return res
+      .status(500)
+      .send("Server Error");
+
   }
+
 });
 
-app.get("/api/topup", authMiddleware, (req, res) => {
-  const users = getUsers();
-  const user = users.find(u => u.email === req.user.email);
+app.get("/api/topup", authMiddleware, async (req, res) => {
 
-  if (!user) {
-    return res.json({ success: false });
+  try {
+
+    const now = Date.now();
+
+    // auto expire transaksi yang lewat waktu
+    await pool.execute(
+      `UPDATE topup
+       SET status='expired'
+       WHERE status='waiting_payment'
+       AND expired_at IS NOT NULL
+       AND expired_at < ?`,
+      [now]
+    );
+
+    const [rows] = await pool.execute(
+      `SELECT *
+       FROM topup
+       WHERE user_email=?
+       ORDER BY time DESC`,
+      [req.user.email]
+    );
+
+    return res.json({
+      success: true,
+      data: rows
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    return res.json({
+      success: false,
+      message: "Server Error"
+    });
+
   }
 
-  const now = Date.now();
-
-  // pastikan array ada
-  if (!user.topup) user.topup = [];
-
-  // update status expired otomatis
-  user.topup.forEach(t => {
-    if (
-      t.status === "waiting_payment" &&
-      t.expiredAt &&
-      now > t.expiredAt
-    ) {
-      t.status = "expired";
-    }
-  });
-
-  saveUsers(users);
-
-  return res.json({
-    success: true,
-    data: user.topup
-  });
 });
 
 app.get(
-"/api/topup/active",
-authMiddleware,
-(req,res)=>{
+  "/api/topup/active",
+  authMiddleware,
+  async (req, res) => {
 
- const users=
- getUsers();
+    try {
 
- const user=
- users.find(
-   u=>u.email===
-   req.user.email
- );
+      const now = Date.now();
 
- if(!user){
+      const [rows] = await pool.execute(
+        `SELECT *
+         FROM topup
+         WHERE user_email=?
+         AND status='waiting_payment'
+         AND expired_at > ?
+         ORDER BY time DESC
+         LIMIT 1`,
+        [
+          req.user.email,
+          now
+        ]
+      );
 
-   return res.json({
-      success:false
-   });
+      if (!rows.length) {
 
- }
+        return res.json({
+          success: false
+        });
 
- const now=
- Date.now();
+      }
 
- const trx=
- (user.topup||[])
- .find(x=>
+      return res.json({
 
-   x.status===
-   "waiting_payment"
+        success: true,
 
-   &&
+        data: rows[0]
 
-   x.expiredAt>
-   now
+      });
 
- );
+    } catch (err) {
 
- if(!trx){
+      console.error(err);
 
-   return res.json({
-      success:false
-   });
+      return res.json({
+        success: false,
+        message: "Server Error"
+      });
 
- }
+    }
 
- res.json({
-
-   success:true,
-
-   data:trx
-
- });
-
-});
+  }
+);
 
 app.post(
-"/api/topup/cancel",
-authMiddleware,
-(req,res)=>{
+  "/api/topup/cancel",
+  authMiddleware,
+  async (req, res) => {
 
-const {referenceId}=req.body;
+    try {
 
-const users=
-getUsers();
+      const { referenceId } = req.body;
 
-const user=
-users.find(
-u=>
-u.email===
-req.user.email
+      if (!referenceId) {
+
+        return res.json({
+          success: false
+        });
+
+      }
+
+      const [rows] = await pool.execute(
+        `SELECT *
+         FROM topup
+         WHERE reference_id=?
+         AND user_email=?
+         LIMIT 1`,
+        [
+          referenceId,
+          req.user.email
+        ]
+      );
+
+      if (!rows.length) {
+
+        return res.json({
+          success: false
+        });
+
+      }
+
+      const trx = rows[0];
+
+      if (
+        trx.status !== "waiting_payment"
+      ) {
+
+        return res.json({
+          success: false
+        });
+
+      }
+
+      await pool.execute(
+        `UPDATE topup
+         SET status='cancelled'
+         WHERE reference_id=?
+         AND user_email=?`,
+        [
+          referenceId,
+          req.user.email
+        ]
+      );
+
+      return res.json({
+        success: true
+      });
+
+    } catch (err) {
+
+      console.error(err);
+
+      return res.json({
+        success: false,
+        message: "Server Error"
+      });
+
+    }
+
+  }
 );
-
-if(!user){
-
-return res.json({
-success:false
-});
-
-}
-
-const trx=
-(user.topup||[])
-.find(
-x=>
-x.referenceId===
-referenceId
-);
-
-if(!trx){
-
-return res.json({
-success:false
-});
-
-}
-
-if(
-trx.status!==
-"waiting_payment"
-){
-
-return res.json({
-success:false
-});
-
-}
-
-trx.status=
-"cancelled";
-
-saveUsers(users);
-
-res.json({
-success:true
-});
-
-});
 
 app.post("/api/ganti-password", authMiddleware, async (req, res) => {
   const { passwordLama, passwordBaru } = req.body;
 
   if (!passwordLama || !passwordBaru) {
-    return res.json({ success: false, message: "Data tidak lengkap" });
+    return res.json({
+      success: false,
+      message: "Data tidak lengkap"
+    });
   }
-  const users = getUsers();
-  const index = users.findIndex(u => u.email === req.user.email);
-  if (index === -1) {
-    return res.json({ success: false, message: "User tidak ditemukan" });
+
+  try {
+
+    const [rows] = await pool.query(
+      "SELECT password FROM users WHERE email=?",
+      [req.user.email]
+    );
+
+    if (rows.length === 0) {
+      return res.json({
+        success: false,
+        message: "User tidak ditemukan"
+      });
+    }
+
+    const user = rows[0];
+
+    const match = await bcrypt.compare(
+      passwordLama,
+      user.password
+    );
+
+    if (!match) {
+      return res.json({
+        success: false,
+        message: "Password lama salah"
+      });
+    }
+
+    const hash = await bcrypt.hash(
+      passwordBaru,
+      10
+    );
+
+    await pool.query(
+      "UPDATE users SET password=? WHERE email=?",
+      [
+        hash,
+        req.user.email
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: "Password berhasil diubah"
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server"
+    });
+
   }
-  const user = users[index];
-  const match = await bcrypt.compare(passwordLama, user.password);
-  if (!match) {
-    return res.json({ success: false, message: "Password lama salah" });
-  }
-  const hash = await bcrypt.hash(passwordBaru, 10);
-  users[index].password = hash;
-  saveUsers(users);
-  res.json({ success: true, message: "Password berhasil diubah" });
 });
 
-app.get("/api/admin/data", (req, res) => {
-  const users = getUsers();
+app.get("/api/admin/data", async (req, res) => {
 
-  let result = [];
+  try {
 
-  users.forEach(u => {
+    const [topups] = await pool.query(`
+      SELECT
+        id,
+        user_email,
+        nominal,
+        status,
+        time
+      FROM topup
+    `);
 
-    (u.topup || []).forEach(t => {
+    const [refunds] = await pool.query(`
+      SELECT
+        id,
+        user_email,
+        order_id,
+        alasan,
+        nominal,
+        status,
+        time
+      FROM refund
+    `);
+
+    const result = [];
+
+    topups.forEach(t => {
       result.push({
         type: "topup",
-        email: u.email,
-        id: u.id,
-        nominal: t.uniqueNominal || t.nominal,
+        email: t.user_email,
+        id: t.id,
+        nominal: t.nominal,
         status: t.status,
         time: t.time
       });
     });
 
+    refunds.forEach(r => {
+      result.push({
+        type: "refund",
+        email: r.user_email,
+        id: r.id,
+        alasan: r.alasan || "-",
+        orderId: r.order_id,
+        nominal: r.nominal,
+        status: r.status,
+        time: r.time
+      });
+    });
 
-(u.refund || []).forEach(r => {
-  result.push({
-    type: "refund",
-    email: u.email,
-    id: r.id,
-    alasan: r.alasan || "-",
-    orderId: r.orderId,
-    nominal: r.nominal,
-    status: r.status,
-    time: r.time
-  });
-});
+    result.sort(
+      (a, b) =>
+        Number(b.time || 0) -
+        Number(a.time || 0)
+    );
 
-  });
+    res.json({
+      success: true,
+      data: result
+    });
 
-  res.json({ success: true, data: result });
-});
-app.post("/api/admin/topup/approve", (req, res) => {
-  const { email, time } = req.body;
+  } catch (err) {
 
-  const users = getUsers();
-  const user = users.find(u => u.email === email);
+    console.error(err);
 
-  if (!user) {
-    return res.json({ success: false });
-  }
-
-  const trx = user.topup.find(
-    t => Number(t.time) === Number(time)
-  );
-
-  if (!trx) {
-    return res.json({
+    res.status(500).json({
       success: false,
-      message: "Transaksi tidak ditemukan"
+      message: "Server error"
     });
+
   }
 
-  if (trx.status !== "pending") {
-    return res.json({
-      success:false,
-      message:"Sudah diproses"
+});
+
+app.post("/api/admin/refund/approve", async (req, res) => {
+
+  try {
+
+    const { email, orderId } = req.body;
+
+    const [refundRows] = await pool.execute(
+      `SELECT *
+       FROM refund
+       WHERE user_email=?
+       AND order_id=?
+       LIMIT 1`,
+      [email, orderId]
+    );
+
+    if (!refundRows.length) {
+      return res.json({
+        success: false,
+        message: "Refund tidak ditemukan"
+      });
+    }
+
+    const trx = refundRows[0];
+
+    if (trx.status !== "pending") {
+      return res.json({
+        success: false,
+        message: "Refund sudah diproses"
+      });
+    }
+
+    const [users] = await pool.execute(
+      `SELECT id
+       FROM users
+       WHERE email=?
+       LIMIT 1`,
+      [email]
+    );
+
+    if (!users.length) {
+      return res.json({
+        success: false,
+        message: "User tidak ditemukan"
+      });
+    }
+
+    const userId = users[0].id;
+
+    // approve refund
+    await pool.execute(
+      `UPDATE refund
+       SET status='approved'
+       WHERE id=?`,
+      [trx.id]
+    );
+
+    // tambah saldo user
+    await pool.execute(
+      `UPDATE users
+       SET saldo = saldo + ?
+       WHERE email=?`,
+      [
+        Number(trx.nominal),
+        email
+      ]
+    );
+
+    // update status order
+    await pool.execute(
+      `UPDATE history
+       SET status='refunded'
+       WHERE id=? AND user_id=?`,
+      [
+        orderId,
+        userId
+      ]
+    );
+
+    io.to(email).emit(
+      "orderUpdate",
+      {
+        type: "refund_approved",
+        orderId
+      }
+    );
+
+    res.json({
+      success: true
     });
-  }
 
-  const nominal = Number(
-    trx.uniqueNominal || trx.nominal || 0
-  );
+  } catch (err) {
 
-  user.saldo += nominal;
-  trx.status = "success";
+    console.error(
+      "REFUND APPROVE ERROR:",
+      err
+    );
 
-  saveUsers(users);
-
-  res.json({
-    success: true,
-    saldo: user.saldo
-  });
-});
-
-app.post("/api/admin/topup/reject", (req, res) => {
-  const { email, time } = req.body;
-  const users = getUsers();
-  const user = users.find(u => u.email === email);
-  if (!user) {
-    return res.json({ success: false });
-  }
-
-  const trx = user.topup.find(
-    t => Number(t.time) === Number(time)
-  );
-
-  if (!trx) {
-    return res.json({ success: false });
-  }
-
-  if (trx.status !== "pending") {
-    return res.json({
-      success:false,
-      message:"Sudah diproses"
+    res.status(500).json({
+      success: false
     });
+
   }
 
-  trx.status = "failed";
-
-  saveUsers(users);
-
-  res.json({ success: true });
 });
 
-app.post("/api/admin/refund/approve", (req, res) => {
-  const { email, orderId } = req.body;
+app.post("/api/admin/refund/reject", async (req, res) => {
 
-  const users = getUsers();
-  const user = users.find(u => u.email === email);
+  try {
 
-  if (!user) {
-    return res.json({ success: false });
-  }
+    const { email, orderId } = req.body;
 
-  const trx = user.refund.find(r => r.orderId === orderId);
+    const [refundRows] = await pool.execute(
+      `SELECT *
+       FROM refund
+       WHERE user_email=?
+       AND order_id=?
+       LIMIT 1`,
+      [email, orderId]
+    );
 
-  if (!trx || trx.status !== "pending") {
-    return res.json({ success: false });
-  }
+    if (!refundRows.length) {
+      return res.json({
+        success: false,
+        message: "Refund tidak ditemukan"
+      });
+    }
 
-  user.saldo += Number(trx.nominal);
+    const trx = refundRows[0];
 
-  trx.status = "approved";
+    if (trx.status !== "pending") {
+      return res.json({
+        success: false,
+        message: "Refund sudah diproses"
+      });
+    }
 
-saveRefundToExcel({
-  user_email: email,
-  produk_email: trx.id,
-  order_id: trx.orderId,
-  nominal: trx.nominal,
-  reason: trx.alasan,
-  status: trx.status,
-  waktu_refund: new Date().toLocaleString("id-ID")
-});
-  
-  const order = user.history.find(
-  x => String(x.id) === String(orderId)
-);
+    const [users] = await pool.execute(
+      `SELECT id
+       FROM users
+       WHERE email=?
+       LIMIT 1`,
+      [email]
+    );
 
-if(order){
-  order.status = "refunded";
-}
+    if (!users.length) {
+      return res.json({
+        success: false,
+        message: "User tidak ditemukan"
+      });
+    }
 
-  saveUsers(users);
-io.to(user.email).emit("orderUpdate", {
-  type: "refund_approved"
-});
-  res.json({
-    success: true
-  });
-});
-app.post("/api/admin/refund/reject", (req, res) => {
-  const { email, orderId } = req.body;
+    const userId = users[0].id;
 
-  const users = getUsers();
-  const user = users.find(u => u.email === email);
+    // update refund
+    await pool.execute(
+      `UPDATE refund
+       SET status='rejected'
+       WHERE id=?`,
+      [trx.id]
+    );
 
-  if (!user) return res.json({ success: false });
+    // update status order
+    await pool.execute(
+      `UPDATE history
+       SET status='refund_rejected'
+       WHERE id=? AND user_id=?`,
+      [
+        orderId,
+        userId
+      ]
+    );
 
-  const trx = user.refund.find(r => r.orderId === orderId);
+    io.to(email).emit(
+      "orderUpdate",
+      {
+        type: "refund_rejected",
+        orderId
+      }
+    );
 
-  if (!trx) {
-    return res.json({ success: false });
-  }
-
-  trx.status = "rejected";
-  
-  const order = user.history.find(
-  x => String(x.id) === String(orderId)
-);
-
-if(order){
-  order.status = "refund_rejected";
-}
-
-  saveUsers(users);
-io.to(user.email).emit("orderUpdate", {
-  type: "refund_rejected"
-});
-  res.json({ success: true });
-});
-
-app.post("/api/refund", authMiddleware, (req,res)=>{
-
-  const { id, orderId, nominal, alasan } = req.body;
-
-  const users = getUsers();
-  const user = users.find(u => u.email === req.user.email);
-
-  if (!user) {
-    return res.json({ success:false });
-  }
-
-  if (!nominal || nominal <= 0) {
-    return res.json({
-      success:false,
-      message:"Nominal refund tidak valid"
+    res.json({
+      success: true
     });
+
+  } catch (err) {
+
+    console.error(
+      "REFUND REJECT ERROR:",
+      err
+    );
+
+    res.status(500).json({
+      success: false
+    });
+
   }
 
-  if (!user.refund) {
-    user.refund = [];
+});
+
+app.post("/api/refund", authMiddleware, async (req, res) => {
+
+  try {
+
+    const { id, orderId, nominal, alasan } = req.body;
+
+    if (!orderId) {
+      return res.json({
+        success: false,
+        message: "Order ID tidak valid"
+      });
+    }
+
+    if (!nominal || Number(nominal) <= 0) {
+      return res.json({
+        success: false,
+        message: "Nominal refund tidak valid"
+      });
+    }
+
+    const [users] = await pool.execute(
+      `SELECT id, email
+       FROM users
+       WHERE email=?`,
+      [req.user.email]
+    );
+
+    if (!users.length) {
+      return res.json({
+        success: false,
+        message: "User tidak ditemukan"
+      });
+    }
+
+    const userId = users[0].id;
+
+    const [historyRows] = await pool.execute(
+      `SELECT id
+       FROM history
+       WHERE id=? AND user_id=?
+       LIMIT 1`,
+      [orderId, userId]
+    );
+
+    if (!historyRows.length) {
+      return res.json({
+        success: false,
+        message: "Order tidak ditemukan"
+      });
+    }
+
+    const [existingRefund] = await pool.execute(
+      `SELECT id
+       FROM refund
+       WHERE user_email=?
+       AND order_id=?
+       AND status='pending'
+       LIMIT 1`,
+      [req.user.email, orderId]
+    );
+
+    if (existingRefund.length) {
+      return res.json({
+        success: false,
+        message: "Refund sudah diajukan"
+      });
+    }
+
+    await pool.execute(
+      `INSERT INTO refund
+      (
+        id,
+        user_email,
+        order_id,
+        alasan,
+        nominal,
+        status,
+        time
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        req.user.email,
+        orderId,
+        alasan || "-",
+        Number(nominal),
+        "pending",
+        Date.now()
+      ]
+    );
+
+    await pool.execute(
+      `UPDATE history
+       SET status='pending_refund'
+       WHERE id=? AND user_id=?`,
+      [orderId, userId]
+    );
+
+    io.to(req.user.email).emit("orderUpdate", {
+      type: "refund_pending",
+      orderId
+    });
+
+    res.json({
+      success: true,
+      message: "Refund berhasil diajukan"
+    });
+
+  } catch (err) {
+
+    console.error("REFUND ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+
   }
-  
-  const existingRefund = user.refund.find(
-  r => r.orderId === orderId && r.status === "pending"
-);
 
-if(existingRefund){
-  return res.json({
-    success:false,
-    message:"Refund sudah diajukan"
-  });
-}
-
-user.refund.push({
-  id,
-  orderId,
-  alasan: alasan || "-",
-  nominal: Number(nominal),
-  status: "pending",
-  time: Date.now()
 });
 
-const order = user.history.find(
-  x => String(x.id) === String(orderId)
-);
+app.get("/api/refund", authMiddleware, async (req, res) => {
 
-if(order){
-  order.status = "pending_refund";
-}
+  try {
 
-  saveUsers(users);
-  io.to(user.email).emit("orderUpdate", {
-  type: "refund_pending"
-});
+    const [rows] = await pool.execute(
+      `SELECT *
+       FROM refund
+       WHERE user_email=?
+       ORDER BY time DESC`,
+      [req.user.email]
+    );
 
-  res.json({ success:true });
-});
+    res.json({
+      success: true,
+      data: rows
+    });
 
-app.get("/api/refund", authMiddleware, (req,res)=>{
+  } catch (err) {
 
-  const users = getUsers();
-  const user = users.find(u => u.email === req.user.email);
+    console.error("GET REFUND ERROR:", err);
 
-  if (!user) return res.json({ success:false });
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
 
-  res.json({
-    success: true,
-    data: user.refund || []
-  });
+  }
 
 });
 
@@ -4157,136 +5235,123 @@ async function checkLatestOrderForUser(userEmail) {
   }
 }
 
-app.get("/api/livechat/history", (req, res) => {
-  const { email } = req.query;
+app.get("/api/livechat/history", async (req, res) => {
 
-  if (!email) {
-    return res.json({ success: false });
+  try {
+
+    const { email } = req.query;
+
+    if (!email) {
+      return res.json({
+        success: false
+      });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT
+        id,
+        sender,
+        text,
+        file_url AS fileUrl,
+        status,
+        time
+      FROM livechat_messages
+      WHERE user_email = ?
+      ORDER BY time ASC`,
+      [email]
+    );
+
+    res.json({
+      success: true,
+      data: rows
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.json({
+      success: false,
+      data: []
+    });
+
   }
 
-  const session = liveChatSessions[email];
-  const chats = session?.chats || [];
-
-  res.json({
-    success: true,
-    data: chats
-  });
 });
 
-app.get("/api/livechat/messages", (req, res) => {
+app.get("/api/livechat/messages", async (req, res) => {
 
-try {
+  try {
 
-const email = (
-  req.query.email || ""
-).trim().toLowerCase();
+    const email = (
+      req.query.email || ""
+    ).trim().toLowerCase();
 
-if (!email) {
+    if (!email) {
 
-  return res.json({
-    success: false,
-    messages: []
-  });
-}
+      return res.json({
+        success: false,
+        messages: []
+      });
 
-const filePath = path.join(
-  __dirname,
-  "data/livechat.json"
-);
+    }
 
-if (!fs.existsSync(filePath)) {
+    const [rows] = await pool.query(
+      `
+      SELECT
+        id,
+        sender,
+        text,
+        file_url,
+        status,
+        time
+      FROM livechat_messages
+      WHERE LOWER(user_email) = ?
+      ORDER BY time ASC
+      `,
+      [email]
+    );
 
-  return res.json({
-    success: true,
-    messages: []
-  });
-}
+    const chats = rows.map(msg => ({
 
-const raw = fs.readFileSync(
-  filePath,
-  "utf8"
-);
+      id: msg.id,
 
-if (!raw.trim()) {
+      sender:
+        msg.sender || "admin",
 
-  return res.json({
-    success: true,
-    messages: []
-  });
-}
+      text:
+        msg.text || "",
 
-let rooms = {};
+      fileUrl:
+        msg.file_url || null,
 
-try {
+      status:
+        msg.status || "sent",
 
-  rooms = JSON.parse(raw);
+      time:
+        Number(msg.time) || Date.now()
 
-} catch (parseErr) {
+    }));
 
-  return res.json({
-    success: false,
-    messages: []
-  });
-}
+    return res.json({
+      success: true,
+      messages: chats
+    });
 
-const room = rooms[email];
+  } catch (err) {
 
-if (!room) {
+    console.error(
+      "Livechat messages error:",
+      err
+    );
 
-  return res.json({
-    success: true,
-    messages: []
-  });
-}
+    return res.json({
+      success: false,
+      messages: []
+    });
 
-let chats = Array.isArray(room.chats)
-  ? room.chats
-  : [];
+  }
 
-chats = chats.map(msg => ({
-
-  id:
-    msg.id ||
-    Date.now(),
-
-  sender:
-    msg.sender || "admin",
-  text:
-    msg.text ||
-    msg.message ||
-    "",
-
-  fileUrl:
-    msg.fileUrl || null,
-
-  status:
-    msg.status || "sent",
-
-  time:
-    Number(msg.time) ||
-    Date.now()
-
-}));
-
-chats.sort(
-  (a, b) =>
-    Number(a.time) -
-    Number(b.time)
-);
-
-return res.json({
-  success: true,
-  messages: chats
-});
-
-} catch (err) {
-
-return res.json({
-  success: false,
-  messages: []
-});
-
-}
 });
 
 io.on("connection", (socket) => {
@@ -4414,15 +5479,31 @@ setInterval(() => {
   sentGmailIds.clear();
 }, 60 * 60 * 1000);
 
-const TelegramBot = require("node-telegram-bot-api");
-const BOT_TOKEN = "8776977350:AAFLQYgvtsKqCMqpsXGov786q2ZormAK2rI";
-const CHAT_ID = "1475046378";
-const bot = new TelegramBot(BOT_TOKEN, {
-  polling: true
-});
+require("dotenv").config();
+
+const TelegramBot =
+require("node-telegram-bot-api");
+
+const BOT_TOKEN =
+process.env.BOT_TOKEN;
+
+const CHAT_ID =
+process.env.CHAT_ID;
+
+const bot =
+new TelegramBot(
+BOT_TOKEN,
+{
+polling:true
+}
+);
 
 const SETOR_BOT_TOKEN =
-"8984548393:AAFTD-QSsyiEmniLHyAsKX1XqCaFi9NYz68";
+process.env.SETOR_BOT_TOKEN;
+
+const SETOR_CHAT_ID =
+process.env.SETOR_CHAT_ID;
+
 const setorBot =
 new TelegramBot(
 SETOR_BOT_TOKEN,
@@ -4430,18 +5511,21 @@ SETOR_BOT_TOKEN,
 polling:true
 }
 );
-const SETOR_CHAT_ID =
-"1475046378";
+
 const WD_BOT_TOKEN =
-"8899505360:AAH8mUOvngNOembfmt9HFjs-dCYebbMoHOs";
+process.env.WD_BOT_TOKEN;
+
 const WD_CHAT_ID =
-"1475046378";
+process.env.WD_CHAT_ID;
+
 const wdBot =
 new TelegramBot(
 WD_BOT_TOKEN,
 {
 polling:true
-});
+}
+);
+
 let restockSession = {};
 let depositSession = {};
 
@@ -4452,32 +5536,68 @@ tipe
 
 try{
 
-let text=
+const nama =
+data.nama ||
+data.Nama ||
+"-";
+
+const emailUser =
+data.email_user ||
+data.EmailUser ||
+"-";
+
+const email =
+data.email ||
+data.Email ||
+"-";
+
+const password =
+data.password ||
+data.Password ||
+"-";
+
+const uid =
+data.uid ||
+data.UID ||
+"-";
+
+const harga =
+Number(
+data.harga ??
+data.Harga ??
+0
+);
+
+const id =
+data.transaksi_id ||
+data.ID ||
+data.id ||
+Date.now();
+
+const text =
 `📥 SETORAN BARU
 
 Produk : ${tipe}
-Nama : ${data.Nama}
 
-Email User:
-${data.EmailUser}
+Nama : ${nama}
+
+Email User :
+${emailUser}
 
 Email :
-${data.Email}
+${email}
 
 Password :
-${data.Password}
+${password}
 
 UID :
-${data.UID||"-"}
+${uid}
 
 Harga :
-Rp${Number(
-data.Harga
-).toLocaleString("id-ID")}
+Rp${harga.toLocaleString("id-ID")}
 
-ID:
-${data.ID}
-`;
+ID :
+${id}`;
 
 await setorBot.sendMessage(
 SETOR_CHAT_ID,
@@ -4490,13 +5610,12 @@ inline_keyboard:[
 {
 text:"✅ ON",
 callback_data:
-`setor_on_${data.ID}_${tipe}`
+`setor_on_${id}_${tipe}`
 },
-
 {
 text:"❌ TIDAK VALID",
 callback_data:
-`setor_invalid_${data.ID}_${tipe}`
+`setor_invalid_${id}_${tipe}`
 }
 ],
 
@@ -4504,7 +5623,7 @@ callback_data:
 {
 text:"⏸ OFF",
 callback_data:
-`setor_off_${data.ID}_${tipe}`
+`setor_off_${id}_${tipe}`
 }
 ]
 
@@ -4515,7 +5634,10 @@ callback_data:
 
 }catch(err){
 
-console.log(err);
+console.log(
+"SETOR TELEGRAM:",
+err
+);
 
 }
 
@@ -4527,25 +5649,65 @@ data
 
 try{
 
-let text=
+const id =
+data.id ||
+data.ID;
+
+const nama =
+data.nama ||
+data.Nama ||
+"-";
+
+const emailUser =
+data.email_user ||
+data.EmailUser ||
+"-";
+
+const bank =
+data.bank ||
+data.Bank ||
+"-";
+
+const norek =
+data.nomor_rekening ||
+data.NomorRekening ||
+"-";
+
+const namaRekening =
+data.nama_rekening ||
+data.NamaRekening ||
+"-";
+
+const jumlah =
+Number(
+data.jumlah ??
+data.Jumlah ??
+0
+);
+
+const text =
 `💸 WITHDRAW BARU
 
-Nama:
-${data.Nama}
+Nama :
+${nama}
 
-Email:
-${data.EmailUser}
+Email :
+${emailUser}
 
-Withdraw:
-Rp${Number(
-data.Jumlah
-).toLocaleString("id-ID")}
+Nominal :
+Rp${jumlah.toLocaleString("id-ID")}
 
-Rekening:
-${data.Bank}
+Bank :
+${bank}
 
-${data.NomorRekening}
-`;
+No Rekening :
+${norek}
+
+Atas Nama :
+${namaRekening}
+
+ID :
+${id}`;
 
 await wdBot.sendMessage(
 WD_CHAT_ID,
@@ -4558,13 +5720,12 @@ inline_keyboard:[
 {
 text:"✅ Masuk",
 callback_data:
-`wd_masuk_${data.ID}`
+`wd_masuk_${id}`
 },
-
 {
 text:"❌ Tolak",
 callback_data:
-`wd_tolak_${data.ID}`
+`wd_tolak_${id}`
 }
 ]
 
@@ -4575,13 +5736,16 @@ callback_data:
 
 }catch(err){
 
-console.log(err);
+console.log(
+"WD TELEGRAM:",
+err
+);
 
 }
 
 }
 
-bot.on("callback_query",(query)=>{
+bot.on("callback_query", async (query) => {
 
 const chatId=query.message.chat.id;
 
@@ -4634,38 +5798,66 @@ message_id:query.message.message_id
 
 }
 
-const nominal=
-Number(
-value.replace("dep_","")
+const nominal =
+  Number(
+    value.replace("dep_", "")
+  );
+
+const [rows] = await pool.execute(
+  `
+  SELECT *
+  FROM users
+  WHERE email = ?
+  LIMIT 1
+  `,
+  [
+    depositSession[chatId].data.email
+  ]
 );
 
-const users=getUsers();
-
-const user=users.find(
-u=>u.email===
-depositSession[chatId].data.email
-);
-
-if(!user){
-return;
+if (!rows.length) {
+  return;
 }
 
-user.saldo+=nominal;
+const user = rows[0];
 
-saveUsers(users);
+const saldoBaru =
+  Number(user.saldo || 0) +
+  nominal;
 
-bot.answerCallbackQuery(query.id);
+await pool.execute(
+  `
+  UPDATE users
+  SET saldo = saldo + ?
+  WHERE email = ?
+  `,
+  [
+    nominal,
+    user.email
+  ]
+);
 
-bot.editMessageText(
-`✅ Deposit berhasil
+io.to(user.email).emit(
+  "saldoUpdate",
+  {
+    saldo: saldoBaru
+  }
+);
+
+await bot.answerCallbackQuery(
+  query.id
+);
+
+await bot.editMessageText(
+  `✅ Deposit berhasil
 
 Email: ${user.email}
 Nominal: Rp${nominal.toLocaleString("id-ID")}
-Saldo: Rp${user.saldo.toLocaleString("id-ID")}`,
-{
-chat_id:chatId,
-message_id:query.message.message_id
-}
+Saldo: Rp${saldoBaru.toLocaleString("id-ID")}`,
+  {
+    chat_id: chatId,
+    message_id: query.message.message_id
+  }
 );
 
 delete depositSession[chatId];
@@ -4682,104 +5874,89 @@ async(query)=>{
 
 try{
 
-const data=query.data;
+const callbackData =
+query.data;
 
 if(
-!data.startsWith(
+!callbackData.startsWith(
 "setor_"
 )
-)return;
+){
+return;
+}
 
-const pecah=
-data.split("_");
+const pecah =
+callbackData.split("_");
 
-const status=
+const status =
 pecah[1];
 
-const id=
+const transaksiId =
 pecah[2];
 
-const tipe=
+const tipe =
 pecah
 .slice(3)
 .join(" ")
 .toLowerCase();
 
-let file="";
+let table = "";
 
 if(
-tipe==="facebook fresh"
+tipe ===
+"facebook fresh"
 ){
 
-file=
-"setoran-facebook-fresh.xlsx";
+table =
+"setoran_facebook_fresh";
 
 }
-
 else if(
-tipe==="gmail fresh"
+tipe ===
+"gmail fresh"
 ){
 
-file=
-"setoran-gmail-fresh.xlsx";
+table =
+"setoran_gmail_fresh";
 
 }
-
 else if(
-tipe==="gmail bekas"
+tipe ===
+"gmail bekas"
 ){
 
-file=
-"setoran-gmail-bekas.xlsx";
+table =
+"setoran_gmail_bekas";
 
 }
-
-const excelPath=
-path.join(
-setoranDir,
-file
-);
-
-if(
-!fs.existsSync(
-excelPath
-)
-){
+else{
 
 return setorBot.answerCallbackQuery(
 query.id,
 {
 text:
-"File tidak ada"
+"Tipe tidak dikenal"
 }
 );
 
 }
 
-const wb=
-XLSX.readFile(
-excelPath
+const [rows] =
+await pool.execute(
+`
+SELECT *
+FROM ${table}
+WHERE transaksi_id=?
+LIMIT 1
+`,
+[
+transaksiId
+]
 );
 
-const sheet=
-wb.Sheets[
-wb.SheetNames[0]
-];
-
-let dataExcel=
-XLSX.utils.sheet_to_json(
-sheet
-);
-
-const item=
-dataExcel.find(
-x=>
-String(x.ID)
-===
-String(id)
-);
-
-if(!item){
+if(
+!rows.length
+){
 
 return setorBot.answerCallbackQuery(
 query.id,
@@ -4791,36 +5968,94 @@ text:
 
 }
 
-if(
-status==="on"
-){
-item.Status="on";
-}
+const item =
+rows[0];
+
+let statusBaru = "";
 
 if(
-status==="off"
+status === "on"
 ){
-item.Status="off";
+statusBaru = "on";
 }
-
-if(
-status==="invalid"
+else if(
+status === "off"
 ){
-item.Status=
-"tidak valid";
+statusBaru = "off";
 }
+else if(
+status === "invalid"
+){
+statusBaru = "tidak valid";
+}
+else{
 
-wb.Sheets[
-wb.SheetNames[0]
-]=
-XLSX.utils.json_to_sheet(
-dataExcel
+return setorBot.answerCallbackQuery(
+query.id,
+{
+text:
+"Status tidak valid"
+}
 );
 
-XLSX.writeFile(
-wb,
-excelPath
+}
+
+await pool.execute(
+`
+UPDATE ${table}
+SET status_akun=?
+WHERE transaksi_id=?
+`,
+[
+statusBaru,
+transaksiId
+]
 );
+
+// =======================
+// MASUKKAN KE STOK PRODUK
+// =======================
+
+if(statusBaru === "on"){
+
+  let stokTable = "";
+
+  if(table === "setoran_facebook_fresh"){
+    stokTable = "facebook_fresh";
+  }
+
+  else if(table === "setoran_gmail_fresh"){
+    stokTable = "gmail";
+  }
+
+  else if(table === "setoran_gmail_bekas"){
+    stokTable = "gmail_bekas";
+  }
+
+  await pool.execute(
+    `
+    INSERT INTO ${stokTable}
+    (
+      email,
+      password,
+      status,
+      sold_at
+    )
+    VALUES
+    (
+      ?,
+      ?,
+      'tersedia',
+      NULL
+    )
+    `,
+    [
+      item.email,
+      item.password
+    ]
+  );
+
+}
 
 await setorBot.answerCallbackQuery(
 query.id,
@@ -4834,23 +6069,24 @@ await setorBot.editMessageText(
 
 `✅ STATUS UPDATE
 
-Status:
-${item.Status}
+Produk :
+${tipe}
 
-Email:
-${item.Email}
+Status :
+${statusBaru}
 
-ID:
-${item.ID}`,
+Email :
+${item.email}
+
+ID :
+${item.transaksi_id}`,
 
 {
-
 chat_id:
 query.message.chat.id,
 
 message_id:
 query.message.message_id
-
 }
 
 );
@@ -4862,6 +6098,18 @@ console.log(
 err
 );
 
+try{
+
+await setorBot.answerCallbackQuery(
+query.id,
+{
+text:
+"Terjadi kesalahan"
+}
+);
+
+}catch{}
+
 }
 
 });
@@ -4870,77 +6118,125 @@ err
 
 wdBot.on(
 "callback_query",
-(query)=>{
+async(query)=>{
 
-const data=
+try{
+
+const data =
 query.data;
 
 if(
 !data.startsWith(
 "wd_"
 )
-)return;
+){
+return;
+}
 
-const pecah=
+const pecah =
 data.split("_");
 
-const aksi=
+const aksi =
 pecah[1];
 
-const id=
+const id =
 pecah[2];
 
-let wd=
-bacaJson(
-wdPath
+const [rows] =
+await pool.execute(
+`
+SELECT *
+FROM data_wd
+WHERE id=?
+LIMIT 1
+`,
+[
+id
+]
 );
-
-const item=
-wd.find(
-x=>
-String(x.ID)
-===
-String(id)
-);
-
-if(!item)
-return;
 
 if(
-aksi==="masuk"
+!rows.length
 ){
 
-item.Status=
+return wdBot.answerCallbackQuery(
+query.id,
+{
+text:
+"Withdraw tidak ditemukan"
+}
+);
+
+}
+
+const item =
+rows[0];
+
+let statusBaru = "";
+
+if(
+aksi === "masuk"
+){
+
+statusBaru =
 "Berhasil";
 
 }
-
-if(
-aksi==="tolak"
+else if(
+aksi === "tolak"
 ){
 
-item.Status=
+statusBaru =
 "Ditolak";
 
 }
+else{
 
-simpanJson(
-wdPath,
-wd
+return wdBot.answerCallbackQuery(
+query.id,
+{
+text:
+"Aksi tidak valid"
+}
 );
 
-wdBot.editMessageText(
+}
 
-`Status:
-${item.Status}
+await pool.execute(
+`
+UPDATE data_wd
+SET status=?
+WHERE id=?
+`,
+[
+statusBaru,
+id
+]
+);
 
-Nama:
-${item.Nama}
+await wdBot.editMessageText(
 
-WD:
+`💸 WITHDRAW UPDATE
+
+Status :
+${statusBaru}
+
+Nama :
+${item.nama}
+
+Email :
+${item.email_user}
+
+Nominal :
 Rp${Number(
-item.Jumlah
-).toLocaleString("id-ID")}`,
+item.jumlah
+).toLocaleString("id-ID")}
+
+Bank :
+${item.bank}
+
+Rekening :
+${item.nomor_rekening}`,
 
 {
 chat_id:
@@ -4952,9 +6248,34 @@ query.message.message_id
 
 );
 
-wdBot.answerCallbackQuery(
-query.id
+await wdBot.answerCallbackQuery(
+query.id,
+{
+text:
+"Berhasil diubah"
+}
 );
+
+}catch(err){
+
+console.log(
+"WD CALLBACK:",
+err
+);
+
+try{
+
+await wdBot.answerCallbackQuery(
+query.id,
+{
+text:
+"Terjadi kesalahan"
+}
+);
+
+}catch{}
+
+}
 
 });
 
@@ -5049,179 +6370,23 @@ msg.chat.id,
 
 });
 
-const livechatPath = path.join(
-  __dirname,
-  "data/livechat.json"
-);
-
-if (!fs.existsSync(livechatPath)) {
-
-  // buat file default {}
-  fs.writeFileSync(
-    livechatPath,
-    JSON.stringify({}, null, 2)
-  );
-
-}
-
-function loadLiveChat() {
-
-  try {
-
-    const raw = fs.readFileSync(
-      livechatPath,
-      "utf8"
-    );
-
-    if (!raw.trim()) {
-      return {};
-    }
-
-    const parsed = JSON.parse(raw);
-
-    if (
-      typeof parsed !== "object" ||
-      Array.isArray(parsed)
-    ) {
-
-      return {};
-    }
-
-    return parsed;
-
-  } catch (err) {
-
-    fs.writeFileSync(
-      livechatPath,
-      JSON.stringify({}, null, 2)
-    );
-
-    return {};
-  }
-}
-
-function saveLiveChat(data) {
-
-  try {
-
-    fs.writeFileSync(
-      livechatPath,
-      JSON.stringify(data, null, 2)
-    );
-
-  } catch (err) {
-
-  }
-}
-
-let liveChatSessions = loadLiveChat();
-
-setInterval(() => {
-
-  try {
-
-    const now = Date.now();
-    const MAX_AGE =
-      24 * 60 * 60 * 1000;
-
-    let changed = false;
-    Object.keys(liveChatSessions)
-      .forEach(email => {
-
-        const room =
-          liveChatSessions[email];
-
-        if (!room?.chats) return;
-        room.chats =
-          room.chats.filter(msg => {
-
-            const keep =
-              now - Number(msg.time || 0)
-              < MAX_AGE;
-            if (!keep && msg.fileUrl) {
-
-              try {
-
-                const filePath =
-                  path.join(
-                    __dirname,
-                    msg.fileUrl
-                  );
-
-                if (
-                  fs.existsSync(filePath)
-                ) {
-
-                  fs.unlinkSync(filePath);
-
-                }
-
-              } catch(err) {
-
-                console.log(
-                  "Gagal hapus file:",
-                  err.message
-                );
-
-              }
-
-            }
-
-            return keep;
-
-          });
-
-        if (room.chats.length <= 0) {
-
-          delete liveChatSessions[email];
-
-        }
-
-        changed = true;
-
-      });
-
-    if (changed) {
-
-      saveLiveChat(
-        liveChatSessions
-      );
-
-      console.log(
-        "🧹 Livechat cleanup selesai"
-      );
-
-    }
-
-  } catch(err) {
-
-    console.log(
-      "CLEANUP ERROR:",
-      err.message
-    );
-
-  }
-
-},
-
-60 * 60 * 1000);
-
 app.post("/api/livechat/start", async (req, res) => {
 
   const { name, email } = req.body;
 
   try {
 
-    // init session
-    if (!liveChatSessions[email]) {
+    const cleanEmail = String(email || "")
+      .trim()
+      .toLowerCase();
 
-      liveChatSessions[email] = {
-        name,
-        email,
-        chats: []
-      };
+    if (!cleanEmail) {
 
-      saveLiveChat(liveChatSessions);
+      return res.json({
+        success: false,
+        message: "Email kosong"
+      });
+
     }
 
     await axios.post(
@@ -5232,22 +6397,29 @@ app.post("/api/livechat/start", async (req, res) => {
 `🟢 LIVECHAT BARU
 
 Nama: ${name}
-Email: ${email}
+Email: ${cleanEmail}
 
 User memulai chat`
       }
     );
 
-    res.json({
+    return res.json({
       success: true
     });
 
   } catch (err) {
 
-    res.json({
+    console.log(
+      "LIVECHAT START ERROR:",
+      err
+    );
+
+    return res.json({
       success: false
     });
+
   }
+
 });
 
 app.post("/api/livechat/send", async (req, res) => {
@@ -5256,28 +6428,55 @@ app.post("/api/livechat/send", async (req, res) => {
 
   try {
 
-    if (!liveChatSessions[email]) {
+    const cleanEmail = String(email || "")
+      .trim()
+      .toLowerCase();
 
-      liveChatSessions[email] = {
-        name,
-        email,
-        chats: []
-      };
+    if (
+      !cleanEmail ||
+      !message
+    ) {
+
+      return res.json({
+        success: false
+      });
 
     }
 
     const newMessage = {
-      id: Date.now(),
       sender: "user",
-      message,
+      text: message,
+      fileUrl: null,
+      status: "sent",
       time: Date.now()
     };
 
-    liveChatSessions[email].chats.push(newMessage);
+    const [result] = await pool.execute(
+      `
+      INSERT INTO livechat_messages
+      (
+        user_email,
+        sender,
+        text,
+        file_url,
+        status,
+        time
+      )
+      VALUES (?, ?, ?, ?, ?, ?)
+      `,
+      [
+        cleanEmail,
+        "user",
+        message,
+        null,
+        "sent",
+        newMessage.time
+      ]
+    );
 
-    saveLiveChat(liveChatSessions);
+    newMessage.id = result.insertId;
 
-    io.to(email).emit(
+    io.to(cleanEmail).emit(
       "livechatNewMessage",
       newMessage
     );
@@ -5290,19 +6489,25 @@ app.post("/api/livechat/send", async (req, res) => {
 `💬 PESAN LIVECHAT
 
 Nama: ${name}
-Email: ${email}
+Email: ${cleanEmail}
 
 ${message}`
       }
     );
 
-    res.json({
-      success: true
+    return res.json({
+      success: true,
+      messageData: newMessage
     });
 
   } catch (err) {
 
-    res.json({
+    console.log(
+      "LIVECHAT SEND ERROR:",
+      err
+    );
+
+    return res.json({
       success: false
     });
 
@@ -5320,15 +6525,6 @@ app.post("/api/livechat/upload", upload.single("file"), async (req, res) => {
     }
 
     const { name, email } = req.body;
-
-    // init session
-    if (!liveChatSessions[email]) {
-      liveChatSessions[email] = {
-        name,
-        email,
-        chats: []
-      };
-    }
 
     const filePath = path.join(__dirname, "uploads", req.file.filename);
 
@@ -5354,8 +6550,32 @@ const newMsg = {
   time: Date.now()
 };
 
-liveChatSessions[email].chats.push(newMsg);
-saveLiveChat(liveChatSessions);
+const [result] = await pool.execute(
+  `
+  INSERT INTO livechat_messages
+  (
+    user_email,
+    sender,
+    text,
+    file_url,
+    status,
+    time
+  )
+  VALUES (?, ?, ?, ?, ?, ?)
+  `,
+  [
+    email.toLowerCase(),
+    "user",
+    "",
+    newMsg.fileUrl,
+    "sent",
+    newMsg.time
+  ]
+);
+
+newMsg.id = result.insertId;
+
+
 io.to(email).emit("livechatNewMessage", newMsg);
 
 return res.json({
@@ -5456,96 +6676,168 @@ const mapFile = {
         );
       }
 
-      session.data.password = text.trim();
-      session.step = 3;
+session.data.password = text.trim();
+session.step = 3;
 
-      return bot.sendMessage(
-        chatId,
-        "📩 Masukkan email (pisahkan ENTER):"
-      );
-    }
-
-    if (session.step === 3) {
-
-      const emails = text
-        .split("\n")
-        .map(e => e.trim())
-        .filter(Boolean);
-
-      const fileName = session.data.file;
-
-      const filePath = path.join(
-        __dirname,
-        `data/${fileName}.xlsx`
-      );
-
-      const passwordStok = session.data.password;
-
-      if (!fs.existsSync(filePath)) {
-
-        delete restockSession[chatId];
-
-        return bot.sendMessage(
-          chatId,
-          "❌ File tidak ditemukan"
-        );
-      }
-
-      const wb = XLSX.readFile(filePath);
-
-      const sheet =
-        wb.Sheets[wb.SheetNames[0]];
-
-      let data =
-        XLSX.utils.sheet_to_json(sheet);
-
-      const newRows = emails.map(email => {
-
-if (
- fileName === "gmail" ||
- fileName === "gmail bekas"
-){
- return {
-   Gmail: email,
-   Password: passwordStok,
-   statusGmail: ""
- };
+return bot.sendMessage(
+  chatId,
+  "📩 Masukkan email (pisahkan ENTER):"
+);
 }
 
-        if (fileName === "fb") {
-          return {
-            Email: email,
-            Password: passwordStok,
-            statusEmail: ""
-          };
-        }
+if (session.step === 3) {
 
-        if (fileName === "gaslur") {
-          return {
-            "Email Pengganti": email,
-            Status: ""
-          };
-        }
+const emails = [
+  ...new Set(
+    text
+      .split("\n")
+      .map(e => e.trim().toLowerCase())
+      .filter(Boolean)
+  )
+];
 
-      });
+const fileName =
+  session.data.file;
 
-      data = [...data, ...newRows];
+const passwordStok =
+  session.data.password;
 
-      const newSheet =
-        XLSX.utils.json_to_sheet(data);
+let berhasil = 0;
 
-      wb.Sheets[wb.SheetNames[0]] =
-        newSheet;
+try {
 
-      XLSX.writeFile(wb, filePath);
+  if (fileName === "gmail") {
 
-      delete restockSession[chatId];
+    const values = emails.map(email => [
+      email,
+      passwordStok,
+      "tersedia"
+    ]);
 
-      return bot.sendMessage(
-        chatId,
-        `✅ Restock berhasil!\nFile: ${fileName}\nTotal: ${emails.length}`
-      );
-    }
+    const [result] = await pool.query(
+      `
+      INSERT IGNORE INTO gmail
+      (
+        email,
+        password,
+        status
+      )
+      VALUES ?
+      `,
+      [values]
+    );
+
+    berhasil = result.affectedRows;
+
+  }
+
+  else if (fileName === "gmail bekas") {
+
+    const values = emails.map(email => [
+      email,
+      passwordStok,
+      "tersedia"
+    ]);
+
+    const [result] = await pool.query(
+      `
+      INSERT IGNORE INTO gmail_bekas
+      (
+        email,
+        password,
+        status
+      )
+      VALUES ?
+      `,
+      [values]
+    );
+
+    berhasil = result.affectedRows;
+
+  }
+
+  else if (fileName === "fb") {
+
+    const values = emails.map(email => [
+      email,
+      passwordStok,
+      "tersedia"
+    ]);
+
+    const [result] = await pool.query(
+      `
+      INSERT IGNORE INTO facebook_fresh
+      (
+        email,
+        password,
+        status
+      )
+      VALUES ?
+      `,
+      [values]
+    );
+
+    berhasil = result.affectedRows;
+
+  }
+
+  else if (fileName === "gaslur") {
+
+    const values = emails.map(email => [
+      email,
+      "tersedia"
+    ]);
+
+    const [result] = await pool.query(
+      `
+      INSERT IGNORE INTO gaslur
+      (
+        email,
+        status
+      )
+      VALUES ?
+      `,
+      [values]
+    );
+
+    berhasil = result.affectedRows;
+
+  }
+
+} catch (err) {
+
+  console.log("RESTOCK ERROR:", err);
+
+  return bot.sendMessage(
+    chatId,
+    `❌ Gagal restock\n\n${err.message}`
+  );
+
+}
+
+const duplikat =
+  emails.length - berhasil;
+
+delete restockSession[chatId];
+
+return bot.sendMessage(
+  chatId,
+  `✅ Restock selesai
+
+Kategori: ${fileName}
+Dikirim: ${emails.length}
+Masuk: ${berhasil}
+Duplikat: ${duplikat}`
+);
+
+delete restockSession[chatId];
+
+return bot.sendMessage(
+  chatId,
+  `✅ Restock berhasil!\nFile: ${fileName}\nTotal: ${emails.length}`
+);
+
+}
 
     return;
   }
@@ -5555,20 +6847,26 @@ if (deposit) {
 
     const email = text.trim().toLowerCase();
 
-    const users = getUsers();
+const [rows] = await pool.execute(
+  `
+  SELECT *
+  FROM users
+  WHERE email = ?
+  LIMIT 1
+  `,
+  [email]
+);
 
-    const user = users.find(
-      u => u.email === email
-    );
+if (!rows.length) {
 
-    if (!user) {
+  return bot.sendMessage(
+    chatId,
+    "❌ User tidak ditemukan"
+  );
 
-      return bot.sendMessage(
-        chatId,
-        "❌ User tidak ditemukan"
-      );
+}
 
-    }
+const user = rows[0];
 
 deposit.data.email = email;
 deposit.step = 2;
@@ -5616,78 +6914,89 @@ return bot.sendMessage(
 
   }
 
-  if(
-deposit.step===2 &&
-deposit.custom
-){
-    const nominal = Number(
-      text.replace(/\D/g, "")
-    );
+if (
+  deposit.step === 2 &&
+  deposit.custom
+) {
 
-    if (!nominal || nominal <= 0) {
+  const nominal = Number(
+    text.replace(/\D/g, "")
+  );
 
-      return bot.sendMessage(
-        chatId,
-        "❌ Nominal tidak valid"
-      );
+  if (
+    !nominal ||
+    nominal <= 0
+  ) {
 
-    }
-
-    const users = getUsers();
-
-    const user = users.find(
-      u => u.email === deposit.data.email
-    );
-
-    if (!user) {
-
-      delete depositSession[chatId];
-
-      return bot.sendMessage(
-        chatId,
-        "❌ User hilang"
-      );
-
-    }
-
-    user.saldo =
-      Number(user.saldo || 0) +
-      nominal;
-    if (!user.topup) {
-      user.topup = [];
-    }
-
-    user.topup.push({
-      referenceId:
-        "BONUS-" + Date.now(),
-      nominal,
-      status: "success",
-      time: Date.now(),
-      bonus: true
-    });
-
-    saveUsers(users);
-    io.to(user.email).emit(
-      "saldoUpdate",
-      {
-        saldo: user.saldo
-      }
-    );
-
-    bot.sendMessage(
+    return bot.sendMessage(
       chatId,
-      `✅ Deposit berhasil
-
-Email: ${user.email}
-Nominal: Rp${nominal.toLocaleString("id-ID")}
-Saldo sekarang: Rp${user.saldo.toLocaleString("id-ID")}`
+      "❌ Nominal tidak valid"
     );
+
+  }
+
+  const [rows] = await pool.execute(
+    `
+    SELECT *
+    FROM users
+    WHERE email = ?
+    LIMIT 1
+    `,
+    [
+      deposit.data.email
+    ]
+  );
+
+  if (!rows.length) {
 
     delete depositSession[chatId];
 
-    return;
+    return bot.sendMessage(
+      chatId,
+      "❌ User hilang"
+    );
 
   }
+
+  const user = rows[0];
+
+  const saldoBaru =
+    Number(user.saldo || 0) +
+    nominal;
+
+  await pool.execute(
+    `
+    UPDATE users
+    SET saldo = saldo + ?
+    WHERE email = ?
+    `,
+    [
+      nominal,
+      user.email
+    ]
+  );
+
+  io.to(user.email).emit(
+    "saldoUpdate",
+    {
+      saldo: saldoBaru
+    }
+  );
+
+  await bot.sendMessage(
+    chatId,
+    `✅ Deposit berhasil
+
+Email: ${user.email}
+Nominal: Rp${nominal.toLocaleString("id-ID")}
+Saldo sekarang: Rp${saldoBaru.toLocaleString("id-ID")}`
+  );
+
+  delete depositSession[chatId];
+
+  return;
+
+}
 
 }
 
@@ -5715,15 +7024,6 @@ Saldo sekarang: Rp${user.saldo.toLocaleString("id-ID")}`
 
   const email =
     emailMatch[1].trim();
-
-  if (!liveChatSessions[email]) {
-
-    liveChatSessions[email] = {
-      name: "-",
-      email,
-      chats: []
-    };
-  }
 
   const messageId = Date.now();
 
@@ -5768,18 +7068,40 @@ if (msg.document) {
     "/uploads/" + fileName;
 }
 
-liveChatSessions[email].chats.push(newMessage);
-  saveLiveChat(liveChatSessions);
+const [result] = await pool.execute(
+  `
+  INSERT INTO livechat_messages
+  (
+    user_email,
+    sender,
+    text,
+    file_url,
+    status,
+    time
+  )
+  VALUES (?, ?, ?, ?, ?, ?)
+  `,
+  [
+    email.toLowerCase(),
+    "admin",
+    newMessage.message || "",
+    newMessage.fileUrl || null,
+    "sent",
+    newMessage.time
+  ]
+);
+
+newMessage.id = result.insertId;
 
 io.to(email).emit(
   "livechatNewMessage",
   newMessage
 );
 
-  io.to(email).emit("messageRead", {
-    email
-  });
-  
+io.to(email).emit("messageRead", {
+  email
+});
+
 });
 
 setInterval(()=>{
@@ -6069,6 +7391,9 @@ req.query.country;
 const service =
 req.query.service;
 
+const duration =
+req.query.duration || "1";
+
 const { data } =
 await axios.get(
 HEROSMS_API,
@@ -6095,17 +7420,19 @@ Object.keys(data[c])
 
 const PROFIT = 500;
 
-prices.push({
-
-price:
+let harga =
 Math.ceil(
 Number(data[c][s].cost) *
 USD_RATE
-) + PROFIT,
+) + PROFIT;
 
-count:
-data[c][s].count || 0
+if(duration == "2"){
+    harga += 1000;
+}
 
+prices.push({
+    price: harga,
+    count: data[c][s].count || 0
 });
 
 });
@@ -6134,26 +7461,25 @@ try{
 const {
 service,
 country,
-operator
+operator,
+duration
 } = req.body;
 
 // ================= USER =================
 
-const users = getUsers();
-
-const user =
-users.find(
-u => u.email === req.user.email
+const [rows] = await pool.execute(
+  "SELECT * FROM users WHERE email=? LIMIT 1",
+  [req.user.email]
 );
 
-if(!user){
-
-return res.status(401).json({
-success:false,
-message:"User tidak ditemukan"
-});
-
+if (!rows.length) {
+  return res.status(401).json({
+    success: false,
+    message: "User tidak ditemukan"
+  });
 }
+
+const user = rows[0];
 
 // ================= AMBIL HARGA =================
 
@@ -6191,6 +7517,11 @@ hargaResponse.data[c][s].cost
 ) * USD_RATE
 ) + 500;
 
+// Tambahan untuk rental 1 hari
+if(String(duration) === "2"){
+    hargaJual += 1000;
+}
+
 });
 
 });
@@ -6216,131 +7547,174 @@ message:
 
 // ================= ORDER HEROSMS =================
 
-const { data } =
-await axios.get(
+const heroParams = {
+api_key: process.env.HEROSMS_API_KEY,
+service,
+country,
+operator
+};
+
+if (String(duration) === "2") {
+
+    heroParams.action = "getRentNumber";
+    heroParams.duration = 24;
+
+} else {
+
+    heroParams.action = "getNumber";
+
+}
+
+const { data } = await axios.get(
 HEROSMS_API,
 {
-params:{
-api_key:
-process.env.HEROSMS_API_KEY,
-
-action:"getNumber",
-
-service,
-
-country,
-
-operator
-}
+    params: heroParams
 }
 );
 
 // ================= BERHASIL =================
 
 if(
-typeof data === "string" &&
-data.startsWith(
-"ACCESS_NUMBER"
-)
+(typeof data === "string" &&
+data.startsWith("ACCESS_NUMBER"))
+||
+(typeof data === "object" &&
+data.activationId)
 ){
 
-const parts =
-data.split(":");
+let parts;
 
-// POTONG SALDO
-user.saldo =
-Number(user.saldo || 0)
--
-hargaJual;
+if(typeof data === "string"){
 
-const history =
-getOtpHistory();
+    parts = data.split(":");
 
-history.unshift({
+}else{
 
-  id: parts[1],
+    parts = [
+        "",
+        data.activationId,
+        data.phoneNumber
+    ];
 
-  activation_id: parts[1],
-
-  userEmail:
-  user.email,
-
-  service,
-
-  serviceName:
-  req.body.serviceName || service,
-
-  country,
-
-  number:
-  parts[2],
-
-  harga:
-  hargaJual,
-
-  status:
-  "active",
-
-  time:
-  Date.now()
-
-});
-
-saveOtpHistory(
-  history
-);
-
-
-
-// SIMPAN ORDER
-if(!user.otpOrders){
-user.otpOrders = [];
 }
 
-user.otpOrders.unshift({
+/* ================= POTONG SALDO ================= */
 
-    activation_id: parts[1],
+const saldoBaru =
+  Number(user.saldo || 0) -
+  Number(hargaJual);
 
-    number: parts[2],
+await pool.execute(
+  `UPDATE users
+   SET saldo=?
+   WHERE email=?`,
+  [
+    saldoBaru,
+    req.user.email
+  ]
+);
 
+/* ================= SIMPAN HISTORY ================= */
+
+await pool.execute(
+  `INSERT INTO otp_history
+  (
+    activation_id,
+    duration,
+    user_email,
     service,
-
-    serviceName:
-        req.body.serviceName || service,
-
+    service_name,
     country,
+    country_name,
+    country_logo,
+    operator,
+    number,
+    harga,
+    status,
+    messages,
+    sms_received,
+    time
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  [
+    parts[1],
+    duration || "1",
+    req.user.email,
+    service,
+    req.body.serviceName || service,
+    country,
+    req.body.countryName || country,
+    req.body.countryLogo || "",
+    operator,
+    parts[2],
+    hargaJual,
+    "active",
+    JSON.stringify([]),
+    0,
+    Date.now()
+  ]
+);
 
-    harga: hargaJual,
+/* SIMPAN ORDER */
 
-    time: Date.now(),
+await pool.execute(
+  `INSERT INTO otp_orders
+  (
+    user_email,
+    activation_id,
+    phone_number,
+    duration,
+    service,
+    service_name,
+    country,
+    country_name,
+    country_logo,
+    operator,
+    harga,
+    sms_received,
+    waiting_resend,
+    messages,
+    time
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  [
+    req.user.email,
+    parts[1],
+    parts[2],
+    duration || "1",
+    service,
+    req.body.serviceName || service,
+    country,
+    req.body.countryName || country,
+    req.body.countryLogo || "",
+    operator,
+    hargaJual,
+    0,
+    0,
+    JSON.stringify([]),
+    Date.now()
+  ]
+);
 
-    smsReceived: false,
-
-    waitingResend: false,
-
-    messages: []
-
-});
-
-saveUsers(users);
+// ambil saldo terbaru setelah transaksi
+const [saldoRows] = await pool.execute(
+  "SELECT saldo FROM users WHERE email=? LIMIT 1",
+  [req.user.email]
+);
 
 return res.json({
 
-success:true,
+  success: true,
 
-activation_id:
-parts[1],
+  activation_id: parts[1],
 
-number:
-parts[2],
+  number: parts[2],
 
-service,
+  service,
 
-logo:
-"/css/img/avatar5.png",
+  logo: "/css/img/avatar5.png",
 
-saldo:
-user.saldo
+  saldo: saldoBaru
 
 });
 
@@ -6348,551 +7722,1074 @@ user.saldo
 
 // ================= GAGAL =================
 
+let errorMessage;
+
+if (typeof data === "string") {
+    errorMessage = data.trim();
+} else if (data?.title) {
+    errorMessage = data.title;
+} else if (data?.message) {
+    errorMessage = data.message;
+} else {
+    errorMessage = JSON.stringify(data);
+}
+
+const errorMap = {
+    NO_NUMBERS: "Stok habis",
+    NO_BALANCE: "L01",
+    BAD_KEY: "API Key tidak valid",
+    ERROR_SQL: "F00"
+};
+
+for (const [key, value] of Object.entries(errorMap)) {
+    if (errorMessage.includes(key)) {
+        errorMessage = value;
+        break;
+    }
+}
+
 return res.status(400).json({
-
-success:false,
-
-message:data
-
+    success: false,
+    message: errorMessage
 });
 
-}catch(err){
+} catch (err) {
 
-return res.status(500).json({
+    const apiError = err.response?.data;
 
-success:false,
+    console.log(
+        "ORDER ERROR:",
+        apiError || err.message || err
+    );
 
-message:"Terjadi kesalahan server"
+    const errorMap = {
+        NO_NUMBERS: "Stok habis",
+        NO_BALANCE: "L01",
+        BAD_KEY: "API Key tidak valid",
+        ERROR_SQL: "F00"
+    };
 
-});
+    let errorMessage;
+
+    if (typeof apiError === "string") {
+        errorMessage = apiError;
+    } else if (apiError?.title) {
+        errorMessage = apiError.title;
+    } else if (apiError?.message) {
+        errorMessage = apiError.message;
+    } else {
+        errorMessage = err.message;
+    }
+
+    for (const [key, value] of Object.entries(errorMap)) {
+        if (errorMessage.includes(key)) {
+            errorMessage = value;
+            break;
+        }
+    }
+
+    return res.status(400).json({
+        success: false,
+        message: errorMessage
+    });
 
 }
 
 });
 
+
 app.get(
-"/api/otp/orders",
-authMiddleware,
-(req,res)=>{
+  "/api/otp/orders",
+  authMiddleware,
+  async (req, res) => {
 
-const users = getUsers();
+    try {
 
-const user =
-users.find(
-u => u.email === req.user.email
+      const [rows] = await pool.execute(
+        `SELECT *
+         FROM otp_orders
+         WHERE user_email=?
+         ORDER BY time DESC`,
+        [req.user.email]
+      );
+
+      return res.json({
+        success: true,
+        data: rows
+      });
+
+    } catch (err) {
+
+      console.error(err);
+
+      return res.status(500).json({
+        success: false,
+        message: "Server Error"
+      });
+
+    }
+
+  }
 );
-
-res.json({
-success:true,
-data:user?.otpOrders || []
-});
-
-});
-
-
 
 const lastSmsByActivation = {};
 
 /* CHECK SMS */
 
-app.get("/api/otp/sms/:id", async (req,res)=>{
+app.get("/api/otp/sms/:id", async (req, res) => {
 
-try{
+  try {
 
-const id =
-req.params.id;
+    const id = req.params.id;
 
-const { data } =
-await axios.get(
-HEROSMS_API,
-{
-params:{
-api_key:
-process.env.HEROSMS_API_KEY,
-
-action:"getStatus",
-
-id
-}
-}
-);
-
-const messages=[];
-
-if(
-typeof data === "string" &&
-data.startsWith(
-"STATUS_OK"
-)
-){
-
-const smsText =
-data.replace(
-"STATUS_OK:",
-""
-).trim();
-
-if(
-lastSmsByActivation[id] !== smsText
-){
-
-lastSmsByActivation[id] =
-smsText;
-
-/* SIMPAN STATUS SUDAH ADA SMS */
-
-const users = getUsers();
-
-users.forEach(user=>{
-
-    if(!user.otpOrders) return;
-
-    const order =
-    user.otpOrders.find(
-        x => x.activation_id === id
+    const { data } = await axios.get(
+      HEROSMS_API,
+      {
+        params: {
+          api_key:
+            process.env.HEROSMS_API_KEY,
+          action: "getStatus",
+          id
+        }
+      }
     );
 
-if(order){
+    const messages = [];
 
-    order.smsReceived = true;
+    if (
+      typeof data === "string" &&
+      data.startsWith("STATUS_OK")
+    ) {
 
-    order.waitingResend = false;
+      const smsText = data
+        .replace("STATUS_OK:", "")
+        .trim();
 
-    order.messages =
-    order.messages || [];
+      if (
+        lastSmsByActivation[id] !== smsText
+      ) {
 
-    if(
-        !order.messages.find(
-            m => m.text === smsText
-        )
-    ){
+        lastSmsByActivation[id] =
+          smsText;
 
         const smsData = {
-            id: Date.now(),
-            text: smsText
+          id: Date.now(),
+          text: smsText
         };
 
-        order.messages.push(
-            smsData
+        // ambil order OTP
+        const [orders] =
+          await pool.execute(
+            `SELECT *
+             FROM otp_orders
+             WHERE activation_id=?
+             LIMIT 1`,
+            [id]
+          );
+
+if (orders.length) {
+
+  const order = orders[0];
+
+  let orderMessages = [];
+
+  try {
+
+    orderMessages =
+      JSON.parse(
+        order.messages || "[]"
+      );
+
+  } catch {
+
+    orderMessages = [];
+
+  }
+
+  const exists =
+    orderMessages.find(
+      m => m.text === smsText
+    );
+
+  if (!exists) {
+
+    orderMessages.push(
+      smsData
+    );
+
+    await pool.execute(
+      `UPDATE otp_orders
+       SET
+         sms_received=1,
+         waiting_resend=0,
+         last_new_message_id=?,
+         messages=?
+       WHERE activation_id=?`,
+      [
+        smsData.id,
+        JSON.stringify(orderMessages),
+        id
+      ]
+    );
+
+    const [historyRows] =
+      await pool.execute(
+        `SELECT messages
+         FROM otp_history
+         WHERE activation_id=?
+         LIMIT 1`,
+        [id]
+      );
+
+    if (historyRows.length) {
+
+      let historyMessages = [];
+
+      try {
+
+        historyMessages =
+          JSON.parse(
+            historyRows[0].messages ||
+            "[]"
+          );
+
+      } catch {
+
+        historyMessages = [];
+
+      }
+
+      const historyExists =
+        historyMessages.find(
+          m => m.text === smsText
         );
 
-        // SIMPAN KE HISTORY JUGA
-        const history =
-        getOtpHistory();
+      if (!historyExists) {
 
-        const historyItem =
-        history.find(
-            h =>
-            h.activation_id === id
+        historyMessages.push(
+          smsData
         );
 
-        if(historyItem){
+      }
 
-            historyItem.messages =
-            historyItem.messages || [];
-
-            historyItem.messages.push(
-                smsData
-            );
-
-            historyItem.smsReceived =
-            true;
-
-            saveOtpHistory(
-                history
-            );
-
-        }
+      await pool.execute(
+        `UPDATE otp_history
+         SET
+           messages=?,
+           sms_received=1
+         WHERE activation_id=?`,
+        [
+          JSON.stringify(
+            historyMessages
+          ),
+          id
+        ]
+      );
 
     }
 
-}
-
-});
-
-saveUsers(users);
-
-messages.push({
-
-id:smsText,
-
-text:smsText
-
-});
+  }
 
 }
-}
 
-res.json({
-messages
-});
+        messages.push({
+          id: smsText,
+          text: smsText
+        });
 
-}catch(err){
+      }
 
-res.json({
-messages:[]
-});
+    }
 
-}
+    return res.json({
+      messages
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    return res.json({
+      messages: []
+    });
+
+  }
 
 });
 
 /* RESEND SMS */
 
-app.post("/api/otp/resend", async (req,res)=>{
+app.post("/api/otp/resend", async (req, res) => {
 
-try{
+  try {
 
     await axios.get(
-    HEROSMS_API,
-    {
-    params:{
-    api_key:
-    process.env.HEROSMS_API_KEY,
+      HEROSMS_API,
+      {
+        params: {
+          api_key:
+            process.env.HEROSMS_API_KEY,
 
-    action:"setStatus",
+          action: "setStatus",
 
-    id:
-    req.body.activation_id,
+          id:
+            req.body.activation_id,
 
-    status:3
-    }
-    }
-    );
-
-    const users = getUsers();
-
-    users.forEach(user=>{
-
-        if(!user.otpOrders) return;
-
-        const order =
-        user.otpOrders.find(
-            x =>
-            x.activation_id ===
-            req.body.activation_id
-        );
-
-        if(order){
-
-            order.waitingResend = true;
-
+          status: 3
         }
-
-    });
-
-    saveUsers(users);
-
-    res.json({
-        success:true
-    });
-
-}catch(err){
-
-    res.status(500)
-    .json({
-        success:false
-    });
-
-}
-
-});
-
-/* DONE */
-
-app.post("/api/otp/done", async (req,res)=>{
-
-try{
-
-await axios.get(
-HEROSMS_API,
-{
-params:{
-api_key:
-process.env.HEROSMS_API_KEY,
-
-action:"setStatus",
-
-id:
-req.body.activation_id,
-
-status:6
-}
-}
-);
-
-const history =
-getOtpHistory();
-
-const item =
-history.find(
-x =>
-x.activation_id ===
-req.body.activation_id
-);
-
-if(item){
-
-    const users =
-    getUsers();
-
-    const order =
-    users
-    .flatMap(
-        u => u.otpOrders || []
-    )
-    .find(
-        x =>
-        x.activation_id ===
-        req.body.activation_id
+      }
     );
 
-    if(order){
+    await pool.execute(
+      `UPDATE otp_orders
+       SET waiting_resend=1
+       WHERE activation_id=?`,
+      [
+        req.body.activation_id
+      ]
+    );
 
-        item.messages =
-        order.messages || [];
-
-        item.smsReceived =
-        order.smsReceived;
-
-    }
-
-    item.status =
-    "done";
-
-    item.doneTime =
-    Date.now();
-
-    saveOtpHistory(history);
-
-    users.forEach(user=>{
-
-        if(!user.otpOrders)
-        return;
-
-        user.otpOrders =
-        user.otpOrders.filter(
-            x =>
-            x.activation_id !==
-            req.body.activation_id
-        );
-
+    return res.json({
+      success: true
     });
 
-    saveUsers(users);
+  } catch (err) {
 
-}
+    console.error(err);
 
-res.json({
-success:true
-});
+    return res.status(500).json({
+      success: false
+    });
 
-}catch(err){
-
-res.status(500)
-.json({
-success:false
-});
-
-}
+  }
 
 });
 
-/* CANCEL */
+/* EXTEND RENT */
 
-app.post("/api/otp/cancel", async (req,res)=>{
+app.post(
+"/api/otp/extend",
+authMiddleware,
+async (req,res)=>{
 
 try{
+
 const activationId =
 req.body.activation_id;
 
 if(!activationId){
 
-    return res.json({
-        success:false,
-        message:"Activation ID kosong"
-    });
-
-}
-
-let response;
-
-try{
-
-response = await axios.get(
-HEROSMS_API,
-{
-params:{
-api_key:
-process.env.HEROSMS_API_KEY,
-action:"setStatus",
-id:activationId,
-status:8
-}
-}
-);
-
-}catch(err){
-
-if(
-err.response?.status === 409
-){
-
-return res.json({
-success:true
+return res.status(400).json({
+success:false,
+message:"Activation ID kosong"
 });
 
 }
 
-throw err;
+/* ================= USER ================= */
+
+const [userRows] = await pool.execute(
+  `SELECT *
+   FROM users
+   WHERE email=?
+   LIMIT 1`,
+  [req.user.email]
+);
+
+if (!userRows.length) {
+
+  return res.status(401).json({
+    success: false,
+    message: "User tidak ditemukan"
+  });
 
 }
 
-/* UPDATE HISTORY */
+const user = userRows[0];
 
-const history =
-getOtpHistory();
+/* ================= ORDER ================= */
 
-const item =
-history.find(
-x =>
-x.activation_id ===
-req.body.activation_id
+const [orderRows] = await pool.execute(
+  `SELECT *
+   FROM otp_orders
+   WHERE activation_id=?
+   AND user_email=?
+   LIMIT 1`,
+  [
+    activationId,
+    req.user.email
+  ]
 );
 
-const users =
-getUsers();
+if (!orderRows.length) {
 
-if(item){
+  return res.status(404).json({
+    success: false,
+    message: "Order tidak ditemukan"
+  });
 
-    const order =
-    users
-    .flatMap(
-        u => u.otpOrders || []
-    )
-    .find(
-        x =>
-        x.activation_id ===
-        req.body.activation_id
-    );
+}
 
-    if(order){
+const order = orderRows[0];
 
-        item.messages =
-        order.messages || [];
+/* ================= HITUNG BIAYA EXTEND ================= */
 
-        item.smsReceived =
-        order.smsReceived;
+/*
+Contoh:
+harga order awal = 4.000
+extend = 4.000 + 1.000
+= 5.000
+*/
+
+const extendPrice =
+Number(order.harga || 0) + 500;
+
+/* ================= CEK SALDO ================= */
+
+if (
+  Number(user.saldo || 0) < extendPrice
+) {
+
+  return res.status(400).json({
+    success: false,
+    message:
+      `Saldo tidak cukup. Minimal Rp${extendPrice.toLocaleString("id-ID")}`
+  });
+
+}
+
+/* ================= PROLONG HEROSMS ================= */
+
+const { data } = await axios.post(
+  HEROSMS_API,
+  null,
+  {
+    params: {
+      api_key:
+        process.env.HEROSMS_API_KEY,
+
+      action: "prolong",
+
+      id: activationId,
+
+      duration: 24
+    }
+  }
+);
+
+/* ================= BERHASIL ================= */
+
+if (
+  String(data)
+    .toUpperCase()
+    .includes("ACCESS")
+  ||
+  String(data)
+    .toUpperCase()
+    .includes("SUCCESS")
+) {
+
+  const saldoBaru =
+    Number(user.saldo || 0)
+    -
+    extendPrice;
+
+  // potong saldo user
+  await pool.execute(
+    `UPDATE users
+     SET saldo=?
+     WHERE email=?`,
+    [
+      saldoBaru,
+      req.user.email
+    ]
+  );
+
+  // simpan status extend order
+  await pool.execute(
+    `UPDATE otp_orders
+     SET
+       extended=1,
+       extend_time=?,
+       extend_price=?
+     WHERE activation_id=?`,
+    [
+      Date.now(),
+      extendPrice,
+      activationId
+    ]
+  );
+
+  return res.json({
+    success: true,
+    message:
+      `Nomor berhasil diperpanjang 24 jam. Saldo terpotong Rp${extendPrice.toLocaleString("id-ID")}`,
+    saldo: saldoBaru
+  });
+
+}
+
+/* ================= GAGAL ================= */
+
+return res.status(400).json({
+  success: false,
+  message: String(data)
+});
+
+} catch (err) {
+
+  console.log(
+    "EXTEND ERROR:",
+    err.response?.data || err.message
+  );
+
+  return res.status(500).json({
+    success: false,
+    message:
+      err.response?.data ||
+      err.message
+  });
+
+}
+
+});
+
+app.post(
+  "/api/otp/rental-expired",
+  async (req, res) => {
+
+    try {
+
+      const activationId =
+        req.body.activation_id;
+
+      if (!activationId) {
+
+        return res.status(400).json({
+          success: false,
+          message: "Activation ID kosong"
+        });
+
+      }
+
+      /* UPDATE HISTORY */
+
+      await pool.execute(
+        `UPDATE otp_history
+         SET
+           status=?,
+           expired_time=?
+         WHERE activation_id=?`,
+        [
+          "expired",
+          Date.now(),
+          activationId
+        ]
+      );
+
+      /* HAPUS ORDER AKTIF */
+
+      await pool.execute(
+        `DELETE FROM otp_orders
+         WHERE activation_id=?`,
+        [activationId]
+      );
+
+      return res.json({
+        success: true
+      });
+
+    } catch (err) {
+
+      console.error(
+        "RENTAL EXPIRED ERROR:",
+        err
+      );
+
+      return res.status(500).json({
+        success: false,
+        message: err.message
+      });
 
     }
 
-    item.status =
-    "cancel";
+  }
+);
 
-    item.cancelTime =
-    Date.now();
+/* DONE */
 
-    saveOtpHistory(history);
+app.post(
+  "/api/otp/done",
+  async (req, res) => {
+
+    try {
+
+      const activationId =
+        req.body.activation_id;
+
+      if (!activationId) {
+
+        return res.status(400).json({
+          success: false,
+          message: "Activation ID kosong"
+        });
+
+      }
+
+      /* UPDATE STATUS HEROSMS */
+
+      await axios.get(
+        HEROSMS_API,
+        {
+          params: {
+            api_key:
+              process.env.HEROSMS_API_KEY,
+
+            action: "setStatus",
+
+            id: activationId,
+
+            status: 6
+          }
+        }
+      );
+
+      /* AMBIL DATA ORDER */
+
+      const [rows] =
+        await pool.execute(
+          `SELECT
+             messages,
+             sms_received
+           FROM otp_orders
+           WHERE activation_id=?
+           LIMIT 1`,
+          [activationId]
+        );
+
+      /* UPDATE HISTORY */
+
+      if (rows.length) {
+
+        await pool.execute(
+          `UPDATE otp_history
+           SET
+             messages=?,
+             sms_received=?,
+             status='done',
+             done_time=?
+           WHERE activation_id=?`,
+          [
+            rows[0].messages || "[]",
+            rows[0].sms_received || 0,
+            Date.now(),
+            activationId
+          ]
+        );
+
+      } else {
+
+        await pool.execute(
+          `UPDATE otp_history
+           SET
+             status='done',
+             done_time=?
+           WHERE activation_id=?`,
+          [
+            Date.now(),
+            activationId
+          ]
+        );
+
+      }
+
+      /* HAPUS ORDER AKTIF */
+
+      await pool.execute(
+        `DELETE FROM otp_orders
+         WHERE activation_id=?`,
+        [activationId]
+      );
+
+      return res.json({
+        success: true
+      });
+
+    } catch (err) {
+
+      console.error(
+        "OTP DONE ERROR:",
+        err.response?.data || err
+      );
+
+      return res.status(500).json({
+        success: false,
+        message:
+          err.response?.data ||
+          err.message
+      });
+
+    }
+
+  }
+);
+
+/* CANCEL */
+
+app.post("/api/otp/cancel", async (req, res) => {
+
+  try {
+
+    const activationId =
+      req.body.activation_id;
+
+    if (!activationId) {
+
+      return res.json({
+        success: false,
+        message: "Activation ID kosong"
+      });
+
+    }
+
+    let response;
+
+    try {
+
+      response = await axios.get(
+        HEROSMS_API,
+        {
+          params: {
+            api_key:
+              process.env.HEROSMS_API_KEY,
+            action: "setStatus",
+            id: activationId,
+            status: 8
+          }
+        }
+      );
+
+    } catch (err) {
+
+      if (
+        err.response?.status === 409
+      ) {
+
+        return res.json({
+          success: true
+        });
+
+      }
+
+      throw err;
+
+    }
+
+/* ================= UPDATE HISTORY MYSQL ================= */
+
+const [historyOrderRows] =
+  await pool.execute(
+    `SELECT
+       messages,
+       sms_received
+     FROM otp_orders
+     WHERE activation_id=?
+     LIMIT 1`,
+    [activationId]
+  );
+
+if (historyOrderRows.length) {
+
+  await pool.execute(
+    `UPDATE otp_history
+     SET
+       messages=?,
+       sms_received=?,
+       status='done',
+       done_time=?
+     WHERE activation_id=?`,
+    [
+      historyOrderRows[0].messages || "[]",
+      historyOrderRows[0].sms_received || 0,
+      Date.now(),
+      activationId
+    ]
+  );
+
+} else {
+
+  await pool.execute(
+    `UPDATE otp_history
+     SET
+       status='done',
+       done_time=?
+     WHERE activation_id=?`,
+    [
+      Date.now(),
+      activationId
+    ]
+  );
 
 }
 
-/* HAPUS DARI ORDER AKTIF */
+    /* ================= ORDER MYSQL ================= */
 
-users.forEach(user=>{
+    const [orderRows] =
+      await pool.execute(
+        `SELECT *
+         FROM otp_orders
+         WHERE activation_id=?
+         LIMIT 1`,
+        [activationId]
+      );
 
-    if(!user.otpOrders)
-    return;
+    const order =
+      orderRows[0];
 
-    user.otpOrders =
-    user.otpOrders.filter(
-        x =>
-        x.activation_id !==
-        req.body.activation_id
+    if (
+      order &&
+      String(order.duration) === "2"
+    ) {
+
+      const elapsed =
+        Math.floor(
+          (
+            Date.now() -
+            Number(order.time || 0)
+          ) / 1000
+        );
+
+      if (elapsed > 1200) {
+
+        return res.status(400).json({
+          success: false,
+          message:
+            "Masa pembatalan telah berakhir"
+        });
+
+      }
+
+    }
+
+let saldoTerbaru = 0;
+
+/* ================= AMBIL HISTORY ================= */
+
+const [historyRows] =
+  await pool.execute(
+    `SELECT *
+     FROM otp_history
+     WHERE activation_id=?
+     LIMIT 1`,
+    [activationId]
+  );
+
+if (historyRows.length) {
+
+  const historyItem =
+    historyRows[0];
+
+  /* REFUND HANYA SEKALI */
+
+  if (
+    historyItem.status !== "cancel"
+  ) {
+
+    const [userRows] =
+      await pool.execute(
+        `SELECT saldo
+         FROM users
+         WHERE email=?
+         LIMIT 1`,
+        [historyItem.user_email]
+      );
+
+    if (userRows.length) {
+
+      saldoTerbaru =
+        Number(
+          userRows[0].saldo || 0
+        )
+        +
+        Number(
+          historyItem.harga || 0
+        );
+
+      await pool.execute(
+        `UPDATE users
+         SET saldo=?
+         WHERE email=?`,
+        [
+          saldoTerbaru,
+          historyItem.user_email
+        ]
+      );
+
+    }
+
+  }
+
+  /* UPDATE HISTORY */
+
+  await pool.execute(
+    `UPDATE otp_history
+     SET
+       status='cancel',
+       cancel_time=?
+     WHERE activation_id=?`,
+    [
+      Date.now(),
+      activationId
+    ]
+  );
+
+}
+
+/* ================= HAPUS ORDER AKTIF ================= */
+
+await pool.execute(
+  `DELETE FROM otp_orders
+   WHERE activation_id=?`,
+  [activationId]
+);
+
+/* ================= SALDO TERBARU ================= */
+
+if (historyRows.length) {
+
+  const [saldoRows] =
+    await pool.execute(
+      `SELECT saldo
+       FROM users
+       WHERE email=?
+       LIMIT 1`,
+      [
+        historyRows[0]
+          .user_email
+      ]
     );
 
+  saldoTerbaru =
+    saldoRows[0]?.saldo || 0;
+
+}
+
+return res.json({
+
+  success: true,
+
+  saldo: saldoTerbaru
+
 });
 
-saveUsers(users);
+} catch (err) {
 
-res.json({
-success:true
-});
+  console.error(err);
 
-}catch(err){
+  return res.status(500).json({
 
+    success: false,
 
-res.status(500).json({
-    success:false,
-    message: err.message,
-    data: err.response?.data
-});
+    message:
+      err.message,
+
+    data:
+      err.response?.data
+
+  });
 
 }
 
 });
 
 app.get(
-"/api/otp/history",
-authMiddleware,
-(req,res)=>{
+  "/api/otp/history",
+  authMiddleware,
+  async (req, res) => {
 
-    const history =
-    getOtpHistory();
+    try {
 
-    const data =
-    history.filter(
-        x =>
-        x.userEmail ===
-        req.user.email
-    );
+      const [rows] = await pool.execute(
+        `SELECT *
+         FROM otp_history
+         WHERE user_email=?
+         ORDER BY time DESC`,
+        [req.user.email]
+      );
 
-    res.json({
-        success:true,
-        data
-    });
+      return res.json({
+        success: true,
+        data: rows
+      });
 
-});
+    } catch (err) {
 
-/* HISTORY SAVE */
+      console.error(err);
+
+      return res.status(500).json({
+        success: false,
+        message: "Server Error"
+      });
+
+    }
+
+  }
+);
 
 app.post(
-"/api/otp/history/save",
-(req,res)=>{
+  "/api/otp/history/save",
+  (req, res) => {
 
-res.json({
-success:true
-});
+    return res.json({
+      success: true
+    });
 
-});
+  }
+);
+
+
 
 /* ==========================================
    HEROSMS OTP EMAIL
 ========================================== */
-
 const EMAIL_API =
 "https://hero-sms.com/api/v1";
 
+app.post(
+"/api/email/order",
+authMiddleware,
+async (req,res)=>{
 
-app.post("/api/email/order",authMiddleware,async (req,res)=>{
-  try {
+try{
 
-    const { site, domain } = req.body;
+const { site, domain } =
+req.body;
 
-    if (!site || !domain) {
-      return res.status(400).json({
-        success: false,
-        message: "site dan domain wajib diisi"
-      });
-    }
-	
-const users = getUsers();
+if(!site || !domain){
 
-const user =
-users.find(
-u => u.email === req.user.email
+return res.status(400).json({
+success:false,
+message:"site dan domain wajib diisi"
+});
+
+}
+
+/* USER */
+
+const [users] =
+await pool.execute(
+`
+SELECT email,saldo
+FROM users
+WHERE email=?
+LIMIT 1
+`,
+[
+req.user.email
+]
 );
 
-if(!user){
+if(!users.length){
 
 return res.status(404).json({
 success:false,
@@ -6900,6 +8797,11 @@ message:"User tidak ditemukan"
 });
 
 }
+
+const user =
+users[0];
+
+/* DOMAIN */
 
 const selectedDomain =
 await axios.get(
@@ -6931,6 +8833,8 @@ message:"Domain tidak ditemukan"
 
 }
 
+/* HARGA */
+
 const hargaJual =
 Math.ceil(
 (Number(domainData.cost) * USD_RATE)
@@ -6954,284 +8858,15 @@ message:
 
 }
 
-    const { data } = await axios.post(
-      `${EMAIL_API}/emails`,
-      {
-        site,
-        domain
-      },
-      {
-        headers: {
-          Authorization: `ApiKey ${process.env.HEROSMS_API_KEY}`,
-          Accept: "application/json"
-        }
-      }
-    );
+/* ORDER KE HEROSMS */
 
-
-if(!user.emailOrders){
-user.emailOrders = [];
-}
-
-user.saldo =
-Number(user.saldo || 0)
--
-hargaJual;
-user.emailOrders.unshift({
-	
-
-id:data.data.id,
-
-email:data.data.email,
-
+const { data } =
+await axios.post(
+`${EMAIL_API}/emails`,
+{
 site,
-domain,
-
-harga:hargaJual,
-
-time:Date.now(),
-
-otpReceived:false,
-
-code:null
-
-});
-
-const emailHistory =
-getEmailHistory();
-
-emailHistory.unshift({
-
-id:data.data.id,
-
-activation_id:
-data.data.id,
-
-userEmail:
-user.email,
-
-service:
-site,
-
-pesan:null,
-
-harga:
-hargaJual,
-
-status:
-"active",
-
-time:
-Date.now()
-
-});
-
-saveEmailHistory(
-emailHistory
-);
-
-saveUsers(users);
-
-    res.json({
-      success: true,
-      data: data.data
-    });
-
-  } catch (err) {
-
-    console.error("EMAIL ORDER ERROR:");
-    console.error(err.response?.data || err);
-
-    res.status(500).json({
-      success: false,
-      error: err.response?.data || err.message
-    });
-
-  }
-});
-
-app.get("/api/email/check/:id", async (req, res) => {
-  try {
-
-    const id = req.params.id;
-
-const { data } = await axios.get(
-  `${EMAIL_API}/emails/${id}`,
-  {
-    headers: {
-      Authorization: `ApiKey ${process.env.HEROSMS_API_KEY}`,
-      Accept: "application/json"
-    }
-  }
-);
-
-if(data.data?.value){
-
-const users =
-getUsers();
-
-users.forEach(user=>{
-
-    if(!user.emailOrders)
-    return;
-
-    const order =
-    user.emailOrders.find(
-        x => x.id === id
-    );
-
-    if(order){
-
-        order.otpReceived = true;
-
-order.code =
-data.data.value;
-
-const history =
-getEmailHistory();
-
-const item =
-history.find(
-x =>
-String(x.activation_id)
-===
-String(id)
-);
-
-if(item){
-
-item.pesan =
-data.data.value;
-
-item.otpReceived =
-true;
-
-saveEmailHistory(
-history
-);
-
-}
-
-    }
-
-});
-
-saveUsers(users);
-
-}
-
-res.json({
-  success: true,
-
-  status:
-  data.data?.status || null,
-
-  code:
-  data.data?.value || null,
-
-  email:
-  data.data?.email || null,
-
-  message:
-  data.data?.message || null,
-
-  data
-});
-
-  } catch (err) {
-
-    console.error(err.response?.data || err);
-
-    res.status(500).json({
-      success: false,
-      error: err.response?.data || err.message
-    });
-
-  }
-});
-
-app.post(
-"/api/email/cancel/:id",
-authMiddleware,
-async (req, res) => {
-
-try {
-
-const id =
-req.params.id;
-
-/* CEK ORDER */
-
-const users =
-getUsers();
-
-const user =
-users.find(
-u => u.email === req.user.email
-);
-
-if(!user){
-
-return res.status(404).json({
-success:false,
-message:"User tidak ditemukan"
-});
-
-}
-
-const order =
-(user.emailOrders || [])
-.find(
-x => String(x.id) === String(id)
-);
-
-if(!order){
-
-return res.status(404).json({
-success:false,
-message:"Order tidak ditemukan"
-});
-
-}
-
-const elapsed =
-Math.floor(
-(Date.now() - order.time) / 1000
-);
-
-if(elapsed < 120){
-
-return res.status(400).json({
-
-success:false,
-
-message:
-`Tunggu ${120 - elapsed} detik lagi untuk membatalkan`
-
-});
-
-}
-
-/* JIKA SUDAH PERNAH DAPAT OTP */
-
-if(order.otpReceived){
-
-return res.status(400).json({
-
-success:false,
-
-message:
-"Email sudah menerima OTP dan tidak dapat dibatalkan"
-
-});
-
-}
-
-/* CANCEL KE HERO SMS */
-
-const response =
-await axios.delete(
-`${EMAIL_API}/emails/${id}`,
+domain
+},
 {
 headers:{
 Authorization:
@@ -7241,17 +8876,133 @@ Accept:"application/json"
 }
 );
 
-if(!response){
+/* POTONG SALDO */
 
-return res.status(500).json({
+await pool.execute(
+`
+UPDATE users
+SET saldo = saldo - ?
+WHERE email = ?
+`,
+[
+hargaJual,
+user.email
+]
+);
+
+/* SIMPAN ORDER AKTIF */
+
+await pool.execute(
+`
+INSERT INTO email_orders
+(
+id,
+user_email,
+email,
+site,
+domain,
+harga,
+otp_received,
+code,
+created_at
+)
+VALUES
+(?,?,?,?,?,?,?,?,?)
+`,
+[
+String(data.data.id),
+user.email,
+data.data.email,
+site,
+domain,
+hargaJual,
+0,
+null,
+Date.now()
+]
+);
+
+/* SIMPAN HISTORY */
+
+await pool.execute(
+`
+INSERT INTO email_history
+(
+activation_id,
+user_email,
+service,
+pesan,
+harga,
+status,
+otp_received,
+created_at
+)
+VALUES
+(?,?,?,?,?,?,?,?)
+`,
+[
+String(data.data.id),
+user.email,
+site,
+null,
+hargaJual,
+"active",
+0,
+Date.now()
+]
+);
+
+/* AMBIL SALDO TERBARU */
+
+const [[saldoBaru]] =
+await pool.execute(
+`
+SELECT saldo
+FROM users
+WHERE email=?
+`,
+[
+user.email
+]
+);
+
+res.json({
+success:true,
+data:data.data,
+saldo:saldoBaru.saldo
+});
+
+}catch(err){
+
+console.error(
+"EMAIL ORDER ERROR:"
+);
+
+console.error(
+err.response?.data || err
+);
+
+res.status(500).json({
 success:false,
-message:"Gagal cancel ke HeroSMS"
+error:
+err.response?.data ||
+err.message
 });
 
 }
 
-try{
+});
 
+app.get(
+"/api/email/check/:id",
+async (req, res) => {
+
+try {
+
+const id =
+req.params.id;
+
+const { data } =
 await axios.get(
 `${EMAIL_API}/emails/${id}`,
 {
@@ -7263,54 +9014,75 @@ Accept:"application/json"
 }
 );
 
-}catch(checkErr){
+console.log(
+"===== HEROSMS RESPONSE ====="
+);
 
+console.log(
+require("util").inspect(
+data,
+{
+depth:null,
+colors:true
 }
+)
+);
 
-const history =
-getEmailHistory();
+/* JIKA OTP SUDAH MASUK */
 
-const item =
-history.find(
-x =>
-String(x.activation_id)
-===
+if(data.data?.value){
+
+await pool.execute(
+`
+UPDATE email_orders
+SET
+otp_received = 1,
+code = ?
+WHERE id = ?
+`,
+[
+data.data.value,
 String(id)
+]
 );
 
-if(item){
-
-item.status =
-"cancel";
-
-item.cancelTime =
-Date.now();
-
-saveEmailHistory(
-history
+await pool.execute(
+`
+UPDATE email_history
+SET
+pesan = ?,
+otp_received = 1
+WHERE activation_id = ?
+`,
+[
+data.data.value,
+String(id)
+]
 );
 
 }
-
-/* HAPUS DARI ORDER AKTIF */
-
-user.emailOrders =
-user.emailOrders.filter(
-x => String(x.id) !== String(id)
-);
-
-saveUsers(users);
 
 res.json({
 
 success:true,
 
+status:
+data.data?.status || null,
+
+code:
+data.data?.value || null,
+
+email:
+data.data?.email || null,
+
 message:
-"Order dibatalkan"
+data.data?.message || null,
+
+data
 
 });
 
-} catch (err) {
+}catch(err){
 
 console.error(
 err.response?.data || err
@@ -7331,39 +9103,41 @@ err.message
 });
 
 app.post(
-"/api/email/reorder/:id",
+"/api/email/cancel/:id",
 authMiddleware,
-async (req,res)=>{
+async (req, res) => {
 
-try{
+let conn;
 
-const oldId =
-req.params.id;
+try {
 
-const users =
-getUsers();
+conn = await pool.getConnection();
 
-const user =
-users.find(
-u => u.email === req.user.email
+await conn.beginTransaction();
+
+const id = String(req.params.id);
+
+/* CEK ORDER + LOCK */
+
+const [orders] =
+await conn.execute(
+`
+SELECT *
+FROM email_orders
+WHERE id = ?
+AND user_email = ?
+LIMIT 1
+FOR UPDATE
+`,
+[
+id,
+req.user.email
+]
 );
 
-if(!user){
+if (!orders.length) {
 
-return res.status(404).json({
-success:false,
-message:"User tidak ditemukan"
-});
-
-}
-
-const oldOrder =
-(user.emailOrders || [])
-.find(
-x => String(x.id) === String(oldId)
-);
-
-if(!oldOrder){
+await conn.rollback();
 
 return res.status(404).json({
 success:false,
@@ -7372,87 +9146,303 @@ message:"Order tidak ditemukan"
 
 }
 
-const history =
-getEmailHistory();
+const order = orders[0];
 
-const oldItem =
-history.find(
-x =>
-String(x.activation_id)
-===
-String(oldId)
+/* CEK WAKTU */
+
+const elapsed =
+Math.floor(
+(Date.now() -
+Number(order.created_at)
+) / 1000
 );
 
-if(oldItem){
+if (elapsed < 120) {
 
-oldItem.status =
-"reorder";
-
-oldItem.reorderTime =
-Date.now();
-
-saveEmailHistory(
-history
-);
-
-}
-
-/* HARGA ORDER LAMA */
-
-const hargaJual =
-Number(oldOrder.harga || 0);
-
-if(
-hargaJual > 0 &&
-Number(user.saldo || 0) < hargaJual
-){
+await conn.rollback();
 
 return res.status(400).json({
-
 success:false,
-
 message:
-`Saldo tidak cukup. Minimal Rp${hargaJual.toLocaleString("id-ID")}`
-
+`Tunggu ${120 - elapsed} detik lagi untuk membatalkan`
 });
 
 }
 
-/* REORDER KE HEROSMS */
+/* SUDAH DAPAT OTP */
 
-const { data } =
-await axios.post(
-`${EMAIL_API}/emails/${oldId}/reorder`,
-{},
+if (order.otp_received) {
+
+await conn.rollback();
+
+return res.status(400).json({
+success:false,
+message:
+"Email sudah menerima OTP dan tidak dapat dibatalkan"
+});
+
+}
+
+/* CANCEL KE HEROSMS */
+
+let heroResponse;
+
+try {
+
+heroResponse =
+await axios.delete(
+`${EMAIL_API}/emails/${id}`,
 {
 headers:{
 Authorization:
 `ApiKey ${process.env.HEROSMS_API_KEY}`,
 Accept:"application/json"
+},
+timeout:15000
+}
+);
+
+} catch (heroErr) {
+
+await conn.rollback();
+
+console.error(
+"HEROSMS DELETE ERROR:",
+heroErr.response?.data ||
+heroErr.message
+);
+
+return res.status(500).json({
+success:false,
+message:
+heroErr.response?.data?.message ||
+"Gagal membatalkan email di HeroSMS"
+});
+
+}
+
+/* LOG RESPONSE */
+
+console.log(
+"HEROSMS DELETE RESPONSE:",
+JSON.stringify(
+heroResponse.data,
+null,
+2
+)
+);
+
+/* CEK RESPONSE API */
+
+if (
+heroResponse.data &&
+heroResponse.data.success === false
+) {
+
+await conn.rollback();
+
+return res.status(400).json({
+success:false,
+message:
+heroResponse.data.message ||
+"Gagal membatalkan email di HeroSMS"
+});
+
+}
+
+/* UPDATE HISTORY */
+
+await conn.execute(
+`
+UPDATE email_history
+SET
+status = 'cancel',
+cancel_time = ?
+WHERE activation_id = ?
+`,
+[
+Date.now(),
+id
+]
+);
+
+/* REFUND SALDO */
+
+await conn.execute(
+`
+UPDATE users
+SET saldo = saldo + ?
+WHERE email = ?
+`,
+[
+Number(order.harga || 0),
+order.user_email
+]
+);
+
+/* HAPUS ORDER */
+
+await conn.execute(
+`
+DELETE FROM email_orders
+WHERE id = ?
+AND user_email = ?
+`,
+[
+id,
+order.user_email
+]
+);
+
+await conn.commit();
+
+/* AMBIL SALDO TERBARU */
+
+const [[saldoBaru]] =
+await pool.execute(
+`
+SELECT saldo
+FROM users
+WHERE email = ?
+`,
+[
+order.user_email
+]
+);
+
+return res.json({
+success:true,
+message:"Order berhasil dibatalkan",
+saldo:saldoBaru.saldo
+});
+
+} catch (err) {
+
+if (conn) {
+
+try {
+await conn.rollback();
+} catch (_) {}
+
+}
+
+console.error(
+"CANCEL ERROR:",
+err.response?.data ||
+err.message ||
+err
+);
+
+return res.status(500).json({
+success:false,
+error:
+err.response?.data ||
+err.message ||
+"Terjadi kesalahan"
+});
+
+} finally {
+
+if (conn) {
+conn.release();
+}
+
+}
+
+});
+
+app.post("/api/email/reorder/:id", authMiddleware, async (req, res) => {
+
+try {
+
+const oldId = req.params.id;
+
+const [[user]] = await pool.execute(
+`SELECT email,saldo FROM users WHERE email=? LIMIT 1`,
+[req.user.email]
+);
+
+if (!user) {
+return res.status(404).json({
+success: false,
+message: "User tidak ditemukan"
+});
+}
+
+const [orders] = await pool.execute(
+`SELECT * FROM email_orders WHERE id=? AND user_email=? LIMIT 1`,
+[
+String(oldId),
+user.email
+]
+);
+
+if (!orders.length) {
+return res.status(404).json({
+success: false,
+message: "Order tidak ditemukan"
+});
+}
+
+const oldOrder = orders[0];
+
+await pool.execute(
+`UPDATE email_history
+SET status='reorder',
+reorder_time=?
+WHERE activation_id=?`,
+[
+Date.now(),
+String(oldId)
+]
+);
+
+const hargaJual =
+Number(oldOrder.harga || 0);
+
+if (
+hargaJual > 0 &&
+Number(user.saldo || 0) < hargaJual
+) {
+
+return res.status(400).json({
+success: false,
+message: `Saldo tidak cukup. Minimal Rp${hargaJual.toLocaleString("id-ID")}`
+});
+
+}
+
+const { data } = await axios.post(
+`${EMAIL_API}/emails/${oldId}/reorder`,
+{},
+{
+headers: {
+Authorization:
+`ApiKey ${process.env.HEROSMS_API_KEY}`,
+Accept: "application/json"
 }
 }
 );
 
-/* POTONG SALDO SERAPAY */
+if (hargaJual > 0) {
 
-if(hargaJual > 0){
-
-user.saldo =
-Number(user.saldo || 0)
--
-hargaJual;
+await pool.execute(
+`UPDATE users
+SET saldo = saldo - ?
+WHERE email = ?`,
+[
+hargaJual,
+user.email
+]
+);
 
 }
 
-/* ORDER BARU */
-
 const newOrder = {
 
-id:
-data.data.id,
+id: data.data.id,
 
-email:
-data.data.email,
+email: data.data.email,
 
 site:
 data.data.site ||
@@ -7473,54 +9463,77 @@ code:null
 
 };
 
-/* TAMBAH ORDER BARU */
-
-user.emailOrders.unshift(
-newOrder
-);
-
-/* HAPUS ORDER LAMA */
-
-user.emailOrders =
-user.emailOrders.filter(
-x => String(x.id) !== String(oldId)
-);
-
-const emailHistory =
-getEmailHistory();
-
-emailHistory.unshift({
-
-id:
-data.data.id,
-
-activation_id:
-data.data.id,
-
-userEmail:
+await pool.execute(
+`INSERT INTO email_orders
+(
+id,
+user_email,
+email,
+site,
+domain,
+harga,
+otp_received,
+code,
+created_at
+)
+VALUES
+(?,?,?,?,?,?,?,?,?)`,
+[
+String(data.data.id),
 user.email,
-
-service:
+data.data.email,
 newOrder.site,
-
-pesan:null,
-
-harga:
+newOrder.domain,
 hargaJual,
-
-status:
-"active",
-
-time:
+0,
+null,
 Date.now()
-
-});
-
-saveEmailHistory(
-emailHistory
+]
 );
 
-saveUsers(users);
+await pool.execute(
+`DELETE FROM email_orders
+WHERE id=?`,
+[
+String(oldId)
+]
+);
+
+await pool.execute(
+`INSERT INTO email_history
+(
+activation_id,
+user_email,
+service,
+pesan,
+harga,
+status,
+otp_received,
+created_at
+)
+VALUES
+(?,?,?,?,?,?,?,?)`,
+[
+String(data.data.id),
+user.email,
+newOrder.site,
+null,
+hargaJual,
+"active",
+0,
+Date.now()
+]
+);
+
+const [[saldoBaru]] =
+await pool.execute(
+`SELECT saldo
+FROM users
+WHERE email=?`,
+[
+user.email
+]
+);
 
 res.json({
 
@@ -7528,14 +9541,15 @@ success:true,
 
 data:newOrder,
 
-saldo:user.saldo,
+saldo:
+saldoBaru.saldo,
 
 message:
 "Reorder berhasil"
 
 });
 
-}catch(err){
+} catch (err) {
 
 console.error(
 err.response?.data || err
@@ -7555,90 +9569,122 @@ err.message
 
 });
 
-app.get(
-"/api/email/orders",
-authMiddleware,
-(req,res)=>{
+app.get("/api/email/orders", authMiddleware, async (req, res) => {
 
-const users =
-getUsers();
+try {
 
-const user =
-users.find(
-u => u.email === req.user.email
+const [rows] = await pool.execute(
+`SELECT *
+FROM email_orders
+WHERE user_email = ?
+ORDER BY created_at DESC`,
+[
+req.user.email
+]
 );
 
 res.json({
+success: true,
+data: rows
+});
 
-success:true,
+} catch (err) {
 
-data:
-user?.emailOrders || []
+console.error(err);
+
+res.status(500).json({
+success: false,
+error: err.message
+});
+
+}
 
 });
 
-});
+app.get("/api/email/history", authMiddleware, async (req, res) => {
 
-app.get(
-"/api/email/history",
-authMiddleware,
-(req,res)=>{
+try {
 
-const history =
-getEmailHistory();
+const [rows] = await pool.execute(
+`
+SELECT
+activation_id,
+user_email AS userEmail,
+service,
+pesan,
+harga,
+status,
+created_at AS time,
+cancel_time AS cancelTime,
+reorder_time AS reorderTime
+FROM email_history
+WHERE user_email = ?
+ORDER BY created_at DESC
+`,
+[req.user.email]
+);
 
 res.json({
-
-success:true,
-
-data:
-history.filter(
-x =>
-x.userEmail ===
-req.user.email
-)
-
+success: true,
+data: rows
 });
+
+} catch (err) {
+
+console.error(err);
+
+res.status(500).json({
+success: false,
+error: err.message
+});
+
+}
 
 });
 
 app.get("/api/email/domains", async (req, res) => {
-  try {
 
-    const site = req.query.site || "telegram.com";
+try {
 
-    const { data } = await axios.get(
-      `${EMAIL_API}/emails/domains`,
-      {
-        params:{ site },
-headers:{
-  Authorization:`ApiKey ${process.env.HEROSMS_API_KEY}`,
-  Accept:"application/json"
+const site =
+req.query.site ||
+"telegram.com";
+
+const { data } =
+await axios.get(
+`${EMAIL_API}/emails/domains`,
+{
+params: { site },
+headers: {
+Authorization:
+`ApiKey ${process.env.HEROSMS_API_KEY}`,
+Accept: "application/json"
 }
-      }
-    );
-
-    res.json({
-      success:true,
-      data:data.data || data
-    });
-
-  } catch(err){
-
-    res.status(500).json({
-      success:false,
-      error:err.response?.data || err.message
-    });
-  }
-});
-
-
-app.post(
-"/api/email/test",
-(req,res)=>{
+}
+);
 
 res.json({
-success:true
+success: true,
+data: data.data || data
+});
+
+} catch (err) {
+
+res.status(500).json({
+success: false,
+error:
+err.response?.data ||
+err.message
+});
+
+}
+
+});
+
+app.post("/api/email/test", (req, res) => {
+
+res.json({
+success: true
 });
 
 });

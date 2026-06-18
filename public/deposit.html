@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Isi Saldo - Serapay</title>
+	<link rel="icon" href="/img/favicon.png" sizes="32x32">
+    <link rel="icon" href="/img/favicon.png" sizes="16x16">
+    <link rel="shortcut icon" href="/img/favicon.png">
+<style>
+html, body{
+  margin:0;
+  padding:0;
+  font-family:Inter,sans-serif;
+  background:#fce7f3;
+  height:100%;
+}
+
+.wrapper{
+  display:flex;
+  min-height:100vh;
+}
+
+.topbar{
+  height:70px;
+  background:#fff;
+  padding:0 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:100;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+.sidebar{
+  width:240px;
+  background:#ec4899;
+  color:#fff;
+  position:fixed;
+  top:70px;
+  left:0;
+  height:calc(100vh - 70px);
+  padding:20px;
+  transition:0.3s;
+  z-index:99;
+}
+
+.overlay{
+  position:fixed;
+  top:70px;
+  left:0;
+  width:100%;
+  height:calc(100vh - 70px);
+  background:rgba(0,0,0,0.3);
+  z-index:98;
+  opacity:0;
+  pointer-events:none;
+  transition:0.3s;
+}
+
+.overlay.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.menu a{
+  display:block;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:8px;
+  color:#fff;
+  text-decoration:none;
+}
+
+.menu a:hover{
+  background:rgba(255,255,255,0.2);
+}
+
+.main{
+  margin-left:240px;
+  margin-top:70px;
+  width:calc(100% - 240px);
+
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:30px 20px;
+  box-sizing:border-box;
+  min-height:calc(100vh - 70px);
+}
+
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  width:100%;
+  max-width:420px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+
+.nominal-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:10px;
+}
+
+.nominal-btn{
+  padding:10px;
+  border:1px solid #ec4899;
+  background:#fce7f3;
+  color:#be185d;
+  border-radius:8px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.nominal-btn:hover{
+  background:#ec4899;
+  color:#fff;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  outline:none;
+  box-sizing:border-box;
+}
+
+input:focus{
+  border-color:#ec4899;
+}
+
+.btn{
+  width:100%;
+  margin-top:12px;
+  padding:10px;
+  background:#ec4899;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.btn:hover{
+  background:#db2777;
+}
+
+.qr-box{
+  margin-top:20px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  display:none;
+}
+
+.qr-box img{
+  width:200px;
+  height:200px;
+}
+
+.code{
+  font-size:12px;
+  margin-top:10px;
+  color:#be185d;
+}
+
+.user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-align:right;
+}
+
+.user-info{
+  text-align:right;
+  font-size:13px;
+  line-height:1.3;
+}
+
+.avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:2px solid #ec4899;
+}
+
+.saldo{
+  background:#ec4899;
+  color:#fff;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  margin-top:3px;
+
+  display:inline-flex; 
+  align-items:center;
+  width:fit-content; 
+}
+
+.menu-toggle{
+  display:none;
+  font-size:22px;
+  cursor:pointer;
+}
+
+@media(max-width:768px){
+
+  .menu-toggle{
+    display:block;
+  }
+
+  .sidebar{
+    left:-100%;
+  }
+
+  .sidebar.active{
+    left:0;
+  }
+
+  .main{
+    margin-left:0;
+    width:100%;
+    padding:20px;
+  }
+}
+
+.menu-toggle{
+  display:none;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.overlay{
+  position:fixed;
+  top:70px;
+  left:0;
+  width:100%;
+  height:calc(100vh - 70px);
+  background:rgba(0,0,0,0.3);
+  z-index:98;
+  opacity:0;
+  pointer-events:none;
+  transition:0.3s;
+}
+
+.overlay.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+@media(max-width:768px){
+
+  .menu-toggle{
+    display:block;
+  }
+
+  .sidebar{
+    left:-100%;
+  }
+
+  .sidebar.active{
+    left:0;
+  }
+
+  .main{
+    margin-left:0;
+    width:100%;
+  }
+}
+
+.left{
+  display:flex;
+  align-items:center; 
+  gap:10px;
+}
+
+.wa-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  background:#25D366;
+  color:#fff;
+  padding:10px;
+  border-radius:8px;
+  text-decoration:none;
+  font-weight:600;
+  transition:0.2s;
+}
+
+.wa-btn:hover{
+  background:#1ebe5d;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: none; 
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.popup-overlay.active {
+  display: flex; 
+}
+
+.popup-box {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.popup-box h3 {
+  margin: 10px 0;
+  color: #be185d;
+}
+
+.popup-box button {
+  background: #ec4899;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: bold;
+  margin-top: 15px;
+}
+.menu a svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:white;
+  stroke-width:2;
+  flex-shrink:0;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+}
+a[href="/livechat"] svg,
+a[href="/livechat"] svg *{
+fill:#fff !important;
+stroke:#fff !important;
+}
+
+.menu a:hover{
+  background:rgba(255,255,255,0.2);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.35);
+}
+.menu a{
+  display:flex; 
+  align-items:center; 
+  gap:10px;  
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:8px;
+  color:#fff;
+  text-decoration:none;
+}
+.menu a svg{
+  width:20px;
+  height:20px;
+  flex-shrink:0; 
+  display:block; 
+}
+.title{
+  margin-bottom:10px;
+  font-size:14px;
+  color:#be185d;
+}
+
+.empty{
+  font-size:12px;
+  color:#be185d;
+}
+
+.topup-item{
+  background:#fff;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  border:1px solid #eee;
+  box-shadow:0 2px 6px rgba(0,0,0,0.04);
+}
+
+.topup-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.topup-nominal{
+  font-weight:600;
+  font-size:14px;
+  color:#111;
+}
+
+.topup-status{
+  font-size:11px;
+  padding:3px 8px;
+  border-radius:6px;
+  font-weight:600;
+}
+
+.topup-status.success{
+  background:#dcfce7;
+  color:#16a34a;
+}
+
+.topup-status.pending{
+  background:#fef3c7;
+  color:#d97706;
+}
+
+.topup-status.failed{
+  background:#fee2e2;
+  color:#dc2626;
+}
+
+.topup-status.cancelled{
+  background:#ffedd5;
+  color:#ea580c;
+}
+
+.topup-time{
+  font-size:11px;
+  color:#888;
+  margin-top:6px;
+}
+.input-label{
+  display:block;
+  margin-top:12px;
+  margin-bottom:5px;
+  font-size:12px;
+  font-weight:600;
+  color:#ec4899; 
+}
+.btn:disabled{
+  background:#f9a8d4;
+  cursor:not-allowed;
+  opacity:0.7;
+}
+#kodeunik{
+  margin-bottom:12px; 
+}
+.countdown{
+  margin-top:10px;
+  font-size:12px;
+  color:#be185d;
+}
+.trx-id{
+  font-size:11px;
+  color:#ec4899;
+  cursor:pointer;
+  text-decoration:underline;
+}
+
+.trx-id:hover{
+  color:#be185d;
+}
+.trx-id{
+  display:block; 
+  margin-top:4px; 
+  font-size:11px;
+  color:#ec4899;
+  cursor:pointer;
+  text-decoration:underline;
+}
+.topup-status.expired{
+  background:#fee2e2;
+  color:#dc2626;
+}
+.riwayat-box{
+  margin-top:20px;
+  width:100%;
+  max-height:420px;
+  overflow-y:auto;
+  padding-right:5px; 
+}
+
+.riwayat-box::-webkit-scrollbar{
+  width:6px;
+}
+
+.riwayat-box::-webkit-scrollbar-thumb{
+  background:#ec4899;
+  border-radius:10px;
+}
+.wa-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  background:linear-gradient(135deg,#ec4899,#db2777); 
+  color:#fff;
+  padding:12px;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:600;
+  transition:0.2s;
+  box-shadow:0 4px 10px rgba(236,72,153,0.3);
+}
+
+.wa-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 14px rgba(236,72,153,0.4);
+}
+.topup-status.waiting_payment{
+  background:#e5e7eb;
+  color:#6b7280;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+
+.spinner{
+  width:10px;
+  height:10px;
+  border:2px solid #ccc;
+  border-top:2px solid #6b7280;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  from{ transform:rotate(0deg); }
+  to{ transform:rotate(360deg); }
+}
+.copy-status{
+  font-size:11px;
+  color:#16a34a;
+  margin-top:4px;
+  opacity:0;
+  transform:translateY(-5px);
+  transition:all 0.3s ease;
+}
+
+.copy-status.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.trx-id{
+  display:inline-block;
+  margin-top:4px;
+  font-size:11px;
+  color:#ec4899;
+  cursor:pointer;
+  text-decoration:underline;
+  transition:0.2s;
+}
+
+.trx-id:hover{
+  color:#be185d;
+}
+
+/* efek saat diklik */
+.trx-id.copied{
+  color:#16a34a;
+  font-weight:600;
+  text-decoration:none;
+}
+.livechat-float{
+  position:fixed;
+  bottom:40px;
+  right:20px;
+
+  width:60px;
+  height:60px;
+
+  background:linear-gradient(135deg,#ec4899,#db2777);
+  border-radius:50%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  box-shadow:0 6px 16px rgba(236,72,153,0.4);
+  cursor:pointer;
+  z-index:999999;
+
+  transition:0.2s ease;
+}
+
+.livechat-float svg{
+  width:30px;
+  height:30px;
+  display:block;
+  color:#fff;
+}
+
+/* hover */
+.livechat-float:hover{
+  transform:scale(1.08);
+  box-shadow:0 10px 24px rgba(236,72,153,0.6);
+}
+
+@media (max-width:768px){
+  .livechat-float{
+    width:50px;
+    height:50px; /* samakan biar bulat */
+    right:25px;
+    bottom:50px;
+  }
+
+  .livechat-float svg{
+    width:26px;
+    height:26px;
+  }
+}
+.custom-alert{
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%) translateY(-20px);
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+  padding:12px 18px;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.3);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  opacity:0;
+  pointer-events:none;
+  transition:0.3s ease;
+  z-index:99999;
+  backdrop-filter: blur(8px);
+  min-width:260px;
+}
+
+.custom-alert.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+.custom-alert-box{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:13px;
+  font-weight:500;
+}
+
+.custom-alert .icon{
+  font-size:18px;
+}
+
+.custom-alert.error{
+  border-left:4px solid #ef4444;
+}
+
+.custom-alert.success{
+  border-left:4px solid #22c55e;
+}
+
+.custom-alert.warning{
+  border-left:4px solid #f59e0b;
+}
+@media(max-width:768px){
+
+  body{
+    background:#fff; /* hilangkan pink pinggir */
+  }
+
+  .main{
+    padding:0;
+  }
+
+  .card{
+    max-width:100%;
+    width:100%;
+    border-radius:0;
+    box-shadow:none;
+    padding:15px;
+  }
+
+}
+
+.menu a.ai-menu svg{
+    fill:white !important;
+    stroke:none !important;
+}
+
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+<div id="overlay" class="overlay" onclick="closeMenu()"></div>
+<div class="topbar">
+<div class="left">
+<span class="menu-toggle" onclick="toggleMenu()" style="color:#be185d;">☰</span>
+<b style="color:#be185d;">Deposit</b>
+</div>
+
+  <div class="user">
+    <img id="avatar" src="/css/img/avatar1.png" class="avatar">
+
+    <div class="user-info">
+      <b id="nama">User</b><br>
+      <small>ID: <span id="id">-</span></small><br>
+      <div class="saldo">Rp <span id="saldo">0</span></div>
+    </div>
+  </div>
+
+</div>
+<div class="sidebar" id="sidebar">
+<div class="menu">
+
+  <a href="/home">
+    <svg viewBox="0 0 32 32">
+      <polyline points="3,17 16,4 29,17"/>
+      <polyline points="6,14 6,27 13,27 13,17 19,17 19,27 26,27 26,14"/>
+    </svg>
+    Home
+  </a>
+
+  <a href="/riwayat.html">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 8v5l3 2"/>
+      <path d="M3 12a9 9 0 1 0 3-6.7"/>
+      <path d="M3 4v5h5"/>
+    </svg>
+    Riwayat
+  </a>
+  
+  <a href="/ai.html">
+
+<svg
+viewBox="0 0 512 512"
+width="20"
+height="20"
+xmlns="http://www.w3.org/2000/svg">
+
+<path fill="white"
+d="M384 128V384H128V128H384ZM235.75 192H198.4L128 384H161.6L175.2 346.4H259.2L272.4 384H307.2L235.75 192ZM320 192H286.4V384H320V192ZM216 224L248 315H184L216 224ZM416 384H480V448H416V384ZM128 416H192V480H128V416ZM256 416H320V480H256V416ZM128 0H192V64H128V0ZM256 0H320V64H256V0ZM384 256H448V320H384V256ZM0 256H64V320H0V256ZM384 128H448V192H384V128ZM0 128H64V192H0V128Z"/>
+
+</svg>
+
+Autoresponder AI
+
+</a>
+
+  <a href="/deposit.html">
+    <svg viewBox="0 0 24 24">
+      <rect x="2" y="6" width="20" height="12" rx="2"/>
+      <circle cx="16" cy="12" r="2"/>
+    </svg>
+    Isi Saldo
+  </a>
+
+  <a href="/pengaturan.html">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06
+      a2 2 0 1 1-2.83 2.83l-.06-.06
+      a1.65 1.65 0 0 0-1.82-.33
+      1.65 1.65 0 0 0-1 1.51V21
+      a2 2 0 1 1-4 0v-.09
+      a1.65 1.65 0 0 0-1-1.51
+      1.65 1.65 0 0 0-1.82.33l-.06.06
+      a2 2 0 1 1-2.83-2.83l.06-.06
+      a1.65 1.65 0 0 0 .33-1.82
+      1.65 1.65 0 0 0-1.51-1H3
+      a2 2 0 1 1 0-4h.09
+      a1.65 1.65 0 0 0 1.51-1
+      1.65 1.65 0 0 0-.33-1.82l-.06-.06
+      a2 2 0 1 1 2.83-2.83l.06.06
+      a1.65 1.65 0 0 0 1.82.33H9
+      a1.65 1.65 0 0 0 1-1.51V3
+      a2 2 0 1 1 4 0v.09
+      a1.65 1.65 0 0 0 1 1.51
+      1.65 1.65 0 0 0 1.82-.33l.06-.06
+      a2 2 0 1 1 2.83 2.83l-.06.06
+      a1.65 1.65 0 0 0-.33 1.82V9
+      a1.65 1.65 0 0 0 1.51 1H21
+      a2 2 0 1 1 0 4h-.09
+      a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    Pengaturan
+  </a>
+
+<a href="/livechat">
+<svg
+version="1.1"
+xmlns="http://www.w3.org/2000/svg"
+viewBox="0 0 490 490"
+fill="#fff">
+
+<g>
+<g>
+<path d="M385.987,222.307c-6.738,0-12.2,5.467-12.2,12.209v112.818c0,6.74,5.462,5.469,12.2,12.209c6.739,0,12.21-5.469,12.21-12.209V234.516C398.197,227.773,392.727,222.307,385.987,222.307z"/>
+
+<path d="M104.013,222.307c-6.743,0-12.21,5.467-12.21,12.209v112.818c0,6.74,5.467,12.209,12.21,12.209c6.737,0,12.2-5.469,12.2-12.209V234.516C116.213,227.773,110.75,222.307,104.013,222.307z"/>
+</g>
+
+<g>
+<path d="M462.781,228.545c-0.727-57.113-23.29-110.707-63.765-151.182c-41.14-41.139-95.84-63.793-154.018-63.793S132.123,36.225,90.981,77.363c-40.475,40.475-63.035,94.068-63.763,151.184C10.806,239.682,0,258.492,0,279.772v22.307c0,34.105,27.75,61.855,61.859,61.855c9.169,0,16.597-7.432,16.597-16.6V234.516c0-9.17-7.428-16.598-16.597-16.598c-1.655,0-3.282,0.08-4.904,0.209c3.415-48.891,25.546-92.693,59.262-124.285c0.761,3.357,2.092,6.643,4.041,9.719c9.1,14.344,28.101,18.594,42.445,9.492c24.45-15.514,52.905-23.715,82.296-23.715c29.392,0,57.846,8.201,82.295,23.715c14.346,9.102,33.347,4.852,42.447-9.492c1.95-3.076,3.281-6.361,4.042-9.719c33.714,31.592,55.845,75.395,59.262,124.285c-1.624-0.129-3.249-0.209-4.904-0.209c-9.169,0-16.597,7.428-16.597,16.598v112.818c0,6.832,4.125,12.697,10.022,15.238c-2.12,6.299-4.604,12.322-7.537,17.984c-14.252,27.492-37.34,44.205-71.321,51.18c-4.743-8.389-13.737-14.053-24.055-14.053h-46.292c-15.25,0-27.621,12.367-27.621,27.625v3.502c0,15.254,12.371,27.619,27.621,27.619h46.292c10.75,0,20.056-6.146,24.624-15.109c17.612-3.15,33.261-8.4,46.774-15.76c21.522-11.715,38.341-29.051,49.983-51.531c5.727-11.047,10.02-22.992,13.239-35.449C474.892,348.928,490,327.238,490,302.078v-22.307C490,258.492,479.195,239.682,462.781,228.545z"/>
+</g>
+</g>
+
+</svg>
+
+Live Chat
+</a>
+  
+<a href="/faq.html">
+<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 1a11 11 0 1 0 11 11A11 11 0 0 0 12 1z"/>
+  <path d="M12 17h.01"/>
+  <path d="M10.6 9a2.4 2.4 0 1 1 4.8 0c0 2-2.4 2.2-2.4 4"/>
+</svg>
+  FAQ
+</a>
+
+<a href="/setoran/setor-facebook-fresh.html">
+<svg
+viewBox="0 0 32 32"
+width="20"
+height="20"
+xmlns="http://www.w3.org/2000/svg">
+
+<path fill="white" d="M9.5,9h2C11.776,9,12,9.224,12,9.5S11.776,10,11.5,10h-2C9.224,10,9,9.776,9,9.5S9.224,9,9.5,9z
+M19,9.5c0,0.276,0.224,0.5,0.5,0.5h2c0.276,0,0.5-0.224,0.5-0.5S21.776,9,21.5,9h-2C19.224,9,19,9.224,19,9.5z
+M4.5,19C4.224,19,4,19.224,4,19.5v2C4,21.776,4.224,22,4.5,22S5,21.776,5,21.5v-2C5,19.224,4.776,19,4.5,19z
+M4.5,14C4.224,14,4,14.224,4,14.5v2C4,16.776,4.224,17,4.5,17S5,16.776,5,16.5v-2C5,14.224,4.776,14,4.5,14z
+M6.5,9h-2C4.224,9,4,9.224,4,9.5v2C4,11.776,4.224,12,4.5,12S5,11.776,5,11.5V10h1.5C6.776,10,7,9.776,7,9.5S6.776,9,6.5,9z
+M4.5,24C4.224,24,4,24.224,4,24.5v2C4,26.776,4.224,27,4.5,27S5,26.776,5,26.5v-2C5,24.224,4.776,24,4.5,24z
+M26.5,9h-2C24.224,9,24,9.224,24,9.5s0.224,0.5,0.5,0.5H26v21H5v-1.5C5,29.224,4.776,29,4.5,29S4,29.224,4,29.5v2C4,31.776,4.224,32,4.5,32h22
+c0.276,0,0.5-0.224,0.5-0.5v-22C27,9.224,26.776,9,26.5,9z
+M16,21c0.276,0,0.5-0.224,0.5-0.5V1.707l4.146,4.147
+c0.195,0.195,0.512,0.195,0.707,0s0.195-0.512,0-0.707l-5-5
+c-0.195-0.195-0.512-0.195-0.707,0l-5,5
+c-0.195,0.195-0.195,0.512,0,0.707
+c0.195,0.195,0.512,0.195,0.707,0L15.5,1.707V20.5C15.5,20.776,15.724,21,16,21z"/>
+
+</svg>
+  Setor Akun
+</a>
+
+  <a href="#" onclick="event.preventDefault(); logout()" class="logout">
+    <svg viewBox="0 0 24 24">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+    Logout
+  </a>
+
+</div>
+
+</div>
+
+<div class="main">
+
+  <div class="card">
+
+<h3 style="margin:0 0 15px 0; text-align:center;">
+  <img src="/img/qris.png" alt="QRIS" style="height:60px;">
+</h3>
+
+<div class="nominal-grid">
+  <button class="nominal-btn" onclick="setNominal(5000)">5K</button>
+  <button class="nominal-btn" onclick="setNominal(10000)">10K</button>
+  <button class="nominal-btn" onclick="setNominal(20000)">20K</button>
+  <button class="nominal-btn" onclick="setNominal(50000)">50K</button>
+  <button class="nominal-btn" onclick="setNominal(100000)">100K</button>
+</div>
+
+<label class="input-label">Masukan Jumlah</label>
+<input id="nominal" type="number" placeholder="70000">
+
+<button class="btn" id="btnQR" onclick="generateQR()">
+  Bayar
+</button>
+
+<div class="qr-box" id="qrBox">
+  <h4>Scan QR Pembayaran</h4>
+
+<div class="code" id="kodeunik"></div>
+
+<img src="/css/icon/qr.png" alt="QR Code">
+
+<div id="countdown" class="countdown"></div>
+<button
+class="btn"
+onclick="cancelTopup()"
+style="margin-top:10px;background:#ef4444">
+
+Batalkan Deposit
+
+</button>
+</div>
+<div class="riwayat-box">
+  <div id="riwayatTopup"></div>
+</div>
+
+
+</div>
+</div>
+</div>
+
+<div id="loginPopup" class="popup-overlay">
+  <div class="popup-box">
+    <div class="popup-icon">🔒</div>
+    <h3>Akses Ditolak</h3>
+    <p>Kamu harus login dulu untuk lanjut 🚀</p>
+    <button onclick="goLogin()">Login Sekarang</button>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+let topupData = [];
+let activeTopup = null;
+let countdownInterval = null;
+if(!token){
+  document.getElementById("loginPopup").classList.add("active");
+}
+
+function goLogin(){
+  window.location.href = "/index.html";
+}
+
+async function loadUser(){
+  try{
+    const res = await fetch("/api/me",{
+      headers:{ authorization:token }
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      document.getElementById("nama").innerText = data.user.name;
+      document.getElementById("id").innerText = data.user.id;
+      document.getElementById("saldo").innerText =
+        (data.user.saldo || 0).toLocaleString("id-ID");
+    } else {
+      throw new Error("Token invalid");
+    }
+
+  } catch(err){
+    localStorage.removeItem("token");
+    location.href = "/index.html";
+  }
+}
+
+function renderRiwayatTopup(){
+  const box = document.getElementById("riwayatTopup");
+
+  if(!topupData || topupData.length === 0){
+    box.innerHTML = `<div class="empty">Belum ada riwayat topup</div>`;
+    return;
+  }
+
+  let html = `<h4 class="title">Riwayat Topup</h4>`;
+
+  topupData.slice().reverse().forEach(t => {
+
+    const nominalFix = t.uniqueNominal || t.nominal;
+
+    let statusClass = t.status || "waiting_payment";
+let statusText = "";
+
+if(statusClass === "waiting_payment"){
+  statusText = "<div class='spinner'></div> Menunggu Pembayaran";
+}
+else if(statusClass === "success"){
+  statusText = "BERHASIL";
+}
+else if(statusClass === "failed"){
+  statusText = "GAGAL";
+}
+else if(statusClass === "expired"){
+  statusText = "EXPIRED";
+}
+else if(statusClass === "cancelled"){
+  statusText = "DIBATALKAN";
+}
+else{
+  statusText = statusClass.toUpperCase();
+}
+
+    const waktu = new Date(t.time).toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+html += `
+  <div class="topup-item">
+    <div class="topup-row">
+      <span class="topup-nominal">
+        Rp ${Number(nominalFix).toLocaleString("id-ID")}
+      </span>
+      <span class="topup-status ${statusClass}">
+        ${statusText}
+      </span>
+    </div>
+
+    <div class="topup-time">
+      ${waktu}<br>
+<span class="trx-id" onclick="copyTrx(this, '${t.referenceId}')">
+  ${t.referenceId}
+</span>
+<div class="copy-status" id="copy-${t.referenceId}"></div>
+    </div>
+  </div>
+`;
+  });
+
+  box.innerHTML = html;
+}
+
+async function loadTopup(){
+  try{
+    const res = await fetch("/api/topup",{
+      headers:{ authorization: token }
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      topupData = data.data || [];
+      renderRiwayatTopup();
+
+      // ============================
+      // AUTO HILANGKAN QR JIKA SUCCESS
+      // ============================
+      if(activeTopup){
+        const found = topupData.find(t =>
+          t.status === "success" &&
+          t.referenceId === activeTopup.referenceId
+        );
+
+        if(found){
+		document.getElementById("btnQR").disabled = false;
+          console.log("✅ Pembayaran berhasil, QR dihapus");
+
+          document.getElementById("qrBox").style.display = "none";
+          localStorage.removeItem("activeTopup");
+          activeTopup = null;
+
+          clearInterval(countdownInterval);
+
+          document.getElementById("kodeunik").innerHTML =
+  "<b style='color:green'>Pembayaran berhasil ✔</b>";
+          
+          loadUser(); // update saldo
+        }
+      }
+    }
+
+  }catch(e){
+    console.log("Gagal load topup");
+  }
+}
+
+function copyTrx(el, id){
+  navigator.clipboard.writeText(id);
+
+  const statusEl = document.getElementById("copy-" + id);
+
+  statusEl.innerHTML = "✔️ Tersalin";
+  statusEl.classList.add("show");
+
+  el.classList.add("copied");
+}
+
+
+async function loadActiveTopup(){
+
+  try{
+
+    const res = await fetch(
+      "/api/topup/active",
+      {
+        headers:{
+          authorization:token
+        }
+      }
+    );
+
+    const result = await res.json();
+
+    if(
+      !result.success ||
+      !result.data
+    ){
+      return;
+    }
+
+    const data = result.data;
+
+    activeTopup = data;
+
+    document.getElementById(
+      "btnQR"
+    ).disabled = true;
+
+    const qrBox =
+      document.getElementById(
+        "qrBox"
+      );
+
+    const qrImg =
+      document.querySelector(
+        "#qrBox img"
+      );
+
+    const kode =
+      document.getElementById(
+        "kodeunik"
+      );
+
+    qrBox.style.display =
+      "block";
+
+    kode.innerHTML =
+      `Silahkan bayar:<br>
+      <b>Rp ${Number(
+        data.nominal
+      ).toLocaleString("id-ID")}
+      </b><br>
+      Ref: ${data.referenceId}`;
+
+    qrImg.src =
+      "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
+      encodeURIComponent(
+        data.qrUrl
+      );
+
+    startCountdown(
+      data.expiredAt
+    );
+
+  }
+
+  catch(err){
+
+    console.log(
+      "Gagal load QR:",
+      err
+    );
+
+  }
+
+}
+
+async function cancelTopup(){
+
+try{
+
+const res=await fetch(
+"/api/topup/cancel",
+{
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json",
+
+authorization:token
+},
+
+body:JSON.stringify({
+
+referenceId:
+activeTopup.referenceId
+
+})
+
+});
+
+const data=
+await res.json();
+
+if(data.success){
+
+document.getElementById(
+"qrBox"
+).style.display="none";
+
+document.getElementById(
+"btnQR"
+).disabled=false;
+
+activeTopup=null;
+
+clearInterval(
+countdownInterval
+);
+
+}
+
+}catch(err){
+
+console.log(err);
+
+}
+
+}
+
+function startCountdown(expiredTime){
+  const countdownEl = document.getElementById("countdown");
+
+  clearInterval(countdownInterval);
+
+  countdownInterval = setInterval(() => {
+    const sisa = expiredTime - Date.now();
+
+if (sisa <= 0) {
+  document.getElementById("btnQR").disabled = false;
+  clearInterval(countdownInterval);
+
+  countdownEl.innerHTML = "<b style='color:red'>QR expired</b>";
+  document.getElementById("qrBox").style.display = "none";
+
+  localStorage.removeItem("activeTopup");
+
+  activeTopup = null;
+
+  loadTopup(); // refresh status dari server
+
+  return;
+}
+
+const totalDetik = Math.floor(sisa / 1000);
+
+const jam = Math.floor(totalDetik / 3600);
+const menit = Math.floor((totalDetik % 3600) / 60);
+const detik = totalDetik % 60;
+
+countdownEl.innerHTML =
+  "Sisa waktu: " +
+  jam + "j " +
+  menit + "m " +
+  detik + "s";
+
+  }, 1000);
+}
+
+function setNominal(val){
+  document.getElementById("nominal").value = val;
+}
+
+function generateUniqueNominal(nominal){
+  const random = Math.floor(Math.random() * 900) + 100;
+  return nominal + random;
+}
+
+async function generateQR(){
+if(activeTopup){
+  showAlert("Masih ada pembayaran aktif. Selesaikan atau tunggu expired dulu.", "warning");
+  return;
+}
+  const btn = document.getElementById("btnQR");
+  const input = document.getElementById("nominal");
+  const qrBox = document.getElementById("qrBox");
+  const qrImg = document.querySelector("#qrBox img");
+  const kode = document.getElementById("kodeunik");
+
+  let nominal = parseInt(input.value);
+
+  if(!nominal || nominal < 5000){
+    alert("Minimal topup 5.000");
+    return;
+  }
+
+  btn.disabled = true;
+  input.disabled = true;
+
+  const originalText = btn.innerText;
+  btn.innerText = "Memproses...";
+
+  try{
+    const res = await fetch("/api/topup/create",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        authorization: token
+      },
+      body: JSON.stringify({ nominal })
+    });
+
+    if(!res.ok){
+      throw new Error("Server error");
+    }
+
+    const data = await res.json();
+
+    if(!data.success){
+      throw new Error(data.message || "Gagal topup");
+    }
+
+    const pay = data.payment;
+activeTopup = {
+  total: pay.Total,
+  qr: pay.QrString,
+  expired: Date.now() + (24 * 60 * 60 * 1000),
+  referenceId: pay.ReferenceId || pay.referenceId
+};
+
+localStorage.setItem("activeTopup", JSON.stringify(activeTopup));
+    qrImg.src = "/css/icon/qr.png";
+    kode.innerHTML = "";
+    qrBox.style.display = "block";
+	startCountdown(activeTopup.expired);
+    kode.innerHTML =
+      "Silahkan bayar:<br><b>Rp " +
+      Number(pay.Total).toLocaleString("id-ID") +
+      "</b>";
+
+    if(pay.QrString){
+      qrImg.src =
+        "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + pay.QrString;
+    }
+
+    loadTopup();
+
+  }catch(err){
+    alert(err.message || "Gagal membuat topup");
+  }finally{
+    btn.disabled = false;
+    input.disabled = false;
+    btn.innerText = originalText;
+  }
+}
+
+async function initApp() {
+    await loadUser(); 
+    loadTopup();
+    updateWhatsAppButton();
+	loadActiveTopup();
+	setInterval(loadTopup, 1000);
+}
+
+window.addEventListener("DOMContentLoaded", initApp);
+
+function updateWhatsAppButton(){
+  const waNumber = "6285117595981";
+  const text = encodeURIComponent(
+    "Halo admin, saya ingin konfirmasi deposit.\n\n" +
+    "ID User: " + document.getElementById("id").innerText
+  );
+
+document.getElementById("waBtn").href =
+  "https://gaslur.site/livechat";
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  loadUser();
+  loadTopup();
+  updateWhatsAppButton();
+});
+
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("active");
+  document.getElementById("overlay").classList.toggle("active");
+}
+
+function closeMenu(){
+  document.getElementById("sidebar").classList.remove("active");
+  document.getElementById("overlay").classList.remove("active");
+}
+
+document.addEventListener("click", function(e){
+  const sidebar = document.getElementById("sidebar");
+  const toggle = document.querySelector(".menu-toggle");
+
+  if(
+    sidebar.classList.contains("active") &&
+    !sidebar.contains(e.target) &&
+    !toggle.contains(e.target)
+  ){
+    closeMenu();
+  }
+});
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    loadTopup();
+    loadUser();
+  }
+});
+function showAlert(message, type = "warning"){
+  const box = document.getElementById("customAlert");
+  const text = document.getElementById("customAlertText");
+
+  text.innerText = message;
+
+  box.className = "custom-alert show " + type;
+
+  clearTimeout(window.alertTimeout);
+
+  window.alertTimeout = setTimeout(() => {
+    box.classList.remove("show");
+  }, 2500);
+}
+function logout(){
+  localStorage.removeItem("token");
+  // localStorage.removeItem("activeOrders");
+  // localStorage.removeItem("history");
+  window.location.href = "/index.html";
+}
+</script>
+<a id="waBtn" href="#" target="_blank" class="livechat-float">
+  <svg viewBox="0 0 24 24" class="chat-icon" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M23.849 14.91c-.24 2.94-2.73 5.22-5.7 5.19h-3.15l-6 3.9v-3.9l6-3.9h3.15c.93.03 1.71-.66 1.83-1.59.18-3 .18-6-.06-9-.06-.84-.75-1.47-1.56-1.53-2.04-.09-4.2-.18-6.36-.18s-4.32.06-6.36.21c-.84.06-1.5.69-1.56 1.53-.21 3-.24 6-.06 9 .09.93.9 1.59 1.83 1.56h3.15v3.9h-3.15a5.644 5.644 0 0 1-5.7-5.19c-.21-3.21-.18-6.39.06-9.6a5.57 5.57 0 0 1 5.19-5.1c2.1-.15 4.35-.21 6.6-.21s4.5.06 6.63.24a5.57 5.57 0 0 1 5.19 5.1c.21 3.18.24 6.39.03 9.57z"/>
+  </svg>
+</a>
+<div id="customAlert" class="custom-alert">
+  <div class="custom-alert-box">
+    <div class="icon">⚠️</div>
+    <div class="text" id="customAlertText"></div>
+  </div>
+</div>
+</body>
+</html>

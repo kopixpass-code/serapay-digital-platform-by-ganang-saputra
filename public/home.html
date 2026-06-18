@@ -1,0 +1,2497 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serapay Dashboard</title>
+  <!-- 2. META DESCRIPTION -->
+  <meta name="description" content="SeraPay adalah platform Penjualan akun digital & Sosial Media Terpercaya">
+
+  <!-- 3. META KEYWORDS (opsional, tidak utama lagi di Google) -->
+  <meta name="keywords" content="serapay, sera pay, akun facebook fresh, akun fb fresh, gmail fresh, jual akun fb fresh, gaslur.com, gaslur.site">
+
+  <!-- 4. VIEWPORT (untuk mobile, WAJIB) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" href="/img/favicon.png" sizes="32x32">
+    <link rel="icon" href="/img/favicon.png" sizes="16x16">
+    <link rel="shortcut icon" href="/img/favicon.png">
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:Inter, sans-serif;
+  background:#fce7f3;
+  color:#be185d;
+}
+
+.wrapper{
+  display:flex;
+}
+
+.topbar{
+  height:70px;
+  background:#fff;
+  padding:0 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+
+  z-index:1000;
+
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+  backdrop-filter: blur(10px);
+}
+
+.topbar .left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  position:relative;
+  z-index:1100;
+}
+
+.title{
+  font-size:16px;
+}
+
+.menu-toggle{
+  display:none;
+  font-size:22px;
+  cursor:pointer;
+  user-select:none;
+  z-index:1200;
+  position:relative;
+}
+
+.sidebar{
+  width:240px;
+  background:#ec4899;
+  color:#fff;
+
+  position:fixed;
+  top:70px;
+  left:0;
+
+  height:calc(100vh - 70px);
+  padding:20px;
+
+  display:flex;
+  flex-direction:column;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+
+  z-index:999;
+  transition:0.3s;
+}
+
+.menu{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+.menu::-webkit-scrollbar{
+  width:6px;
+}
+
+.menu::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.4);
+  border-radius:20px;
+}
+
+.menu::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.sidebar,
+.menu{
+  -webkit-overflow-scrolling:touch;
+}
+
+.menu a{
+  display:block;
+  padding:12px;
+  margin-bottom:5px;
+
+  border-radius:8px;
+  color:#fff;
+  text-decoration:none;
+
+  transition:0.2s;
+}
+
+.menu a:hover{
+  background:rgba(255,255,255,0.2);
+}
+
+.menu a.logout{
+  color:#fecaca;
+}
+
+.main{
+  margin-left:240px;
+  margin-top:70px;
+  width:100%;
+  position:relative;
+  z-index:1;
+}
+
+.user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.user-info{
+  text-align:right;
+  font-size:13px;
+  line-height:1.3;
+}
+
+.user-info b{
+  font-size:14px;
+}
+
+.user-info small{
+  font-size:11px;
+  color:#666;
+}
+
+.avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #ec4899;
+}
+
+.saldo{
+  background:#ec4899;
+  color:#fff;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  margin-top:3px;
+  display:inline-block;
+}
+
+.container{
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+h2{
+  text-align:center;
+}
+
+.card{
+  background:#fff;
+  padding:25px;
+  border-radius:12px;
+
+  width:40%;
+  max-width:1100px;
+
+  box-shadow:0 4px 12px rgba(0,0,0,.05);
+  margin:0 auto;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+select,
+input:not(.qty input){
+  width:100%;
+  padding:8px 10px;
+  margin-top:8px;
+
+  border-radius:6px;
+  border:1px solid #ddd;
+
+  font-size:13px;
+  outline:none;
+
+  transition:0.2s;
+}
+
+select:focus,
+input:focus{
+  border-color:#ec4899;
+  box-shadow:0 0 0 2px rgba(236,72,153,0.15);
+}
+
+.qty{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:10px;
+}
+
+.qty button{
+  width:28px;
+  height:28px;
+
+  border:none;
+  background:#ec4899;
+  color:#fff;
+
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.qty input{
+  width:55px;
+  height:28px;
+  text-align:center;
+
+  border:1px solid #ddd;
+  font-size:13px;
+}
+
+.btn{
+  width:100%;
+  margin-top:12px;
+  padding:10px;
+
+  background:#ec4899;
+  border:none;
+  color:#fff;
+
+  border-radius:8px;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.btn:hover{
+  background:#db2777;
+}
+
+.result{
+  margin-top:20px;
+  padding:15px;
+  background:#fff;
+  border-radius:10px;
+}
+
+.orders-scroll{
+  max-height:400px;
+  overflow-y:auto;
+  padding:10px;
+}
+
+.order-box{
+  background:#fff0f6;
+  border:2px solid #be185d;
+  color:#be185d;
+
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+
+  position:relative;
+  font-size:13px;
+  line-height:1.4;
+}
+
+.order-title{
+  font-size:13px;
+  font-weight:600;
+}
+
+.order-box .value{
+  font-size:14px;
+}
+
+.order-action{
+  position:static;
+  margin-top:10px;
+  display:flex;
+  gap:6px;
+}
+
+.btn-small{
+  font-size:11px;
+  padding:4px 8px;
+
+  border-radius:6px;
+  cursor:pointer;
+  border:none;
+}
+
+.btn-done{
+  background:#ec4899;
+  color:#fff;
+}
+
+.btn-cancel{
+  background:#e5e7eb;
+  color:#be185d;
+  border:1px solid #be185d;
+}
+
+.overlay{
+  position:fixed;
+  top:70px;
+  left:0;
+
+  width:100%;
+  height:calc(100vh - 70px);
+
+  background:rgba(0,0,0,0.3);
+  z-index:998;
+
+  opacity:0;
+  pointer-events:none;
+  transition:0.3s;
+}
+
+.overlay.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+@media(max-width:768px){
+
+  .sidebar{
+    left:-100%;
+  }
+
+  .sidebar.active{
+    left:0;
+  }
+
+  .main{
+    margin-left:0;
+  }
+
+  .menu-toggle{
+    display:block;
+  }
+}
+h2{
+  text-align:center;
+  margin-bottom:20px; 
+}
+
+select{
+  width:100%;
+  padding:10px 12px;
+  margin-top:10px;
+
+  border-radius:10px;
+  border:1px solid #f9a8d4;
+
+  font-size:13px;
+  outline:none;
+
+  background:#fff;
+  color:#be185d;
+
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23ec4899' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 10px center;
+  background-size:18px;
+
+  transition:0.25s;
+}
+
+select:hover{
+  border-color:#ec4899;
+}
+
+select:focus{
+  border-color:#ec4899;
+  box-shadow:0 0 0 3px rgba(236,72,153,0.2);
+  transform:scale(1.02);
+}
+
+.toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+
+  background:#ec4899;
+  color:#fff;
+
+  padding:10px 16px;
+  border-radius:8px;
+
+  font-size:13px;
+  opacity:0;
+
+  pointer-events:none;
+  transition:0.3s;
+  z-index:2000;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+button svg{
+  transition:0.2s;
+}
+
+button:hover svg{
+  transform:scale(1.2);
+  color:#ec4899;
+}
+select{
+  color:#000 !important;
+  border:2px solid #ec4899 !important; /* pink */
+  border-radius:8px;
+}
+
+select option{
+  color:#000 !important;
+  background:#fff !important;
+}
+
+select:focus{
+  border-color:#db2777 !important; /* pink lebih gelap saat fokus */
+  box-shadow:0 0 0 2px rgba(236,72,153,0.3); /* glow pink */
+}
+.badge-warning{
+  background:#facc15;
+  color:#000;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:600;
+}
+
+.badge-success{
+  background:#22c55e;
+  color:#fff;
+  padding:2px 6px; 
+  border-radius:5px;
+  font-size:10px;
+  font-weight:600;
+}
+
+.badge-danger{
+  background:#ef4444;
+  color:#fff;
+  padding:2px 6px; 
+  border-radius:5px;
+  font-size:10px; 
+  font-weight:600;
+}
+@media(max-width:768px){
+
+  .sidebar{
+    left:-100%;
+  }
+
+  .sidebar.active{
+    left:0;
+  }
+
+  .main{
+    margin-left:0;
+  }
+
+  .menu-toggle{
+    display:block;
+  }
+
+  .container{
+    padding:10px;
+  }
+
+  .card{
+    max-width:100%;
+    width:100%;
+    padding:15px;
+  }
+
+  .result{
+    width:100%;
+    padding:8px;
+  }
+
+  .order-box{
+    width:100%;
+    padding:14px;
+    font-size:12px;
+  }
+  
+}
+.timer-box{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:12px;
+  font-weight:600;
+  color:#ec4899;
+}
+.order-action{
+  position:absolute;
+  right:10px;
+  top:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.timer-box{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:12px;
+  font-weight:600;
+  color:#ec4899;
+}
+.refund-modal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:3000;
+}
+
+.refund-box{
+  background:white;
+  width:90%;
+  max-width:400px;
+  padding:20px;
+  border-radius:12px;
+}
+
+.refund-box h3{
+  margin-bottom:15px;
+  color:#be185d;
+}
+
+.refund-box textarea{
+  width:100%;
+  height:80px;
+  margin-top:10px;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  resize:none;
+}
+
+.refund-actions{
+  display:flex;
+  gap:10px;
+  margin-top:15px;
+}
+
+.refund-actions button{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.refund-actions button:first-child{
+  background:#ec4899;
+  color:white;
+}
+
+.refund-actions button:last-child{
+  background:#e5e7eb;
+}
+.menu a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:8px;
+  color:#fff;
+  text-decoration:none;
+  transition:0.2s;
+}
+
+.menu a svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:white;
+  stroke-width:2;
+  flex-shrink:0;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+}
+
+a[href="/livechat"] svg,
+a[href="/livechat"] svg *{
+fill:#fff !important;
+stroke:#fff !important;
+}
+
+.menu a:hover{
+  background:rgba(255,255,255,0.2);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.35);
+}
+
+.refund-link{
+  font-size:13px;
+  color:#ec4899;
+  text-decoration:none;
+  margin-left:8px;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.refund-link:hover{
+  color:#db2777;
+  text-decoration:underline;
+}
+
+.badge-warning-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.help-wrap {
+  position: relative;
+  display: inline-flex; 
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ICON */
+.help-icon {
+  width: 16px;
+  height: 16px;
+  fill: #ec4899;
+  transition: 0.2s;
+  display: block; 
+}
+
+.help-wrap:hover .help-icon {
+  transform: scale(1.2);
+}
+
+.tooltip{
+  position:fixed;
+
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%) scale(0.95);
+
+  background:#fff;
+  color:#be185d;
+  border:1px solid #ec4899;
+
+  padding:14px 16px;
+  border-radius:12px;
+  font-size:12px;
+  text-align:center;
+
+  width:260px;
+  max-width:90%;
+
+  opacity:0;
+  visibility:hidden;
+  transition:0.2s ease;
+
+  box-shadow:0 15px 40px rgba(0,0,0,0.2);
+  z-index:999999;
+
+  pointer-events:none;
+}
+
+.help-wrap:hover .tooltip,
+.help-wrap:focus .tooltip,
+.tooltip:hover{
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%, -50%) scale(1);
+}
+.email-box{
+  margin-top:8px;
+  padding:8px;
+  background:#fff;
+  border-radius:8px;
+  border:1px dashed #ec4899;
+  position:relative;
+}
+
+.spinner{
+  width:14px;
+  height:14px;
+  border:2px solid #f9a8d4;
+  border-top:2px solid #ec4899;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  display:inline-block;
+}
+
+@keyframes spin{
+  100%{transform:rotate(360deg);}
+}
+
+.resend-btn{
+  position:absolute;
+  right:8px;
+  top:8px;
+  font-size:11px;
+  background:#ec4899;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  padding:3px 6px;
+  cursor:pointer;
+}
+.order-box img{
+  border-radius:4px;
+}
+.order-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center; 
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.order-header .left{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+
+.order-header .right{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+
+.order-title{
+  font-size:13x;
+  font-weight:600;
+  line-height:1;
+  white-space:nowrap;
+}
+
+.order-sub{
+  font-size:11px;
+  opacity:0.7;
+}
+
+.icon{
+  width:16px;
+  height:16px;
+  display:block; 
+  flex-shrink:0;
+}
+
+.order-box{
+  width:100%;
+  padding:14px;
+  box-sizing:border-box;
+}
+
+button svg{
+  width:14px;
+  height:14px;
+  transition:0.2s;
+}
+
+button:hover svg{
+  transform:scale(1.1);
+}
+
+.badge-warning-with-icon{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.resend-btn:disabled{
+  background:#ec4899 !important;  /* pink utama (tidak pudar) */
+  color:#fff !important;
+  cursor:not-allowed;
+
+  opacity:0.85; /* lebih solid, tidak terlalu pudar */
+  filter: grayscale(0.2); /* sedikit beda tapi tetap jelas disabled */
+
+  pointer-events:none;
+}
+
+.menu a.ai-menu svg{
+    fill:white !important;
+    stroke:none !important;
+}
+
+.order-switch{
+  display:flex;
+  width:100%;
+  max-width:320px;
+  margin:0 auto 15px;
+  background:#fff0f6;
+  border:1px solid #ffc2d6;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.order-switch a{
+  flex:1;
+  text-align:center;
+  padding:10px;
+  text-decoration:none;
+  color:#e91e63;
+  font-size:14px;
+  font-weight:600;
+  transition:.2s;
+}
+
+.order-switch a.active{
+  background:linear-gradient(135deg,#ff4d94,#ff80ab);
+  color:#fff;
+}
+
+.menu-link{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.badge-new{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  padding:2px 6px;
+
+  background:#ff4081;
+  color:#fff;
+
+  font-size:10px;
+  font-weight:700;
+  border-radius:999px;
+
+  animation:blinkNew 1s infinite;
+}
+
+.badge-new svg{
+  width:12px;
+  height:12px;
+  fill:currentColor;
+}
+
+@keyframes pulseNew{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.08);}
+  100%{transform:scale(1);}
+}
+
+@keyframes blinkNew{
+  0%{
+    background:#ff4081;
+    color:#fff;
+    box-shadow:0 0 0 rgba(255,64,129,0);
+  }
+
+  50%{
+    background:#fff;
+    color:#ff4081;
+    box-shadow:0 0 4px rgba(255,64,129,.8);
+  }
+
+  100%{
+    background:#ff4081;
+    color:#fff;
+    box-shadow:0 0 0 rgba(255,64,129,0);
+  }
+}
+
+.order-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+}
+
+.order-header > div:first-child{
+  min-width:0;
+  flex:1;
+}
+
+.order-title{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.order-header > div:last-child{
+  flex-shrink:0;
+}
+
+@media(max-width:768px){
+
+  .card{
+    padding: 10px;
+  }
+
+  .orders-scroll{
+    padding: 0;
+  }
+
+  .order-box{
+    width: 100%;
+    margin: 10px 0;
+  }
+
+}
+</style>
+
+</head>
+<body>
+<audio id="notifSound" src="/img/bell.mp3" preload="auto"></audio>
+<div id="toast" class="toast">Tersalin!</div>
+
+<div class="wrapper">
+<div id="overlay" class="overlay" onclick="closeMenu()"></div>
+
+<div class="sidebar" id="sidebar">
+<div class="menu">
+
+  <a href="/home">
+    <svg viewBox="0 0 32 32">
+      <polyline points="3,17 16,4 29,17"/>
+      <polyline points="6,14 6,27 13,27 13,17 19,17 19,27 26,27 26,14"/>
+    </svg>
+    Home
+  </a>
+
+  <a href="/riwayat.html">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 8v5l3 2"/>
+      <path d="M3 12a9 9 0 1 0 3-6.7"/>
+      <path d="M3 4v5h5"/>
+    </svg>
+    Riwayat
+  </a>
+  
+<a href="/ai.html">
+
+<svg
+viewBox="0 0 512 512"
+width="20"
+height="20"
+xmlns="http://www.w3.org/2000/svg">
+
+<path fill="white"
+d="M384 128V384H128V128H384ZM235.75 192H198.4L128 384H161.6L175.2 346.4H259.2L272.4 384H307.2L235.75 192ZM320 192H286.4V384H320V192ZM216 224L248 315H184L216 224ZM416 384H480V448H416V384ZM128 416H192V480H128V416ZM256 416H320V480H256V416ZM128 0H192V64H128V0ZM256 0H320V64H256V0ZM384 256H448V320H384V256ZM0 256H64V320H0V256ZM384 128H448V192H384V128ZM0 128H64V192H0V128Z"/>
+
+</svg>
+
+Autoresponder AI
+
+</a>
+
+  <a href="/deposit.html">
+    <svg viewBox="0 0 24 24">
+      <rect x="2" y="6" width="20" height="12" rx="2"/>
+      <circle cx="16" cy="12" r="2"/>
+    </svg>
+    Isi Saldo
+  </a>
+
+  <a href="/pengaturan.html">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06
+      a2 2 0 1 1-2.83 2.83l-.06-.06
+      a1.65 1.65 0 0 0-1.82-.33
+      1.65 1.65 0 0 0-1 1.51V21
+      a2 2 0 1 1-4 0v-.09
+      a1.65 1.65 0 0 0-1-1.51
+      1.65 1.65 0 0 0-1.82.33l-.06.06
+      a2 2 0 1 1-2.83-2.83l.06-.06
+      a1.65 1.65 0 0 0 .33-1.82
+      1.65 1.65 0 0 0-1.51-1H3
+      a2 2 0 1 1 0-4h.09
+      a1.65 1.65 0 0 0 1.51-1
+      1.65 1.65 0 0 0-.33-1.82l-.06-.06
+      a2 2 0 1 1 2.83-2.83l.06.06
+      a1.65 1.65 0 0 0 1.82.33H9
+      a1.65 1.65 0 0 0 1-1.51V3
+      a2 2 0 1 1 4 0v.09
+      a1.65 1.65 0 0 0 1 1.51
+      1.65 1.65 0 0 0 1.82-.33l.06-.06
+      a2 2 0 1 1 2.83 2.83l-.06.06
+      a1.65 1.65 0 0 0-.33 1.82V9
+      a1.65 1.65 0 0 0 1.51 1H21
+      a2 2 0 1 1 0 4h-.09
+      a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    Pengaturan
+  </a>
+
+
+  
+<a href="/faq.html">
+<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 1a11 11 0 1 0 11 11A11 11 0 0 0 12 1z"/>
+  <path d="M12 17h.01"/>
+  <path d="M10.6 9a2.4 2.4 0 1 1 4.8 0c0 2-2.4 2.2-2.4 4"/>
+</svg>
+  FAQ
+</a>
+
+<a href="/setoran/setor-facebook-fresh.html">
+<svg
+viewBox="0 0 32 32"
+width="20"
+height="20"
+xmlns="http://www.w3.org/2000/svg">
+
+<path fill="white" d="M9.5,9h2C11.776,9,12,9.224,12,9.5S11.776,10,11.5,10h-2C9.224,10,9,9.776,9,9.5S9.224,9,9.5,9z
+M19,9.5c0,0.276,0.224,0.5,0.5,0.5h2c0.276,0,0.5-0.224,0.5-0.5S21.776,9,21.5,9h-2C19.224,9,19,9.224,19,9.5z
+M4.5,19C4.224,19,4,19.224,4,19.5v2C4,21.776,4.224,22,4.5,22S5,21.776,5,21.5v-2C5,19.224,4.776,19,4.5,19z
+M4.5,14C4.224,14,4,14.224,4,14.5v2C4,16.776,4.224,17,4.5,17S5,16.776,5,16.5v-2C5,14.224,4.776,14,4.5,14z
+M6.5,9h-2C4.224,9,4,9.224,4,9.5v2C4,11.776,4.224,12,4.5,12S5,11.776,5,11.5V10h1.5C6.776,10,7,9.776,7,9.5S6.776,9,6.5,9z
+M4.5,24C4.224,24,4,24.224,4,24.5v2C4,26.776,4.224,27,4.5,27S5,26.776,5,26.5v-2C5,24.224,4.776,24,4.5,24z
+M26.5,9h-2C24.224,9,24,9.224,24,9.5s0.224,0.5,0.5,0.5H26v21H5v-1.5C5,29.224,4.776,29,4.5,29S4,29.224,4,29.5v2C4,31.776,4.224,32,4.5,32h22
+c0.276,0,0.5-0.224,0.5-0.5v-22C27,9.224,26.776,9,26.5,9z
+M16,21c0.276,0,0.5-0.224,0.5-0.5V1.707l4.146,4.147
+c0.195,0.195,0.512,0.195,0.707,0s0.195-0.512,0-0.707l-5-5
+c-0.195-0.195-0.512-0.195-0.707,0l-5,5
+c-0.195,0.195-0.195,0.512,0,0.707
+c0.195,0.195,0.512,0.195,0.707,0L15.5,1.707V20.5C15.5,20.776,15.724,21,16,21z"/>
+
+</svg>
+  Setor Akun
+</a>
+
+<a href="/livechat">
+<svg
+version="1.1"
+xmlns="http://www.w3.org/2000/svg"
+viewBox="0 0 490 490"
+fill="#fff">
+
+<g>
+<g>
+<path d="M385.987,222.307c-6.738,0-12.2,5.467-12.2,12.209v112.818c0,6.74,5.462,5.469,12.2,12.209c6.739,0,12.21-5.469,12.21-12.209V234.516C398.197,227.773,392.727,222.307,385.987,222.307z"/>
+
+<path d="M104.013,222.307c-6.743,0-12.21,5.467-12.21,12.209v112.818c0,6.74,5.467,12.209,12.21,12.209c6.737,0,12.2-5.469,12.2-12.209V234.516C116.213,227.773,110.75,222.307,104.013,222.307z"/>
+</g>
+
+<g>
+<path d="M462.781,228.545c-0.727-57.113-23.29-110.707-63.765-151.182c-41.14-41.139-95.84-63.793-154.018-63.793S132.123,36.225,90.981,77.363c-40.475,40.475-63.035,94.068-63.763,151.184C10.806,239.682,0,258.492,0,279.772v22.307c0,34.105,27.75,61.855,61.859,61.855c9.169,0,16.597-7.432,16.597-16.6V234.516c0-9.17-7.428-16.598-16.597-16.598c-1.655,0-3.282,0.08-4.904,0.209c3.415-48.891,25.546-92.693,59.262-124.285c0.761,3.357,2.092,6.643,4.041,9.719c9.1,14.344,28.101,18.594,42.445,9.492c24.45-15.514,52.905-23.715,82.296-23.715c29.392,0,57.846,8.201,82.295,23.715c14.346,9.102,33.347,4.852,42.447-9.492c1.95-3.076,3.281-6.361,4.042-9.719c33.714,31.592,55.845,75.395,59.262,124.285c-1.624-0.129-3.249-0.209-4.904-0.209c-9.169,0-16.597,7.428-16.597,16.598v112.818c0,6.832,4.125,12.697,10.022,15.238c-2.12,6.299-4.604,12.322-7.537,17.984c-14.252,27.492-37.34,44.205-71.321,51.18c-4.743-8.389-13.737-14.053-24.055-14.053h-46.292c-15.25,0-27.621,12.367-27.621,27.625v3.502c0,15.254,12.371,27.619,27.621,27.619h46.292c10.75,0,20.056-6.146,24.624-15.109c17.612-3.15,33.261-8.4,46.774-15.76c21.522-11.715,38.341-29.051,49.983-51.531c5.727-11.047,10.02-22.992,13.239-35.449C474.892,348.928,490,327.238,490,302.078v-22.307C490,258.492,479.195,239.682,462.781,228.545z"/>
+</g>
+</g>
+
+</svg>
+
+Live Chat
+</a>
+
+<a href="/notepad.html" class="menu-item">
+    <svg viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
+        <g fill="currentColor" fill-rule="evenodd">
+            <path d="M106.667 267H320v213.333h853.33V267h213.34v160h106.66V160.333h-329.1C1142.26 98.19 1083 53.667 1013.33 53.667H480c-69.665 0-128.931 44.523-150.896 106.666H0V1867h1493.33v-320h-106.66v213.33H106.667V267Zm320 106.667v-160c0-29.456 23.878-53.334 53.333-53.334h533.33c29.46 0 53.34 23.878 53.34 53.334v160H426.667Z"/>
+            <path d="m1677.57 528.309 225.88 225.883c22.02 22.023 22.02 57.713 0 79.849L1225.8 1511.69c-10.62 10.5-24.96 16.49-39.98 16.49H959.937c-31.171 0-56.47-25.3-56.47-56.47v-225.89c0-15.02 5.986-29.36 16.489-39.86L1597.6 528.309c22.14-22.136 57.83-22.136 79.97 0Zm-155.41 235.144 146.03 146.033 115.43-115.426-146.04-146.033-115.42 115.426Zm-505.75 651.787h146.03l425.9-425.9-146.03-146.038-425.9 425.898v146.04Z"/>
+        </g>
+    </svg>
+    Notepad
+</a>
+
+  <a href="#" onclick="event.preventDefault(); logout()" class="logout">
+    <svg viewBox="0 0 24 24">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+    Logout
+  </a>
+
+</div>
+  
+</div>
+<div class="main">
+  <div class="topbar">
+
+<div class="left">
+  <span class="menu-toggle" onclick="toggleMenu()">☰</span>
+  <b class="title">
+  <img src="/img/logo.png" alt="logo" style="height:32px; width:auto; vertical-align:middle; margin-right:0px;">
+  SeraPay
+</b>
+</div>
+
+    <div class="user">
+
+      <img id="avatar" src="/css/img/avatar1.png" class="avatar">
+
+      <div class="user-info">
+        <b id="nama">User</b><br>
+        <small>ID: <span id="id">-</span></small><br>
+        <div class="saldo">Rp <span id="saldo">0</span></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="container">
+  
+  <h2>Layanan Pelanggan</h2>
+
+<div class="order-switch">
+  <a href="#" class="active">Order akun fresh</a>
+<a href="/otp/otp.html" class="menu-link">
+  Nomor OTP
+  <span class="badge-new">
+    <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <path d="M34.11,24.49l-3.92-6.62,3.88-6.35A1,1,0,0,0,33.22,10H2a2,2,0,0,0-2,2V24a2,2,0,0,0,2,2H33.25A1,1,0,0,0,34.11,24.49Zm-23.6-3.31H9.39L6.13,16.84v4.35H5V15H6.13l3.27,4.35V15h1.12ZM16.84,16H13.31v1.49h3.2v1h-3.2v1.61h3.53v1H12.18V15h4.65Zm8.29,5.16H24l-1.55-4.59L20.9,21.18H19.78l-2-6.18H19l1.32,4.43L21.84,15h1.22l1.46,4.43L25.85,15h1.23Z"/>
+    </svg>
+    NEW
+  </span>
+</a>
+</div>
+
+    <div class="card">
+
+<select id="produk"></select>
+
+<select id="server">
+  <option value="1">Server 1</option>
+  <option value="2">Server 2</option>
+</select>
+
+<div class="qty">
+  <button onclick="minus()">-</button>
+  <input type="number" id="jumlah" value="1">
+  <button onclick="plus()">+</button>
+
+  <a href="/syarat-ketentuan-refund.html" class="refund-link">
+    Syarat & Ketentuan Refund
+  </a>
+</div>
+
+      <button class="btn" onclick="order()">Order Sekarang</button>
+
+      <div id="result" class="result">
+  <div id="orders" class="orders-scroll"></div>
+</div>
+    </div>
+  </div>
+</div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+let activeOrders = [];
+let lastState = "";
+const resendCooldown = {};
+const lastInbox = {};
+let history = JSON.parse(localStorage.getItem("history") || "[]");
+function setCooldown(orderId, seconds = 60){
+
+  const data = JSON.parse(localStorage.getItem("resend_cooldown") || "{}");
+
+  data[orderId] = Date.now() + seconds * 1000;
+
+  localStorage.setItem("resend_cooldown", JSON.stringify(data));
+}
+
+function isCooldown(orderId){
+  const data = JSON.parse(localStorage.getItem("resend_cooldown") || "{}");
+  return data[orderId] && data[orderId] > Date.now();
+}
+
+function getCooldownRemaining(orderId){
+  const data = JSON.parse(localStorage.getItem("resend_cooldown") || "{}");
+  if(!data[orderId]) return 0;
+
+  return Math.ceil((data[orderId] - Date.now()) / 1000);
+}
+const otpStorage = JSON.parse(localStorage.getItem("otpStorage") || "{}");
+let renderedOTP = {}; 
+const token = localStorage.getItem("token");
+const socket = io();
+
+function safeEmail(email){
+  return (email || "")
+    .toLowerCase()
+    .replace(/.*<(.+?)>.*/g, "$1")
+    .trim()
+    .replace(/[^a-z0-9]/g, "_");
+}
+
+socket.on("connect", () => {
+  console.log("connected");
+
+  if (!token) return;
+
+  fetch("/api/me", {
+    headers: { authorization: token }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      console.log("ROOM JOIN REQUEST:", data.user.email);
+      socket.emit("joinUser", data.user.email);
+    }
+  });
+});
+
+socket.on("joinUser", (email) => {
+  console.log("JOIN ROOM CONFIRMED:", email);
+});
+
+socket.on("gmailUpdate", (data) => {
+
+  const match = data.match || data;
+  if (!match.orderId) return;
+
+  const order = activeOrders.find(o => o.orderId === match.orderId);
+  if (!order) return;
+
+  const emailTarget = order.email || "";
+  const key = safeEmail(emailTarget);
+
+  const el = document.getElementById("msg-" + key);
+  if (!el) return;
+
+  const messageId = (data.subject || "") + "|" + (data.snippet || "");
+if (renderedOTP[key] === messageId) return;
+renderedOTP[key] = messageId;
+  if (lastInbox[key] === messageId) return;
+  lastInbox[key] = messageId;
+
+  otpStorage[key] = {
+    email: data.email,
+    subject: data.subject,
+    snippet: data.snippet
+  };
+  localStorage.setItem("otpStorage", JSON.stringify(otpStorage));
+
+  el.innerHTML = `
+    <div style="color:#ec4899;font-weight:600;margin-bottom:4px;">
+      📩 Pesan Masuk
+    </div>
+    <div><b>From:</b> ${data.email || "-"}</div>
+    <div><b>Subject:</b> ${data.subject || "-"}</div>
+    <div><b>Pesan:</b> ${data.snippet || "-"}</div>
+  `;
+  const sound = document.getElementById("notifSound");
+if (sound) {
+  sound.currentTime = 0;
+  sound.play().catch(() => {});
+}
+});
+
+document.addEventListener("click", () => {
+  const sound = document.getElementById("notifSound");
+  if (sound) {
+    sound.play().then(() => {
+      sound.pause();
+      sound.currentTime = 0;
+    }).catch(() => {});
+  }
+}, { once: true });
+
+function normalizeEmail(email){
+  return (email || "")
+    .toLowerCase()
+    .replace(/.*<(.+?)>.*/g, "$1")
+    .trim()
+    .replace(/[^a-z0-9]/g, "_");
+}
+
+window.addEventListener("beforeunload", () => {
+  socket.disconnect();
+});
+
+let isOrdering = false;
+let firstLoadFinished = false;
+if(!token){
+window.location.href = "/index.html";
+}
+
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("active");
+  document.getElementById("overlay").classList.toggle("active");
+}
+
+function closeMenu(){
+  document.getElementById("sidebar").classList.remove("active");
+  document.getElementById("overlay").classList.remove("active");
+}
+
+function plus(){
+  let j = document.getElementById("jumlah");
+  j.value = parseInt(j.value || 1) + 1;
+}
+
+function minus(){
+  let j = document.getElementById("jumlah");
+  if(j.value > 1) j.value--;
+}
+
+async function loadUser(){
+  try{
+    const res = await fetch("/api/me",{
+      headers:{
+        authorization: token
+      }
+    });
+
+    const data = await res.json();
+
+    console.log(data);
+
+    if(data.success){
+document.getElementById("nama").innerText =
+  data.user.name.split(" ")[0];
+
+      document.getElementById("id").innerText =
+        data.user.id;
+
+document.getElementById("saldo").innerText =
+  Number(data.user.saldo || 0)
+  .toLocaleString("id-ID");
+
+
+    }
+
+  }catch(err){
+    console.log("loadUser error", err);
+  }
+}
+
+async function order(){
+
+  if(isOrdering) return;
+  isOrdering = true;
+
+  const btn = document.querySelector(".btn");
+  btn.disabled = true;
+  btn.innerText = "Memproses...";
+
+  const produkSelect = document.getElementById("produk");
+  const produk = produkSelect.value;
+  const server = document.getElementById("server").value;
+  const jumlah = parseInt(document.getElementById("jumlah").value);
+
+  try{
+
+    const res = await fetch("/api/order",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "authorization": token
+      },
+      body: JSON.stringify({
+        produk,
+        jumlah,
+        server
+      })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+
+      if(data.saldo !== undefined){
+        document.getElementById("saldo").innerText =
+          Number(data.saldo).toLocaleString("id-ID");
+      }
+
+      await loadProduk();
+      document.getElementById("produk").value = produk;
+      document.getElementById("result").style.display = "block";
+      await loadActiveOrders();
+      document.getElementById("jumlah").value = 1;
+      showToast("Order berhasil");
+    }else{
+      alert(data.message || "Sesi login habis, silahkan login ulang");
+    }
+
+  }catch(err){
+    console.error(err);
+    alert("Sesi login habis, silahkan login ulang");
+  }finally{
+    btn.disabled = false;
+    btn.innerText = "Order Sekarang";
+    isOrdering = false;
+  }
+}
+
+function showToast(msg){
+  const toast = document.getElementById("toast");
+  toast.innerText = msg;
+  toast.classList.add("show");
+
+  setTimeout(()=>{
+    toast.classList.remove("show");
+  }, 1500);
+}
+
+function copyText(text){
+  if (!navigator.clipboard) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    showToast("Tersalin!");
+    return;
+  }
+
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      showToast("Tersalin!");
+    })
+    .catch(() => {
+      showToast("Gagal menyalin");
+    });
+}
+
+const iconCopy = `
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+  stroke="currentColor" stroke-width="2"
+  stroke-linecap="round" stroke-linejoin="round">
+  <path d="M8 4V16C8 17.1046 8.89543 18 10 18L18 18C19.1046 18 20 17.1046 20 16V7.24162C20 6.7034 19.7831 6.18789 19.3982 5.81161L16.0829 2.56999C15.7092 2.2046 15.2074 2 14.6847 2H10C8.89543 2 8 2.89543 8 4Z"/>
+  <path d="M16 18V20C16 21.1046 15.1046 22 14 22H6C4.89543 22 4 21.1046 4 20V9C4 7.89543 4.89543 7 6 7H8"/>
+</svg>
+`;
+
+function renderOrders(){
+
+  const box = document.getElementById("orders");
+  box.innerHTML = "";
+
+  if(activeOrders.length === 0){
+    box.innerHTML = "<small style='color:#be185d'>Belum ada order</small>";
+    return;
+  }
+
+  let html = "";
+
+  activeOrders.forEach((x, i)=>{
+const tipe = (x.type || "").toLowerCase().trim();
+  const namaProduk =
+    (x.type || "Produk")
+      .split(" ")
+      .map(kata =>
+        kata.charAt(0).toUpperCase() +
+        kata.slice(1).toLowerCase()
+      )
+      .join(" ");
+let icon = "";
+
+if (
+  tipe === "gmail" ||
+  tipe === "gmail fresh" ||
+  tipe === "gmail bekas"
+) {
+
+  icon = `
+    <img
+      src="/img/gmail.png"
+      width="20"
+      height="20"
+      style="object-fit:contain;"
+    >
+  `;
+
+}
+
+else if (
+  tipe === "facebook" ||
+  tipe === "facebook fresh"
+) {
+
+  icon = `
+    <img
+      src="/img/facebook.png"
+      width="20"
+      height="20"
+      style="object-fit:contain;"
+    >
+  `;
+
+}
+
+else if (
+  tipe === "email custom" ||
+  tipe === "backup" ||
+  tipe === "email pengganti" ||
+  tipe === "email_pengganti" ||
+  tipe === "email-pengganti"
+) {
+
+  icon = `
+    <img
+      src="/img/pengganti.png"
+      width="20"
+      height="20"
+      style="object-fit:contain;"
+    >
+  `;
+
+}
+
+else if (tipe === "combo") {
+
+  icon = `
+    <img
+      src="/img/gmail.png"
+      width="20"
+      height="20"
+      style="object-fit:contain;"
+    >
+  `;
+
+}
+
+
+    const sisa = Math.max(
+      0,
+      Math.ceil((1200000 - (Date.now() - x.createdAt)) / 1000)
+    );
+
+    const menit = Math.floor(sisa / 60);
+    const detik = sisa % 60;
+
+    const waktuFormat =
+      `${menit.toString().padStart(2,"0")}:` +
+      `${detik.toString().padStart(2,"0")}`;
+
+    html += `
+    <div class="order-box">
+
+      <div class="order-header" style="display:flex; justify-content:space-between; align-items:center;">
+
+        <div style="display:flex; align-items:center; gap:8px;">
+          ${icon}
+          <div class="order-title"> ${activeOrders.length - i}. ${namaProduk} </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+          ${
+            x.status === "active"
+              ? `
+              <div class="timer-box" style="display:flex; align-items:center; gap:4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#ec4899">
+                  <path fill-rule="evenodd" d="M12,23C5.9,23 1,18.07 1,12C1,5.9 5.9,1 12,1C18.07,1 23,5.9 23,12C23,18.07 18.07,23 12,23Z M12,21C16.97,21 21,16.97 21,12C21,7.02 16.97,3 12,3C7.02,3 3,7.02 3,12C3,16.97 7.02,21 12,21Z M13,11L17,11L17,13L11,13L11,6L13,6L13,11Z"/>
+                </svg>
+                <span>${waktuFormat}</span>
+              </div>
+
+              <button class="btn-small btn-done" onclick="doneOrder('${x.orderId}')">Selesai</button>
+              <button class="btn-small btn-cancel" onclick="refundOrder('${x.uniqueId}')">Refund</button>
+              `
+: x.status === "pending_refund"
+? `
+<div class="badge-warning-with-icon">
+
+  <span class="badge-warning">Menunggu</span>
+
+  <div class="help-wrap" tabindex="0">
+
+    <svg class="help-icon" viewBox="0 0 36 36">
+      <path d="M18,2A16,16,0,1,0,34,18,16,16,0,0,0,18,2Zm-.22,25.85a1.65,1.65,0,1,1,1.65-1.65A1.65,1.65,0,0,1,17.78,27.85Zm1.37-8.06v1.72a1.37,1.37,0,0,1-1.3,1.36h-.11a1.34,1.34,0,0,1-1.39-1.3c0-.44,0-2.76,0-2.76a1.19,1.19,0,0,1,1.12-1.31c1.57-.12,4.18-.7,4.18-3.25,0-1.83-1.41-3.07-3.43-3.07a5.31,5.31,0,0,0-4,1.92,1.36,1.36,0,0,1-2.35-.9,1.43,1.43,0,0,1,.43-1,7.77,7.77,0,0,1,6-2.69c3.7,0,6.28,2.3,6.28,5.6C24.58,17.16,22.61,19.2,19.15,19.79Z"/>
+    </svg>
+
+    <div class="tooltip">
+      Sedang dalam pengecekan<br>
+      Estimasi 1x24 jam<br>
+      Pastikan sudah membaca syarat & ketentuan refund
+    </div>
+
+  </div>
+
+</div>
+`
+              : x.status === "refunded"
+              ? `<span class="badge-success">Refund Berhasil</span>`
+              : x.status === "refund_rejected"
+              ? `<span class="badge-danger">Refund Ditolak</span>`
+              : x.status === "done"
+              ? `<span class="badge-success">Selesai</span>`
+              : ""
+          }
+        </div>
+
+      </div>
+
+      <br>
+    `;
+
+    if(
+  x.type === "gmail" ||
+  x.type === "gmail fresh" ||
+  x.type === "gmail bekas"
+){
+      html += `
+        <div style="display:flex; align-items:center; gap:6px;">
+          Email : ${x.email}
+          <button onclick="copyText(\`${x.email}\`)" style="background:none;border:none;cursor:pointer;color:#be185d;">${iconCopy}</button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px;">
+          Password : ${x.pass}
+          <button onclick="copyText('${x.pass}')" style="background:none;border:none;cursor:pointer;color:#be185d;">${iconCopy}</button>
+        </div>
+      `;
+    }
+
+else if(
+  (x.type || "")
+  .toLowerCase()
+  .trim() === "email custom"
+)
+
+{
+      html += `
+        <div style="display:flex; align-items:center; gap:6px;">
+          Email : ${x.email || "-"}
+          <button onclick="copyText(\`${x.email || ""}\`)" style="background:none;border:none;cursor:pointer;color:#be185d;">${iconCopy}</button>
+        </div>
+
+        <div style="color:#ec4899;font-size:12px;margin-top:6px;font-weight:600;">
+          💬 Kotak Masuk
+        </div>
+
+        <div class="email-box">
+          <div id="msg-${safeEmail(x.email || '')}">
+             klik tombol dapatkan...
+          </div>
+
+<button 
+  class="resend-btn" 
+  data-orderid="${x.orderId}" 
+  onclick="resendEmail('${x.email}', '${x.orderId}', this)">
+  dapatkan
+</button>
+        </div>
+      `;
+    }
+
+    else if(x.type === "combo"){
+      html += `
+        <div style="display:flex; align-items:center; gap:6px;">
+          Gmail : ${x.email}
+          <button onclick="copyText(\`${x.email}\`)" style="background:none;border:none;cursor:pointer;color:#be185d;">${iconCopy}</button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px;">
+          Password : ${x.pass}
+          <button onclick="copyText(\`${x.pass}\`)" style="background:none;border:none;cursor:pointer;color:#be185d;">${iconCopy}</button>
+        </div>
+
+        <br>Email Pengganti :<br>
+      `;
+
+      if (Array.isArray(x.backup) && x.backup.length > 0) {
+        x.backup.forEach(b => {
+          html += `
+            <div style="display:flex; align-items:center; gap:6px;">
+              ${b}
+              <button onclick="copyText(\`${b}\`)" style="background:none;border:none;cursor:pointer;color:#be185d;">${iconCopy}</button>
+            </div>
+          `;
+        });
+      } else {
+        html += `<span style="color:#999;">Tidak tersedia</span>`;
+      }
+    }
+
+else if(
+  x.type === "facebook" ||
+  x.type === "facebook fresh"
+){
+  html += `
+    <div style="display:flex; align-items:center; gap:6px;">
+      Email : ${x.email || x.to || x.deliveredTo || "-"}
+      <button onclick="copyText(\`${x.email}\`)" style="background:none;border:none;cursor:pointer;color:#be185d;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:6px;">
+      Password : ${x.pass}
+      <button onclick="copyText(\`${x.pass}\`)" style="background:none;border:none;cursor:pointer;color:#be185d;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div 
+      onclick="toggleInbox('${x.email}')"
+      style="color:#ec4899;font-size:12px;margin-top:6px;cursor:pointer;font-weight:600;">
+      💬 OTP Lupa Password ▼
+    </div>
+
+    <div class="email-box" id="box-${safeEmail(x.email)}" style="display:none;">
+      
+      <div id="msg-${safeEmail(x.email || x.to || x.deliveredTo || '')}">
+        klik tombol dapatkan...
+      </div>
+
+<button 
+  class="resend-btn" 
+  data-orderid="${x.orderId}" 
+  onclick="resendEmail('${x.email}', '${x.orderId}', this)">
+  dapatkan
+</button>
+
+    </div>
+  `;
+}
+
+    html += `
+      <br>
+    </div>
+    `;
+  });
+
+  box.innerHTML = html;
+  restoreCooldownUI();
+  // socket + render OTP
+  setTimeout(() => {
+
+    Object.keys(otpStorage).forEach(key => {
+      const el = document.getElementById("msg-" + key);
+      if (!el) return;
+
+      const data = otpStorage[key];
+
+      el.innerHTML = `
+        <div style="color:#ec4899;font-weight:600;margin-bottom:4px;">
+          Pesan Masuk
+        </div>
+        <div><b>From:</b> ${data.email || "-"}</div>
+        <div><b>Subject:</b> ${data.subject || "-"}</div>
+        <div><b>Pesan:</b> ${data.snippet || "-"}</div>
+      `;
+    });
+
+  }, 500);
+}
+
+async function doneOrder(id){
+  try{
+    const res = await fetch("/api/order/done",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        authorization: token
+      },
+      body: JSON.stringify({ orderId:id })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      await loadActiveOrders();
+    }
+  }catch(err){
+    console.log(err);
+  }
+}
+
+let selectedRefundOrder = null;
+
+function refundOrder(id){
+  const item = activeOrders.find(x => x.uniqueId === id);
+
+  if(!item){
+    alert("Order tidak ditemukan");
+    return;
+  }
+
+  if(item.status === "pending_refund"){
+    alert("Refund sudah diajukan");
+    return;
+  }
+
+  if(item.status === "done"){
+    alert("Order sudah selesai");
+    return;
+  }
+
+  if(item.status === "refunded"){
+    alert("Order sudah direfund");
+    return;
+  }
+
+  if(item.status === "refund_rejected"){
+    alert("Refund sebelumnya ditolak");
+    return;
+  }
+
+  selectedRefundOrder = item;
+
+  document.getElementById("refundReason").value = "";
+  document.getElementById("refundCustomReason").value = "";
+  document.getElementById("refundCustomReason").style.display = "none";
+  document.getElementById("refundModal").style.display = "flex";
+}
+
+async function syncRefundStatus(){
+
+  try{
+
+    const res = await fetch("/api/refund", {
+      headers:{ authorization: token }
+    });
+
+    const data = await res.json();
+    if(!data.success) return;
+
+    const refunds = data.data || [];
+
+    let updated = false;
+
+    activeOrders.forEach(order => {
+
+const match = refunds.find(
+  r => r.orderId === order.orderId
+);
+
+if(match){
+
+  if(match.status === "approved" || match.status === "success"){
+    
+    if(order.status !== "refunded"){
+      order.status = "refunded";
+	order.refundFinishedAt = Date.now();
+      updated = true;
+    }
+
+  } 
+
+  else if(match.status === "rejected"){
+    
+    if(order.status !== "refund_rejected"){
+      order.status = "refund_rejected";
+order.refundFinishedAt = Date.now();
+      updated = true;
+    }
+
+  }
+
+  else if(match.status === "pending"){
+    
+    if(order.status !== "pending_refund"){
+      order.status = "pending_refund";
+      updated = true;
+    }
+
+  }
+
+}
+
+    });
+
+    if(updated){
+      localStorage.setItem("activeOrders", JSON.stringify(activeOrders));
+      renderOrders();
+      await loadUser();
+    }
+
+  }catch(err){
+    console.error("Sync refund error:", err);
+  }
+}
+
+async function submitRefund(){
+  if(!selectedRefundOrder){
+    alert("Order tidak ditemukan");
+    return;
+  }
+
+  const reason = document.getElementById("refundReason").value;
+  const customReason = document.getElementById("refundCustomReason").value.trim();
+
+  if(!reason){
+    alert("Pilih alasan refund");
+    return;
+  }
+
+  let finalReason = reason;
+
+  if(reason === "Lainnya"){
+    if(!customReason){
+      alert("Isi alasan refund");
+      return;
+    }
+    finalReason = customReason;
+  }
+
+  try{
+    const res = await fetch("/api/refund", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: token
+      },
+      body: JSON.stringify({
+        id: selectedRefundOrder.email,
+        orderId: selectedRefundOrder.orderId,
+        nominal: selectedRefundOrder.harga,
+        alasan: finalReason 
+      })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      showToast("Sedang Ditinjau");
+      closeRefundModal();
+
+      await loadActiveOrders();
+      renderOrders();
+    }else{
+      alert(data.message || "Refund gagal");
+    }
+
+  }catch(err){
+    console.log(err);
+    alert("Terjadi kesalahan");
+  }
+}
+
+function closeRefundModal(){
+  document.getElementById("refundModal").style.display = "none";
+  document.getElementById("refundReason").value = "";
+  document.getElementById("refundCustomReason").value = "";
+  document.getElementById("refundCustomReason").style.display = "none";
+  selectedRefundOrder = null;
+}
+
+function cancelOrder(id){
+
+  const item = activeOrders.find(x => x.id === id);
+  if(!item) return;
+
+  item.status = "cancel";
+  history.push(item);
+
+  activeOrders = activeOrders.filter(x => x.id !== id);
+
+  localStorage.setItem("activeOrders", JSON.stringify(activeOrders));
+  localStorage.setItem("history", JSON.stringify(history));
+
+  renderOrders();
+}
+
+async function loadActiveOrders(){
+  try{
+    const res = await fetch("/api/active-orders",{
+      headers:{
+        authorization: token
+      }
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+
+      let newOrders = [];
+
+data.data.forEach(order => {
+  if(
+    order.status === "done" ||
+    order.status === "refunded" ||
+    order.status === "refund_rejected"
+  ){
+    return;
+  }
+
+  (order.data || []).forEach((item, index) => {
+
+    const old = activeOrders.find(o => o.orderId === order.id);
+
+newOrders.push({
+  uniqueId: order.id + "_" + index,
+  orderId: order.id,
+  type: order.type,
+  email:
+    item?.email ||
+    item?.to ||
+    item?.deliveredTo ||
+    "-",
+  pass: item?.pass || "-",
+  backup: item?.backup || [],
+  status: order.status,
+
+  createdAt:
+    Number(order.created_at) ||
+    Number(order.time) ||
+    Date.now(),
+
+refundFinishedAt:
+  order.refundFinishedAt ||
+  old?.refundFinishedAt ||
+  null,
+
+harga:
+  (order.type || "").toLowerCase().trim() === "gmail fresh"
+    ? 4500
+  : (order.type || "").toLowerCase().trim() === "gmail bekas"
+    ? 1500
+  : (order.type || "").toLowerCase().trim() === "email custom"
+    ? 1000
+  : (order.type || "").toLowerCase().trim() === "facebook fresh"
+    ? 3300
+  : 0
+    });
+
+  });
+
+});
+      activeOrders = newOrders;
+
+      localStorage.setItem(
+        "activeOrders",
+        JSON.stringify(activeOrders)
+      );
+
+      renderOrders();
+    }
+
+  }catch(err){
+    console.log(err);
+  }
+}
+
+function autoCompleteOrders(){
+  let updated = false;
+  const now = Date.now();
+
+  const ACTIVE_LIMIT = 1200000;
+  const REFUND_LIMIT = 600000;
+
+  const newActiveOrders = [];
+
+  activeOrders.forEach(order => {
+
+    const createdAt = Number(order.createdAt) || now;
+    const refundAt  = Number(order.refundFinishedAt) || null;
+
+    const age = now - createdAt;
+    const refundAge = refundAt ? (now - refundAt) : null;
+
+if(order.status === "active" && age >= ACTIVE_LIMIT){
+
+  fetch("/api/order/done", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      authorization: token
+    },
+    body: JSON.stringify({ orderId: order.orderId })
+  });
+
+  const finishedOrder = {
+    ...order,
+    status: "done",
+    finishedAt: now
+  };
+
+  history.push(finishedOrder);
+  updated = true;
+  return;
+}
+
+    if(order.status === "refunded" || order.status === "refund_rejected"){
+      const baseTime = refundAt || createdAt;
+
+      if(now - baseTime >= REFUND_LIMIT){
+        history.push({
+  ...order,
+  status: "done"
+});
+        updated = true;
+        return;
+      }
+    }
+
+    newActiveOrders.push(order);
+  });
+
+  if(updated){
+    activeOrders = newActiveOrders;
+
+    localStorage.setItem("activeOrders", JSON.stringify(activeOrders));
+    localStorage.setItem("history", JSON.stringify(history));
+
+    renderOrders();
+  }
+}
+
+socket.on("orderUpdate", async (data) => {
+  console.log("Realtime order update:", data);
+
+  await loadActiveOrders();
+  await loadUser();
+  renderOrders();
+});
+
+
+
+socket.on("userUpdate", async (data) => {
+  console.log("Realtime saldo update:", data);
+
+  await loadUser();
+});
+
+function restoreCooldownUI(){
+
+  const data = JSON.parse(localStorage.getItem("resend_cooldown") || "{}");
+
+  Object.keys(data).forEach(orderId => {
+
+    const expire = data[orderId];
+    if(expire <= Date.now()){
+      delete data[orderId];
+      return;
+    }
+
+    const remaining = Math.ceil((expire - Date.now()) / 1000);
+
+    const btn = document.querySelector(`.resend-btn[data-orderid="${orderId}"]`);
+    if(!btn) return;
+
+    btn.disabled = true;
+    btn.innerText = `tunggu ${remaining}s`;
+
+    let r = remaining;
+
+    const interval = setInterval(() => {
+      r--;
+
+      if(r <= 0){
+        clearInterval(interval);
+        btn.disabled = false;
+        btn.innerText = "dapatkan";
+        return;
+      }
+
+      btn.innerText = `tunggu ${r}s`;
+    }, 1000);
+  });
+
+  localStorage.setItem("resend_cooldown", JSON.stringify(data));
+}
+
+window.onload = async () => {
+  document.getElementById("orders").innerHTML = 
+    "<small style='color:#999'>Memuat data...</small>";
+
+  await loadActiveOrders();
+  restoreCooldownUI();
+  await loadUser();
+  await loadProduk();
+  await syncRefundStatus();
+  socket.connect();
+
+document.getElementById("refundReason").addEventListener("change", function(){
+  const customBox = document.getElementById("refundCustomReason");
+
+  if(this.value === "Lainnya"){
+    customBox.style.display = "block";
+  }else{
+    customBox.style.display = "none";
+    customBox.value = "";
+  }
+});
+
+  firstLoadFinished = true;
+};
+
+setInterval(async () => {
+  await syncRefundStatus();
+  autoCompleteOrders();
+
+  const currentState = JSON.stringify(activeOrders);
+
+if (currentState !== lastState) {
+  lastState = currentState;
+}
+
+}, 1000);
+
+setInterval(() => {
+  loadUser();
+}, 30000);
+
+setInterval(() => {
+  updateTimerUI();
+}, 1000);
+
+async function loadProduk(){
+
+  const res = await fetch("/api/produk");
+  const data = await res.json();
+console.log("PRODUK API:", data.produk);
+  const select = document.getElementById("produk");
+
+  select.innerHTML = "";
+
+  data.produk.forEach(p => {
+select.innerHTML += `
+  <option value="${p.nama.toLowerCase()}">
+    ${p.nama.toUpperCase()} (Rp ${p.harga.toLocaleString()}) - Stok: ${p.stok ?? p.stock ?? p.stok_gmail ?? 0}
+  </option>
+`;
+  });
+}
+
+function updateTimerUI(){
+  document.querySelectorAll(".order-box").forEach((el, i) => {
+
+    const order = activeOrders[i];
+    if(!order || order.status !== "active") return;
+
+    const sisa = Math.max(
+      0,
+      Math.ceil((1200000 - (Date.now() - order.createdAt)) / 1000)
+    );
+
+    const menit = Math.floor(sisa / 60);
+    const detik = sisa % 60;
+
+    const waktuFormat =
+      `${menit.toString().padStart(2,"0")}:` +
+      `${detik.toString().padStart(2,"0")}`;
+
+    const timer = el.querySelector(".timer-box span");
+    if(timer) timer.innerText = waktuFormat;
+  });
+}
+
+function markRefunded(id){
+  const item = activeOrders.find(x => x.id === id);
+  if(!item) return;
+
+  item.status = "refunded";
+
+  localStorage.setItem("activeOrders", JSON.stringify(activeOrders));
+  renderOrders();
+}
+
+function finishOrder(id){
+
+  const item = activeOrders.find(x => x.uniqueId === id);
+  if(!item) return;
+  history.push(item);
+  activeOrders = activeOrders.filter(x => x.uniqueId !== id);
+  localStorage.setItem("activeOrders", JSON.stringify(activeOrders));
+  localStorage.setItem("history", JSON.stringify(history));
+  renderOrders();
+}
+
+function logout(){
+  localStorage.removeItem("token");
+  // localStorage.removeItem("activeOrders");
+  // localStorage.removeItem("history");
+  window.location.href = "/index.html";
+}
+
+document.addEventListener("click", function(e){
+  const sidebar = document.getElementById("sidebar");
+  const toggle = document.querySelector(".menu-toggle");
+
+  if(
+    sidebar.classList.contains("active") &&
+    !sidebar.contains(e.target) &&
+    !toggle.contains(e.target)
+  ){
+    closeMenu();
+  }
+});
+function toggleLupa(id){
+  const el = document.getElementById("lupa-"+id);
+  el.style.display = el.style.display === "none" ? "block" : "none";
+}
+const pollingMap = {};
+
+async function resendEmail(email, orderId, btn){
+  if(isCooldown(orderId)){
+    const remaining = getCooldownRemaining(orderId);
+
+    btn.disabled = true;
+    btn.innerText = `tunggu ${remaining}s`;
+    return;
+  }
+
+  setCooldown(orderId, 60);
+
+  let remaining = 60;
+
+  btn.disabled = true;
+  btn.innerText = `tunggu ${remaining}s`;
+
+  const cooldownInterval = setInterval(() => {
+
+    remaining--;
+
+    if(remaining <= 0){
+      clearInterval(cooldownInterval);
+      btn.disabled = false;
+      btn.innerText = "dapatkan";
+      return;
+    }
+
+    btn.innerText = `tunggu ${remaining}s`;
+
+  }, 1000);
+
+  const safeKey = safeEmail(email);
+  const box = document.getElementById("msg-" + safeKey);
+  if(!box) return;
+
+const oldContent = box.innerHTML;
+
+box.innerHTML = `
+  ${oldContent}
+  <div id="loading-${safeKey}" style="margin-top:6px;color:#ec4899;font-size:12px;">
+    <span class="spinner"></span> Menunggu pesan baru...
+  </div>
+`;
+
+  if(pollingMap[orderId]) return;
+  pollingMap[orderId] = true;
+
+  let tries = 0;
+  const maxTry = 12;
+
+  const timer = setInterval(async () => {
+
+    tries++;
+
+    try {
+
+      const res = await fetch("/api/gmail/check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({ email, orderId })
+      });
+
+      const data = await res.json();
+
+      if(data.success && data.found){
+
+        clearInterval(timer);
+        pollingMap[orderId] = false;
+
+        otpStorage[safeKey] = {
+          email: data.email,
+          subject: data.subject,
+          snippet: data.snippet
+        };
+
+        localStorage.setItem("otpStorage", JSON.stringify(otpStorage));
+		
+		const loading = document.getElementById("loading-" + safeKey);
+if(loading) loading.remove();
+
+        box.innerHTML = `
+          <div style="color:#ec4899;font-weight:600;margin-bottom:4px;">
+            📩 Pesan Masuk
+          </div>
+          <div><b>From:</b> ${data.email || "-"}</div>
+          <div><b>Subject:</b> ${data.subject || "-"}</div>
+          <div><b>Pesan:</b> ${data.snippet || "-"}</div>
+        `;
+      }
+
+if(tries >= maxTry){
+  clearInterval(timer);
+  pollingMap[orderId] = false;
+
+  const loading = document.getElementById("loading-" + safeKey);
+  if(loading) loading.remove();
+}
+
+    } catch(err){
+      clearInterval(timer);
+      pollingMap[orderId] = false;
+      const loading = document.getElementById("loading-" + safeKey);
+if(loading) loading.remove();
+    }
+
+  }, 5000);
+}
+function toggleInbox(email){
+  const box = document.getElementById("box-" + safeEmail(email));
+
+  if(!box) return;
+
+  if(box.style.display === "none"){
+    box.style.display = "block";
+  }else{
+    box.style.display = "none";
+  }
+}
+</script>
+
+<div id="refundModal" class="refund-modal">
+  <div class="refund-box">
+    <h3>Alasan Refund</h3>
+
+    <select id="refundReason">
+      <option value="">Pilih alasan</option>
+      <option value="Akun disable">Akun disable</option>
+      <option value="Password salah">Password salah</option>
+      <option value="Email invalid">Email invalid</option>
+      <option value="Lainnya">Lainnya (jelaskan)</option>
+    </select>
+
+    <textarea 
+      id="refundCustomReason"
+      placeholder="Jelaskan alasan refund..."
+      style="display:none;"
+    ></textarea>
+
+    <div class="refund-actions">
+      <button onclick="submitRefund()">OK</button>
+      <button onclick="closeRefundModal()">Batal</button>
+    </div>
+  </div>
+</div>
+<div id="inbox"></div>
+</body>
+</html> 

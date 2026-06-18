@@ -199,14 +199,14 @@ h2{
 
 .card{
   background:#fff;
-  padding:20px;
+  padding:25px;
   border-radius:12px;
 
-  width:100%;
-  max-width:420px;
+  width:40%;
+  max-width:1100px;
 
-  box-shadow:0 4px 12px rgba(0,0,0,0.05);
-  transition:0.3s;
+  box-shadow:0 4px 12px rgba(0,0,0,.05);
+  margin:0 auto;
 }
 
 .card:hover{
@@ -847,8 +847,126 @@ button:hover svg{
     stroke:none !important;
 }
 
+.order-switch{
+  display:flex;
+  width:100%;
+  max-width:320px;
+  margin:0 auto 15px;
+  background:#fff0f6;
+  border:1px solid #ffc2d6;
+  border-radius:10px;
+  overflow:hidden;
+}
 
+.order-switch a{
+  flex:1;
+  text-align:center;
+  padding:10px;
+  text-decoration:none;
+  color:#e91e63;
+  font-size:14px;
+  font-weight:600;
+  transition:.2s;
+}
 
+.order-switch a.active{
+  background:linear-gradient(135deg,#ff4d94,#ff80ab);
+  color:#fff;
+}
+
+.menu-link{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.badge-new{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  padding:2px 6px;
+
+  background:#ff4081;
+  color:#fff;
+
+  font-size:10px;
+  font-weight:700;
+  border-radius:999px;
+
+  animation:blinkNew 1s infinite;
+}
+
+.badge-new svg{
+  width:12px;
+  height:12px;
+  fill:currentColor;
+}
+
+@keyframes pulseNew{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.08);}
+  100%{transform:scale(1);}
+}
+
+@keyframes blinkNew{
+  0%{
+    background:#ff4081;
+    color:#fff;
+    box-shadow:0 0 0 rgba(255,64,129,0);
+  }
+
+  50%{
+    background:#fff;
+    color:#ff4081;
+    box-shadow:0 0 4px rgba(255,64,129,.8);
+  }
+
+  100%{
+    background:#ff4081;
+    color:#fff;
+    box-shadow:0 0 0 rgba(255,64,129,0);
+  }
+}
+
+.order-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+}
+
+.order-header > div:first-child{
+  min-width:0;
+  flex:1;
+}
+
+.order-title{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.order-header > div:last-child{
+  flex-shrink:0;
+}
+
+@media(max-width:768px){
+
+  .card{
+    padding: 10px;
+  }
+
+  .orders-scroll{
+    padding: 0;
+  }
+
+  .order-box{
+    width: 100%;
+    margin: 10px 0;
+  }
+
+}
 </style>
 
 </head>
@@ -1043,8 +1161,21 @@ Live Chat
   </div>
 
   <div class="container">
+  
+  <h2>Layanan Pelanggan</h2>
 
-    <h2>Order akun fresh</h2>
+<div class="order-switch">
+  <a href="#" class="active">Order akun fresh</a>
+<a href="/otp/otp.html" class="menu-link">
+  Nomor OTP
+  <span class="badge-new">
+    <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <path d="M34.11,24.49l-3.92-6.62,3.88-6.35A1,1,0,0,0,33.22,10H2a2,2,0,0,0-2,2V24a2,2,0,0,0,2,2H33.25A1,1,0,0,0,34.11,24.49Zm-23.6-3.31H9.39L6.13,16.84v4.35H5V15H6.13l3.27,4.35V15h1.12ZM16.84,16H13.31v1.49h3.2v1h-3.2v1.61h3.53v1H12.18V15h4.65Zm8.29,5.16H24l-1.55-4.59L20.9,21.18H19.78l-2-6.18H19l1.32,4.43L21.84,15h1.22l1.46,4.43L25.85,15h1.23Z"/>
+    </svg>
+    NEW
+  </span>
+</a>
+</div>
 
     <div class="card">
 
@@ -1368,62 +1499,82 @@ function renderOrders(){
   let html = "";
 
   activeOrders.forEach((x, i)=>{
-  const tipe = (x.type || "").toLowerCase().trim();
-
-    let icon = "";
+const tipe = (x.type || "").toLowerCase().trim();
+  const namaProduk =
+    (x.type || "Produk")
+      .split(" ")
+      .map(kata =>
+        kata.charAt(0).toUpperCase() +
+        kata.slice(1).toLowerCase()
+      )
+      .join(" ");
+let icon = "";
 
 if (
-  x.type === "facebook" ||
-  x.type === "facebook fresh"
+  tipe === "gmail" ||
+  tipe === "gmail fresh" ||
+  tipe === "gmail bekas"
 ) {
+
   icon = `
-  <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
-    <path fill="#1877F2" d="M15 8a7 7 0 00-7-7 7 7 0 00-1.094 13.915v-4.892H5.13V8h1.777V6.458c0-1.754 1.045-2.724 2.644-2.724.766 0 1.567.137 1.567.137v1.723h-.883c-.87 0-1.14.54-1.14 1.093V8h1.941l-.31 2.023H9.094v4.892A7.001 7.001 0 0015 8z"/>
-    <path fill="#ffffff" d="M10.725 10.023L11.035 8H9.094V6.687c0-.553.27-1.093 1.14-1.093h.883V3.87s-.801-.137-1.567-.137c-1.6 0-2.644.97-2.644 2.724V8H5.13v2.023h1.777v4.892a7.037 7.037 0 002.188 0v-4.892h1.63z"/>
-  </svg>
+    <img
+      src="/img/gmail.png"
+      width="20"
+      height="20"
+      style="object-fit:contain;"
+    >
   `;
+
 }
+
 else if (
-  x.type === "gmail" ||
-  x.type === "gmail fresh" ||
-  x.type === "gmail bekas"
+  tipe === "facebook" ||
+  tipe === "facebook fresh"
 ) {
+
   icon = `
-  <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-    <path d="M2 11.9556C2 8.47078 2 6.7284 2.67818 5.39739C3.27473 4.22661 4.22661 3.27473 5.39739 2.67818C6.7284 2 8.47078 2 11.9556 2H20.0444C23.5292 2 25.2716 2 26.6026 2.67818C27.7734 3.27473 28.7253 4.22661 29.3218 5.39739C30 6.7284 30 8.47078 30 11.9556V20.0444C30 23.5292 30 25.2716 29.3218 26.6026C28.7253 27.7734 27.7734 28.7253 26.6026 29.3218C25.2716 30 23.5292 30 20.0444 30H11.9556C8.47078 30 6.7284 30 5.39739 29.3218C4.22661 28.7253 3.27473 27.7734 2.67818 26.6026C2 25.2716 2 23.5292 2 20.0444V11.9556Z" fill="white"/>
-    <path d="M22.0515 8.52295L16.0644 13.1954L9.94043 8.52295V15.0732L15.9954 19.8466L22.0515 15.2575V8.52295Z" fill="#EA4335"/>
-    <path d="M23.6231 7.38639L22.0508 8.52292V15.2575L26.9983 11.459V9.17074C26.9983 9.17074 26.3978 5.90258 23.6231 7.38639Z" fill="#FBBC05"/>
-    <path d="M22.0508 15.2575V23.9924H25.8428C25.8428 23.9924 26.9219 23.8813 26.9995 22.6513V11.459L22.0508 15.2575Z" fill="#34A853"/>
-    <path d="M9.94014 8.52404L8.37646 7.39382C5.60179 5.91001 5 9.17692 5 9.17692V11.4651L9.94014 15.0667V8.52404Z" fill="#C5221F"/>
-    <path d="M5 11.4668V22.6591C5.07646 23.8904 6.15673 24.0003 6.15673 24.0003H9.94877L9.94014 15.0671L5 11.4668Z" fill="#4285F4"/>
-  </svg>
+    <img
+      src="/img/facebook.png"
+      width="20"
+      height="20"
+      style="object-fit:contain;"
+    >
   `;
+
 }
+
 else if (
-  [
-  "backup",
-  "email pengganti",
-  "email_pengganti",
-  "email-pengganti",
-  "email custom"
-]
-  .includes((x.type || "").toLowerCase())
+  tipe === "email custom" ||
+  tipe === "backup" ||
+  tipe === "email pengganti" ||
+  tipe === "email_pengganti" ||
+  tipe === "email-pengganti"
 ) {
-icon = `
-<svg width="20" height="20" viewBox="0 0 16 16" fill="#ec4899" xmlns="http://www.w3.org/2000/svg">
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M1 3.5l.5-.5h13l.5.5v9l-.5.5h-13l-.5-.5v-9zm1 1.035V12h12V4.536L8.31 8.9H7.7L2 4.535zM13.03 4H2.97L8 7.869 13.03 4z"/>
-</svg>
-`;
-}
-else if (x.type === "combo") {
+
   icon = `
-  <svg width="20" height="20" viewBox="0 0 32 32">
-    <rect width="32" height="32" rx="6" fill="#ea4335"/>
-    <text x="50%" y="55%" text-anchor="middle" fill="white" font-size="14" font-family="Arial" dy=".3em">C</text>
-  </svg>
+    <img
+      src="/img/pengganti.png"
+      width="20"
+      height="20"
+      style="object-fit:contain;"
+    >
   `;
+
 }
-    let namaProduk = "";
+
+else if (tipe === "combo") {
+
+  icon = `
+    <img
+      src="/img/gmail.png"
+      width="20"
+      height="20"
+      style="object-fit:contain;"
+    >
+  `;
+
+}
+
 
     const sisa = Math.max(
       0,
@@ -1444,7 +1595,7 @@ else if (x.type === "combo") {
 
         <div style="display:flex; align-items:center; gap:8px;">
           ${icon}
-          <div class="order-title">Akun ${i+1}</div>
+          <div class="order-title"> ${activeOrders.length - i}. ${namaProduk} </div>
         </div>
 
         <div style="display:flex; align-items:center; gap:8px;">
@@ -1516,10 +1667,13 @@ else if (x.type === "combo") {
       `;
     }
 
-    else if(
-      ["backup","email pengganti","email_pengganti","email-pengganti","email custom"]
-      .includes((x.type || "").toLowerCase().trim())
-    ){
+else if(
+  (x.type || "")
+  .toLowerCase()
+  .trim() === "email custom"
+)
+
+{
       html += `
         <div style="display:flex; align-items:center; gap:6px;">
           Email : ${x.email || "-"}
@@ -1714,11 +1868,6 @@ function refundOrder(id){
 async function syncRefundStatus(){
 
   try{
-  
-  if(!selectedRefundOrder.harga || selectedRefundOrder.harga <= 0){
-  alert("Nominal refund tidak valid");
-  return;
-}
 
     const res = await fetch("/api/refund", {
       headers:{ authorization: token }
@@ -1891,47 +2040,39 @@ data.data.forEach(order => {
 
     const old = activeOrders.find(o => o.orderId === order.id);
 
-    newOrders.push({
-      uniqueId: order.id + "_" + index,
-      orderId: order.id,
-      type: order.type,
-      email:
-  item?.email ||
-  item?.to ||
-  item?.deliveredTo ||
-  "-",
-      pass: item?.pass || "-",
-      backup: item?.backup || [],
-      status: order.status,
-      createdAt: order.time || Date.now(),
-      refundFinishedAt:
-        order.refundFinishedAt ||
-        old?.refundFinishedAt ||
-        null,
+newOrders.push({
+  uniqueId: order.id + "_" + index,
+  orderId: order.id,
+  type: order.type,
+  email:
+    item?.email ||
+    item?.to ||
+    item?.deliveredTo ||
+    "-",
+  pass: item?.pass || "-",
+  backup: item?.backup || [],
+  status: order.status,
+
+  createdAt:
+    Number(order.created_at) ||
+    Number(order.time) ||
+    Date.now(),
+
+refundFinishedAt:
+  order.refundFinishedAt ||
+  old?.refundFinishedAt ||
+  null,
 
 harga:
-(
-  order.type === "gmail" ||
-  order.type === "gmail fresh"
-) ? 4500 :
-
-order.type === "gmail bekas" ? 1500 :
-
-[
-  "email pengganti",
-  "email_pengganti",
-  "email-pengganti",
-  "email custom"
-].includes((order.type || "").toLowerCase().trim())
-
-? 1000 :
-
-order.type === "backup" ? 1000 :
-
-(
-  order.type === "facebook" ||
-  order.type === "facebook fresh"
-) ? 3300 : 0
+  (order.type || "").toLowerCase().trim() === "gmail fresh"
+    ? 4500
+  : (order.type || "").toLowerCase().trim() === "gmail bekas"
+    ? 1500
+  : (order.type || "").toLowerCase().trim() === "email custom"
+    ? 1000
+  : (order.type || "").toLowerCase().trim() === "facebook fresh"
+    ? 3300
+  : 0
     });
 
   });

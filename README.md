@@ -29,11 +29,37 @@ Versi terbaru **SeraPay v3.0** menghadirkan peningkatan signifikan pada performa
 
 ### Performa dan Stabilitas
 
-* Refactoring backend untuk meningkatkan maintainability kode.
+* Refactoring backend untuk meningkatkan maintainability dan skalabilitas kode.
 * Optimasi proses transaksi real-time.
+* Migrasi penyimpanan data dari JSON ke MySQL untuk meningkatkan performa dan konsistensi data.
 * Pengurangan penggunaan file storage untuk data kritikal.
 * Perbaikan bug JavaScript pada sisi frontend dan backend.
 * Peningkatan stabilitas layanan saat menangani banyak transaksi secara bersamaan.
+* Implementasi sistem monitoring dan kontrol layanan yang lebih terintegrasi.
+
+### Telegram Bot Administration System
+
+SeraPay dilengkapi dengan Telegram Bot khusus administrator yang memungkinkan pengelolaan platform secara jarak jauh tanpa harus membuka dashboard web.
+
+#### Fitur Telegram Bot Admin
+
+* Membalas pesan Live Chat pelanggan langsung dari Telegram.
+* Menyetujui atau menolak pengajuan setoran akun.
+* Menyetujui atau menolak permintaan withdraw pengguna.
+* Deposit saldo pengguna secara manual.
+* Monitoring notifikasi transaksi secara real-time.
+* Monitoring aktivitas pengguna dan sistem.
+
+#### Command Management
+
+* `/deposit` — Menambahkan saldo pengguna secara manual.
+* `/restock` — Menambahkan stok produk secara instan.
+* `/stop` — Menonaktifkan sementara layanan setoran akun.
+* `/on` — Mengaktifkan kembali layanan setoran akun.
+* Command tambahan untuk pengelolaan layanan dan monitoring sistem secara real-time.
+
+Sistem ini membantu administrator melakukan operasional harian dengan lebih cepat, efisien, dan responsif tanpa bergantung pada akses dashboard web.
+
 
 ---
 

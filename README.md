@@ -8,24 +8,10 @@ Versi terbaru **SeraPay v3.0** menghadirkan peningkatan signifikan pada performa
 
 ---
 
----
-
-# Dokumentasi Sistem
-
 <table>
 <tr>
-<td><img src="https://raw.githubusercontent.com/kopixpass-code/serapay-digital-platform-by-ganang-saputra/main/dokumentasi/1.jpg" width="450"></td>
-<td><img src="https://raw.githubusercontent.com/kopixpass-code/serapay-digital-platform-by-ganang-saputra/main/dokumentasi/2.jpg" width="450"></td>
-</tr>
-
-<tr>
-<td><img src="https://raw.githubusercontent.com/kopixpass-code/serapay-digital-platform-by-ganang-saputra/main/dokumentasi/3.jpg" width="450"></td>
-<td><img src="https://raw.githubusercontent.com/kopixpass-code/serapay-digital-platform-by-ganang-saputra/main/dokumentasi/4.jpg" width="450"></td>
-</tr>
-
-<tr>
-<td><img src="https://raw.githubusercontent.com/kopixpass-code/serapay-digital-platform-by-ganang-saputra/main/dokumentasi/5.jpg" width="450"></td>
-<td><img src="https://raw.githubusercontent.com/kopixpass-code/serapay-digital-platform-by-ganang-saputra/main/dokumentasi/6.jpg" width="450"></td>
+<td><img src="https://raw.githubusercontent.com/kopixpass-code/serapay-digital-platform-by-ganang-saputra/main/dokumentasi/1.jpg" width="400"></td>
+<td><img src="https://raw.githubusercontent.com/kopixpass-code/serapay-digital-platform-by-ganang-saputra/main/dokumentasi/2.jpg" width="400"></td>
 </tr>
 </table>
 

@@ -22,6 +22,15 @@ const ordersContainer =document.getElementById("otpOrdersContainer");
 
 const toast =
 document.getElementById("toast");
+const phoneOrderCard =
+document.getElementById("phoneOrderCard");
+
+function hasActiveOrder(){
+
+    return document.querySelector(".otp-card") !== null;
+
+}
+
 const serviceMap = {};
 const countryMap = {};
 const operatorMap = {};
@@ -874,6 +883,20 @@ result.duration =
 payload.duration;
 
 createOrderCard(result, true);
+
+if(phoneOrderCard){
+    phoneOrderCard.style.display = "none";
+}
+
+if(toggleBtn){
+    toggleBtn.childNodes[0].textContent =
+    "Tampilkan Form ";
+}
+
+if(toggleIcon){
+    toggleIcon.className =
+    "fa-solid fa-chevron-down";
+}
 
 showToast("Berhasil order");
 
@@ -1836,6 +1859,22 @@ delete pollingIntervals[id];
 
 playOtpSound();
 
+if(
+    "Notification" in window &&
+    Notification.permission === "granted"
+){
+
+    new Notification(
+        "SeraPay OTP",
+        {
+            body:
+            msg.text || "Pesan baru masuk",
+            icon:"/img/logo.png"
+        }
+    );
+
+}
+
 showToast(
 "📩 Pesan baru"
 );
@@ -2246,6 +2285,30 @@ try{
 
 }
 
+function showOrderFormIfEmpty(){
+
+    const cards =
+    document.querySelectorAll(".otp-card");
+
+    if(cards.length === 0){
+
+        phoneOrderCard.style.display =
+        "block";
+
+        if(toggleBtn){
+            toggleBtn.childNodes[0].textContent =
+            "Sembunyikan Form ";
+        }
+
+        if(toggleIcon){
+            toggleIcon.className =
+            "fa-solid fa-chevron-up";
+        }
+
+    }
+
+}
+
 async function loadOrders(){
 
 try{
@@ -2479,6 +2542,15 @@ document
 
 }
 
+if(
+    "Notification" in window &&
+    Notification.permission === "default"
+){
+
+    Notification.requestPermission();
+
+}
+
 /*
 |--------------------------------------------------------------------------
 | INIT
@@ -2487,11 +2559,30 @@ document
 
 async function init(){
 
-await loadServices();
-await loadCountries();
-await loadOrders();
+    showLoader();
 
-initCancelModal();
+    try{
+
+        await loadServices();
+        await loadCountries();
+        await loadOrders();
+
+        initCancelModal();
+
+
+
+    }catch(err){
+
+        console.error(
+            "Init Error:",
+            err
+        );
+
+    }finally{
+
+        hideLoader();
+
+    }
 
 }
 

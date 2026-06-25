@@ -202,8 +202,8 @@ h2{
   padding:25px;
   border-radius:12px;
 
-  width:40%;
-  max-width:1100px;
+  width:100%;
+  max-width:700px;
 
   box-shadow:0 4px 12px rgba(0,0,0,.05);
   margin:0 auto;
@@ -289,9 +289,9 @@ input:focus{
 }
 
 .orders-scroll{
-  max-height:400px;
+  max-height:500px;
   overflow-y:auto;
-  padding:10px;
+  padding:5px;
 }
 
 .order-box{
@@ -966,6 +966,35 @@ button:hover svg{
     margin: 10px 0;
   }
 
+}
+
+@media (max-width:1400px){
+
+  .card{
+    max-width:650px;
+    width:100%;
+  }
+
+}
+
+@media (max-width:1400px){
+
+  .order-header{
+    flex-wrap:wrap;
+    align-items:flex-start;
+  }
+
+  .order-header .right{
+    width:100%;
+    justify-content:flex-start;
+    margin-top:6px;
+  }
+
+}
+
+.order-box{
+  overflow-wrap:anywhere;
+  word-break:break-word;
 }
 </style>
 

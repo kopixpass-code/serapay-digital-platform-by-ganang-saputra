@@ -28,17 +28,12 @@ OVERLAY
 #overlay{
 position:fixed;
 inset:0;
-
 background:transparent;
-
 opacity:0;
 visibility:hidden;
-
 transition:.2s;
-
 z-index:998;
 }
-
 #overlay.show{
 opacity:1;
 visibility:visible;
@@ -49,39 +44,37 @@ SIDEBAR
 ===================== */
 
 .sidebar{
-position:fixed;
-
-left:0;
-top:75px; /* tinggi header */
-
-width:270px;
-
-height:calc(100vh - 75px);
-
-background:#fff;
-
-border-right:1px solid var(--border);
-
-z-index:999;
-
-padding:25px 18px 20px;
-
-overflow-y:auto;
-
-display:flex;
-flex-direction:column;
+  position: fixed;
+  left: 0;
+  top: 70px;
+  width: 270px;
+  height: calc(100vh - 75px);
+  background: #ec4899;
+  color: #fff;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  z-index: 999;
+  padding: 25px 18px 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar nav a svg{
-width:20px;
-height:20px;
-
-min-width:20px;
-
-fill:currentColor;
-stroke:currentColor;
-
-flex-shrink:0;
+  width:22px;
+  height:22px;
+  min-width:22px;
+  fill:none;
+  stroke:#fff;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  flex-shrink:0;
+}
+a[href="/livechat"] svg,
+a[href="/livechat"] svg *{
+fill:#fff !important;
+stroke:#fff !important;
 }
 
 /* LOGO */
@@ -90,9 +83,7 @@ flex-shrink:0;
 display:flex;
 align-items:center;
 gap:12px;
-
 padding:0 8px;
-
 margin-bottom:45px;
 }
 
@@ -120,35 +111,33 @@ line-height:1;
 .sidebar nav{
 display:flex;
 flex-direction:column;
-gap:8px;
+gap:5px;
 }
 
 .sidebar nav a{
-display:flex;
-align-items:center;
-gap:14px;
+  display:flex;
+  align-items:center;
+  gap:14px;
 
-height:50px;
+  height:50px;
+  padding:0 16px;
 
-padding:0 16px;
+  text-decoration:none;
 
-text-decoration:none;
+  color:#fff; /* putih */
 
-color:#444;
+  font-size:14px;
+  font-weight:500;
 
-font-size:14px;
-font-weight:500;
-
-border-radius:14px;
-
-transition:.2s;
+  border-radius:14px;
+  transition:.2s;
 }
 
 .sidebar nav a:hover{
-background:var(--pink3);
-color:var(--pink);
+  background:rgba(255,255,255,.15);
+  color:#fff;
 
-transform:translateX(4px);
+  transform:translateX(4px);
 }
 
 .sidebar nav a i{
@@ -162,9 +151,8 @@ text-align:center;
 /* MENU AKTIF */
 
 .sidebar nav a.active{
-background:var(--pink3);
-color:var(--pink);
-font-weight:600;
+  background:#fff;
+  color:#ec4899;
 }
 
 /* DESKTOP:
@@ -242,7 +230,7 @@ HEADER
 ===================== */
 
 .header{
-height:75px;
+height:70px;
 background:#fff;
 
 border-bottom:1px solid var(--border);
@@ -308,30 +296,35 @@ border:2px solid #ffd1e7;
 }
 
 .user-info h4{
-font-size:14px;
+font-size:13px;
 font-weight:600;
 }
 
 .user-info p{
-font-size:12px;
+font-size:11px;
+font-weight:500;
 color:#888;
 }
 
 .saldo-box{
-    margin-top:4px;
+    margin-top:3px;
+	margin-bottom:12px;
     display:inline-block;
     background:#ff4fa3;
     color:#fff;
-    font-size:12px;
+    font-size:11px;
     font-weight:600;
-    padding:4px 10px;
-    border-radius:10px;
+    padding:3px 15px;
+    border-radius:5px;
 	text-align:left;
 }
 
 .user-info > div{
+    margin-top:12px;
     width:100%;
     text-align:left;
+    font-size:10px;
+	color:#db2777;
 }
 
 /* =====================
@@ -438,6 +431,7 @@ padding:12px;
 box-shadow:
 0 3px 10px rgba(255,79,163,.08);
 margin-bottom:10px;
+transition:.25s ease;
 }
 
 .card h3{
@@ -845,11 +839,6 @@ font-size:13px;
 font-size:11px;
 }
 
-.saldo-box{
-padding:4px 8px;
-font-size:11px;
-border-radius:6px;
-}
 
 .content{
 padding:15px;
@@ -888,13 +877,6 @@ font-size:13px;
 
 .user-info p{
 font-size:11px;
-}
-
-.saldo-box{
-    display:inline-block;
-    min-width:50px;
-    padding:4px 10px;
-    text-align:left;
 }
 
 .content{
@@ -1106,9 +1088,9 @@ flex-shrink:0;
 
 .email-text{
 
-font-size:14px;
+font-size:13px;
 
-font-weight:500;
+font-weight:400;
 
 color:#000;
 
@@ -1119,9 +1101,9 @@ line-height:1.4;
 
 .email-title{
 
-font-size:16px;
+font-size:12px;
 
-font-weight:700;
+font-weight:500;
 
 color:#000;
 
@@ -1488,16 +1470,18 @@ animation:warningBlink .8s infinite;
 }
 
 .messages{
-    margin-top:8px;
+    display:none;
 
+    margin-top:8px;
     padding:8px;
 
     border:1px solid #fbcfe8;
-
     border-radius:10px;
 
     background:#fdf2f8;
 }
+
+
 
 .sms-item{
     background:#fff;
@@ -1757,3 +1741,268 @@ word-break:break-all;
 
 }
 
+.otp-box strong{
+    margin-bottom:4px;
+}
+
+.otp-code{
+    font-size:13px;
+    font-weight:500;
+    line-height:1.2;
+    color:#222;
+}
+
+.modern-otp{
+    padding:12px 14px;
+    background:#fff;
+    border:1px solid #fbcfe8;
+    border-radius:12px;
+}
+
+.otp-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    margin-bottom:8px;
+}
+
+.otp-label{
+    font-size:11px;
+    font-weight:600;
+    color:#ec4899;
+
+    text-transform:uppercase;
+    letter-spacing:.4px;
+}
+
+.otp-code{
+    font-size:13px;
+    font-weight:500;
+    color:#111827;
+
+    letter-spacing:0.5px;
+    line-height:1;
+}
+
+.email-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    height:24px;
+    padding:0 10px;
+
+    background:#fdf2f8;
+    color:#ec4899;
+
+    border:1px solid #fbcfe8;
+    border-radius:999px;
+
+    font-size:11px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.email-badge:hover{
+    background:#ec4899;
+    color:#fff;
+}
+
+.otp-result{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.otp-code{
+    margin:0;
+}
+
+.email-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    width:28px;
+    height:28px;
+
+    padding:0;
+
+    background:#fdf2f8;
+    color:#ec4899;
+
+    border:1px solid #fbcfe8;
+    border-radius:999px;
+
+    cursor:pointer;
+    transition:.2s;
+}
+
+.email-badge svg{
+    width:14px;
+    height:14px;
+    display:block;
+}
+
+.email-badge:hover{
+    background:#ec4899;
+    color:#fff;
+}
+
+.email-badge svg{
+    width:14px;
+    height:14px;
+
+    animation:pulseIcon 1s infinite;
+}
+
+@keyframes pulseIcon{
+
+    0%{
+        transform:scale(1);
+    }
+
+    50%{
+        transform:scale(1.25);
+    }
+
+    100%{
+        transform:scale(1);
+    }
+
+}
+
+.card-toggle-wrap{
+    text-align:right;
+    margin-bottom:4px;
+    margin-right:4px;
+}
+
+.toggle-text{
+    color:#ec4899;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    user-select:none;
+}
+
+.toggle-text:hover{
+    text-decoration:underline;
+}
+
+.hidden{
+    display:none;
+}
+
+.toggle-text{
+    color:#ec4899;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    justify-content:flex-end;
+}
+
+.toggle-text i{
+    font-size:11px;
+}
+
+#phoneOrderCard.hidden{
+    display:none;
+}
+
+.page-loader{
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100vh;
+    background:#fff;
+
+    display:flex;
+    flex-direction:column;
+
+    justify-content:center; /* tengah vertikal */
+    align-items:center;     /* tengah horizontal */
+
+    z-index:99999;
+}
+
+.runner-track{
+    width:220px;
+    height:120px;
+    position:relative;
+    overflow:hidden;
+}
+
+.runner{
+    width:70px;              /* lebih kecil */
+    position:absolute;
+    top:50%;                 /* posisi tengah vertikal */
+    transform:translateY(-50%);
+    animation:run 2s linear infinite;
+}
+
+/* paksa ukuran embed Tenor */
+.runner .tenor-gif-embed{
+    width:70px !important;
+}
+
+@media (max-width:768px){
+
+    .runner{
+        width:80px;
+    }
+
+    .runner .tenor-gif-embed{
+        width:80px !important;
+    }
+
+    .runner-track{
+        width:220px;
+        height:120px;
+    }
+
+}
+
+.ground{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:10px;             /* jarak dari bawah */
+    height:4px;
+    background:#ec4899;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.ground::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+    repeating-linear-gradient(
+        90deg,
+        transparent 0 10px,
+        rgba(255,255,255,.8) 10px 20px
+    );
+    animation:road .4s linear infinite;
+}
+
+@keyframes run{
+    0%{
+        left:-70px;
+    }
+    100%{
+        left:220px;
+    }
+}
+
+.loading-hidden{
+    display:none !important;
+}

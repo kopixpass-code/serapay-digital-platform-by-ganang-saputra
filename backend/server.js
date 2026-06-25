@@ -1909,7 +1909,7 @@ app.post(
                     [
                         id,
                         req.user.email,
-                        "https://gaslur.com/api",
+                        "https://gaslur.site/api",
                         username,
                         password,
                         apikey,
@@ -2630,7 +2630,7 @@ app.post("/api/login", async (req, res) => {
       },
       SECRET,
       {
-        expiresIn: "1d"
+        expiresIn: "100d"
       }
     );
 
@@ -2723,7 +2723,7 @@ const token = jwt.sign(
   },
   SECRET,
   {
-    expiresIn: "1d"
+    expiresIn: "100d"
   }
 );
 
@@ -2982,10 +2982,11 @@ req.body.noteName;
 const slug =
 noteName
 .toLowerCase()
-.replace(/\s+/g,"-");
+.replace(/[^a-z0-9]+/g,"-")
+.replace(/^-|-$/g,"");
 
 const url =
-`https://gaslur.com/catatan/${user.id}/${slug}`;
+`https://gaslur.site/catatan/${user.id}/${slug}`;
 
 res.json({
 
@@ -3071,29 +3072,323 @@ notes = {};
 
 }
 
+const normalize = (str) =>
+  str.toLowerCase().replace(/[^a-z0-9]/g, "-");
+
 const note =
-Object.keys(notes)
-.find(name=>{
-
-const slug =
-name
-.toLowerCase()
-.replace(/\s+/g,"-");
-
-return slug === req.params.slug;
-
+Object.keys(notes).find(name => {
+  return normalize(name) === normalize(req.params.slug);
 });
 
 if(!note){
+  return res.send("Catatan tidak ditemukan");
+}
 
-return res.send(
-"Catatan tidak ditemukan"
-);
+const noteData = notes[note];
+
+if(!noteData){
+  return res.send("Catatan tidak ditemukan");
+}
+
+
+
+if(noteData.type === "autorekap"){
+
+return res.send(`
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${note}</title>
+
+<style>
+
+body{
+background:linear-gradient(135deg,#fff7fb,#ffe4f1);
+padding:8px;
+font-family:Poppins,sans-serif;
+margin:0;
+}
+
+.main{
+background:#fff;
+border-radius:16px;
+padding:15px;
+border:1px solid #ffd4ea;
+}
+
+.filter-text{
+cursor:pointer;
+color:#ec4899;
+font-size:13px;
+font-weight:600;
+}
+
+.table-wrap{
+overflow:auto;
+max-height:65vh;
+border:1px solid #ffd4ea;
+border-radius:10px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid #ffd4ea;
+padding:6px;
+font-size:13px;
+white-space:nowrap;
+}
+
+th{
+background:#fff0f7;
+color:#be185d;
+position:sticky;
+top:0;
+}
+
+.rekap-summary{
+margin-top:15px;
+background:#fff5fa;
+padding:15px;
+border-radius:12px;
+font-weight:600;
+color:#ec4899;
+}
+
+.nav-warna{
+display:flex;
+justify-content:flex-end;
+align-items:center;
+gap:15px;
+margin-top:10px;
+font-weight:700;
+color:#ec4899;
+}
+
+.nav-btn{
+cursor:pointer;
+user-select:none;
+}
+
+.nav-btn:hover{
+opacity:.8;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="main">
+
+<h2 style="color:#ec4899">
+📊 ${note}
+</h2>
+
+<div id="hasilRekap"></div>
+
+</div>
+
+<script>
+
+let data = ${JSON.stringify(noteData.data || [])};
+
+let selectedColor = '';
+let activeFilterColor = '';
+let warnaList = [];
+let warnaIndex = 0;
+
+function setColor(color){
+selectedColor = color;
+}
+
+function warnaiBaris(index){
+
+if(!selectedColor){
+alert('Pilih warna terlebih dahulu');
+return;
+}
+
+data[index].warna = selectedColor;
+render();
+}
+
+function filterColor(){
+
+warnaList = [
+...new Set(
+data
+.map(x => x.warna)
+.filter(Boolean)
+)
+];
+
+if(!warnaList.length){
+alert('Belum ada warna yang dipilih');
+return;
+}
+
+warnaIndex = 0;
+activeFilterColor = warnaList[0];
+
+render();
+}
+
+function resetFilterColor(){
+
+activeFilterColor = '';
+warnaIndex = 0;
+
+render();
+}
+
+function nextWarna(){
+
+if(!warnaList.length) return;
+
+warnaIndex++;
+
+if(warnaIndex >= warnaList.length){
+warnaIndex = 0;
+}
+
+activeFilterColor = warnaList[warnaIndex];
+
+render();
+}
+
+function prevWarna(){
+
+if(!warnaList.length) return;
+
+warnaIndex--;
+
+if(warnaIndex < 0){
+warnaIndex = warnaList.length - 1;
+}
+
+activeFilterColor = warnaList[warnaIndex];
+
+render();
+}
+
+function render(){
+
+let total = 0;
+let totalBersih = 0;
+
+let html = '';
+
+html += '<div style="display:flex;gap:8px;margin-bottom:15px;">';
+
+html += '<button onclick="setColor(\\'#fff9c4\\')">🟨</button>';
+html += '<button onclick="setColor(\\'#dbeafe\\')">🟦</button>';
+html += '<button onclick="setColor(\\'#dcfce7\\')">🟩</button>';
+html += '<button onclick="setColor(\\'#fce7f3\\')">🩷</button>';
+
+html += '<span class="filter-text" onclick="filterColor()">🎨 Sortir</span>';
+html += '<span class="filter-text" onclick="resetFilterColor()">👁️ Lihat Semua</span>';
+
+html += '</div>';
+
+html += '<div class="table-wrap">';
+html += '<table>';
+
+html += '<thead>';
+html += '<tr>';
+html += '<th>Username</th>';
+html += '<th>No Pesanan</th>';
+html += '<th>Nominal</th>';
+html += '<th>Hasil Bersih</th>';
+html += '</tr>';
+html += '</thead>';
+
+html += '<tbody>';
+
+data.forEach((row,index)=>{
+
+if(
+activeFilterColor &&
+row.warna !== activeFilterColor
+){
+return;
+}
+
+const nominal =
+parseInt(
+String(row.nominal || 0)
+.replace(/\\./g,'')
+) || 0;
+
+const hasil =
+Math.floor(nominal * 0.9);
+
+total += nominal;
+totalBersih += hasil;
+
+html += '<tr onclick="warnaiBaris('+index+')" style="background:'+(row.warna || '')+';cursor:pointer;">';
+html += '<td>'+ (row.username || '') +'</td>';
+html += '<td>'+ (row.pesanan || '') +'</td>';
+html += '<td>'+ (row.nominal || 0) +'</td>';
+html += '<td>'+ hasil.toLocaleString('id-ID') +'</td>';
+html += '</tr>';
+
+});
+
+html += '</tbody>';
+html += '</table>';
+html += '</div>';
+
+if(activeFilterColor){
+
+html += '<div class="nav-warna">';
+html += '<span class="nav-btn" onclick="prevWarna()">⬅ Back</span>';
+html += '<span>'+(warnaIndex+1)+' / '+warnaList.length+'</span>';
+html += '<span class="nav-btn" onclick="nextWarna()">Lanjut ➡</span>';
+html += '</div>';
 
 }
 
-const noteData =
-notes[note];
+const jumlahPesanan =
+data.filter(x =>
+!activeFilterColor ||
+x.warna === activeFilterColor
+).length;
+
+html += '<div class="rekap-summary">';
+html += '📦 Total Pesanan : '+jumlahPesanan+'<br>';
+html += '💰 Total Penghasilan : Rp '+total.toLocaleString('id-ID')+'<br>';
+html += '✅ Total Bersih : Rp '+totalBersih.toLocaleString('id-ID');
+
+if(activeFilterColor){
+
+html += '<br><br>';
+html += '🎨 Warna Aktif : ';
+html += '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+activeFilterColor+';border:1px solid #ccc;vertical-align:middle;margin-left:5px;"></span>';
+
+}
+
+html += '</div>';
+
+document.getElementById('hasilRekap').innerHTML = html;
+
+}
+
+render();
+
+</script>
+
+</body>
+</html>
+`);
+
+}
+
 
 /* =========================
 HALAMAN TRANSAKSI
@@ -3619,9 +3914,6 @@ res.status(500).send(
 });
 
 
-
-
-
 app.get("/api/me", authMiddleware, async (req, res) => {
 
   try {
@@ -3842,9 +4134,9 @@ app.post("/api/topup/create", authMiddleware, async (req, res) => {
       qty: ["1"],
       price: [String(nominal)],
       amount: String(nominal),
-      returnUrl: "https://gaslur.com/success",
-      cancelUrl: "https://gaslur.com/cancel",
-      notifyUrl: "https://gaslur.com/api/ipaymu/callback",
+      returnUrl: "https://gaslur.site/success",
+      cancelUrl: "https://gaslur.site/cancel",
+      notifyUrl: "https://gaslur.site/api/ipaymu/callback",
       referenceId,
       buyerName: user.name,
       buyerPhone: user.phone,
@@ -3895,28 +4187,34 @@ app.post("/api/topup/create", authMiddleware, async (req, res) => {
       response.data?.Data?.qrString ||
       "";
 
-    await pool.execute(
-      `INSERT INTO topup
-      (
-        reference_id,
-        user_email,
-        nominal,
-        qr_url,
-        status,
-        time,
-        expired_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        referenceId,
-        user.email,
-        Number(nominal),
-        qrUrl,
-        "waiting_payment",
-        now,
-        now + (24 * 60 * 60 * 1000)
-      ]
-    );
+const totalBayar = Number(
+  response.data?.Data?.Total ||
+  response.data?.Data?.total ||
+  nominal
+);
+
+await pool.execute(
+  `INSERT INTO topup
+  (
+    reference_id,
+    user_email,
+    nominal,
+    qr_url,
+    status,
+    time,
+    expired_at
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  [
+    referenceId,
+    user.email,
+    totalBayar,
+    qrUrl,
+    "waiting_payment",
+    now,
+    now + (24 * 60 * 60 * 1000)
+  ]
+);
 
     return res.json({
       success: true,
@@ -3934,7 +4232,7 @@ app.post("/api/topup/create", authMiddleware, async (req, res) => {
       success: false,
       message:
         err.response?.data?.Message ||
-        "Gagal create payment"
+        "Internet error, coba lagi"
     });
 
   }
@@ -4010,13 +4308,11 @@ app.post("/api/ipaymu/callback", async (req, res) => {
 
     if (statusCode === 1) {
 
-      const amount = Number(
-        data.amount ||
-        data.paid_off ||
-        data.total ||
-        trx.nominal ||
-        0
-      );
+const amount = Number(
+  data.paid_off ||
+  trx.nominal ||
+  0
+);
 
       // Anti saldo dobel
       const [updateResult] = await pool.execute(
@@ -7000,11 +7296,10 @@ Saldo sekarang: Rp${saldoBaru.toLocaleString("id-ID")}`
 
 }
 
-  const replyText =
-    msg.text || msg.caption;
+const replyText =
+  msg.text || msg.caption || "";
 
-  if (!replyText) return;
-  if (!msg.reply_to_message) return;
+if (!msg.reply_to_message) return;
 
   const originalMessage =
     msg.reply_to_message.text ||
@@ -9014,34 +9309,73 @@ Accept:"application/json"
 }
 );
 
-console.log(
-"===== HEROSMS RESPONSE ====="
+/* CARI OTP */
+
+let otp =
+data.data?.value || null;
+
+/* JIKA VALUE KOSONG,
+   AMBIL DARI HTML EMAIL */
+
+if(
+!otp &&
+data.data?.message
+){
+
+/* PRIORITAS:
+   OTP DI DALAM TAG <b> */
+
+const boldMatch =
+data.data.message.match(
+/<b[^>]*>(\d{4,8})<\/b>/i
 );
 
-console.log(
-require("util").inspect(
-data,
-{
-depth:null,
-colors:true
+if(
+boldMatch &&
+boldMatch[1]
+){
+otp =
+boldMatch[1];
 }
-)
+
+/* FALLBACK:
+   ANGKA 4-8 DIGIT */
+
+if(!otp){
+
+const numberMatch =
+data.data.message.match(
+/\b\d{4,8}\b/
 );
+
+if(
+numberMatch &&
+numberMatch[0]
+){
+otp =
+numberMatch[0];
+}
+
+}
+
+}
 
 /* JIKA OTP SUDAH MASUK */
 
-if(data.data?.value){
+if(otp){
 
 await pool.execute(
 `
 UPDATE email_orders
 SET
 otp_received = 1,
-code = ?
+code = ?,
+message = ?
 WHERE id = ?
 `,
 [
-data.data.value,
+otp,
+data.data?.message || null,
 String(id)
 ]
 );
@@ -9055,12 +9389,14 @@ otp_received = 1
 WHERE activation_id = ?
 `,
 [
-data.data.value,
+otp,
 String(id)
 ]
 );
 
 }
+
+/* RESPONSE */
 
 res.json({
 
@@ -9070,7 +9406,7 @@ status:
 data.data?.status || null,
 
 code:
-data.data?.value || null,
+otp,
 
 email:
 data.data?.email || null,
@@ -9221,8 +9557,6 @@ heroErr.response?.data?.message ||
 
 }
 
-/* LOG RESPONSE */
-
 console.log(
 "HEROSMS DELETE RESPONSE:",
 JSON.stringify(
@@ -9328,6 +9662,159 @@ await conn.rollback();
 
 console.error(
 "CANCEL ERROR:",
+err.response?.data ||
+err.message ||
+err
+);
+
+return res.status(500).json({
+success:false,
+error:
+err.response?.data ||
+err.message ||
+"Terjadi kesalahan"
+});
+
+} finally {
+
+if (conn) {
+conn.release();
+}
+
+}
+
+});
+
+app.post(
+"/api/email/done/:id",
+authMiddleware,
+async (req, res) => {
+
+let conn;
+
+try {
+
+conn = await pool.getConnection();
+
+await conn.beginTransaction();
+
+const id = String(req.params.id);
+
+/* CEK ORDER */
+
+const [orders] =
+await conn.execute(
+`
+SELECT *
+FROM email_orders
+WHERE id = ?
+AND user_email = ?
+LIMIT 1
+FOR UPDATE
+`,
+[
+id,
+req.user.email
+]
+);
+
+if (!orders.length) {
+
+await conn.rollback();
+
+return res.status(404).json({
+success:false,
+message:"Order tidak ditemukan"
+});
+
+}
+
+const order = orders[0];
+
+/* SELESAIKAN DI HEROSMS */
+
+let heroResponse;
+
+try {
+
+heroResponse =
+await axios.delete(
+`${EMAIL_API}/emails/${id}`,
+{
+headers:{
+Authorization:
+`ApiKey ${process.env.HEROSMS_API_KEY}`,
+Accept:"application/json"
+},
+timeout:15000
+}
+);
+
+} catch (heroErr) {
+
+await conn.rollback();
+
+console.error(
+"HEROSMS DONE ERROR:",
+heroErr.response?.data ||
+heroErr.message
+);
+
+return res.status(500).json({
+success:false,
+message:
+heroErr.response?.data?.message ||
+"Gagal menyelesaikan email di HeroSMS"
+});
+
+}
+
+/* UPDATE HISTORY */
+
+await conn.execute(
+`
+UPDATE email_history
+SET status = 'done'
+WHERE activation_id = ?
+`,
+[
+id
+]
+);
+
+/* HAPUS ORDER AKTIF */
+
+await conn.execute(
+`
+DELETE FROM email_orders
+WHERE id = ?
+AND user_email = ?
+`,
+[
+id,
+order.user_email
+]
+);
+
+await conn.commit();
+
+return res.json({
+success:true,
+message:"Email selesai"
+});
+
+} catch (err) {
+
+if (conn) {
+
+try {
+await conn.rollback();
+} catch (_) {}
+
+}
+
+console.error(
+"DONE ERROR:",
 err.response?.data ||
 err.message ||
 err
@@ -9608,18 +10095,20 @@ try {
 const [rows] = await pool.execute(
 `
 SELECT
-activation_id,
-user_email AS userEmail,
-service,
-pesan,
-harga,
-status,
-created_at AS time,
-cancel_time AS cancelTime,
-reorder_time AS reorderTime
-FROM email_history
-WHERE user_email = ?
-ORDER BY created_at DESC
+h.activation_id,
+o.email,
+h.service,
+h.pesan,
+h.harga,
+h.status,
+h.created_at AS time,
+h.cancel_time AS cancelTime,
+h.reorder_time AS reorderTime
+FROM email_history h
+LEFT JOIN email_orders o
+ON o.id = h.activation_id
+WHERE h.user_email = ?
+ORDER BY h.created_at DESC
 `,
 [req.user.email]
 );

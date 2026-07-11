@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SeraPay Admin</title>
+
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+<header>
+
+<button id="menuBtn">☰</button>
+
+<div class="logo">
+SeraPay Admin
+</div>
+
+<input
+type="text"
+id="searchInput"
+placeholder="Cari data..."
+>
+
+</header>
+
+<div class="wrapper">
+
+<aside id="sidebar">
+
+<div class="menu active"
+data-table="home">
+🏠 Home
+</div>
+
+<div class="menu"
+data-table="users">
+👤 Users
+</div>
+
+<div class="menu"
+data-table="refund">
+💸 Refund
+</div>
+
+<div class="menu"
+data-table="topup">
+💰 Topup
+</div>
+
+<div class="menu"
+data-table="rekening">
+🏦 Rekening
+</div>
+
+<div class="menu"
+data-table="data_wd">
+💸 Withdraw
+</div>
+
+<div class="menu"
+data-table="history">
+📜 History
+</div>
+
+<div class="menu"
+data-table="facebook_fresh">
+📘 Facebook Fresh
+</div>
+
+<div class="menu"
+data-table="gaslur">
+📧 Email Custom
+</div>
+
+<div class="menu"
+data-table="gmail">
+📩 Gmail
+</div>
+
+<div class="menu"
+data-table="gmail_bekas">
+📨 Gmail Bekas
+</div>
+
+<div class="menu"
+data-table="autoresponder">
+🤖 AutoResponder
+</div>
+
+<div class="menu"
+data-table="setoran_facebook_fresh">
+📘 Setoran Facebook Fresh
+</div>
+
+<div class="menu"
+data-table="setoran_gmail_fresh">
+📩 Setoran Gmail Fresh
+</div>
+
+<div class="menu"
+data-table="setoran_gmail_bekas">
+📨 Setoran Gmail Bekas
+</div>
+
+<div class="menu"
+data-table="otp_orders">
+📱 OTP Aktif
+</div>
+
+<div class="menu"
+data-table="otp_history">
+📜 History OTP
+</div>
+
+<div class="menu"
+data-table="email_orders">
+📧 Email Aktif
+</div>
+
+<div class="menu"
+data-table="email_history">
+📚 History Email
+</div>
+
+</aside>
+
+<main>
+
+<div id="stats">
+
+<div class="card">
+<h3>Total User</h3>
+<span id="totalUser">0</span>
+</div>
+
+<div class="card">
+<h3>Total Topup</h3>
+<span id="totalTopup">0</span>
+</div>
+
+<div class="card">
+<h3>Total Saldo</h3>
+<span id="totalSaldo">0</span>
+</div>
+
+</div>
+
+<div class="tableWrap">
+
+<div class="toolbar">
+
+<button id="addBtn">
+➕ Tambah
+</button>
+
+<button id="deleteSelectedBtn">
+🗑 Hapus Terpilih
+</button>
+
+<button id="refreshBtn">
+🔄 Refresh
+</button>
+
+<button id="exportBtn">
+📥 Export CSV
+</button>
+
+<button id="importBtn">
+📤 Import XLSX
+</button>
+
+<input
+    type="file"
+    id="importFile"
+    accept=".xlsx,.xls"
+    style="display:none">
+
+</div>
+
+<table id="dataTable">
+
+<thead id="tableHead"></thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+</div>
+
+</main>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="dashboard.js"></script>
+
+</body>
+</html>

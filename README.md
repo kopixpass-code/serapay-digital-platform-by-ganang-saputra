@@ -32,7 +32,28 @@ Versi terbaru **SeraPay v3.0** menghadirkan peningkatan signifikan pada performa
 * Validasi data pada seluruh endpoint API.
 * Pembatasan akses berdasarkan autentikasi pengguna.
 * Proteksi terhadap manipulasi data transaksi.
+* Session invalidation setelah perubahan password.
+* Rate limiting pada endpoint autentikasi.
+* Audit log aktivitas login pengguna.
+* Verifikasi email sebelum aktivasi akun.
 * Perbaikan berbagai celah keamanan pada sistem versi sebelumnya.
+
+### Update Sistem Login dan Verifikasi OTP Email
+
+Versi terbaru menghadirkan sistem autentikasi generasi baru untuk meningkatkan keamanan akun pengguna.
+
+#### Fitur Baru
+
+* Update halaman Login dengan sistem keamanan terbaru.
+* Update halaman Registrasi pengguna.
+* Update halaman Lupa Password.
+* Verifikasi menggunakan OTP Email.
+* Pengiriman OTP otomatis menggunakan Nodemailer.
+* OTP memiliki masa berlaku terbatas untuk meningkatkan keamanan.
+* Pembatasan jumlah percobaan verifikasi OTP.
+* Regenerasi OTP secara otomatis apabila kode kedaluwarsa.
+* Aktivasi akun menggunakan verifikasi email.
+* Enkripsi token verifikasi pada sisi server.
 
 ### Performa dan Stabilitas
 
@@ -67,7 +88,6 @@ SeraPay dilengkapi dengan Telegram Bot khusus administrator yang memungkinkan pe
 
 Sistem ini membantu administrator melakukan operasional harian dengan lebih cepat, efisien, dan responsif tanpa bergantung pada akses dashboard web.
 
-
 ---
 
 # Fitur Utama
@@ -80,6 +100,11 @@ Sistem ini membantu administrator melakukan operasional harian dengan lebih cepa
 * Reset dan perubahan password
 * Pengelolaan profil pengguna
 * Riwayat aktivitas pengguna
+* Login menggunakan Email OTP Verification
+* Registrasi menggunakan Email OTP Verification
+* Lupa Password menggunakan verifikasi OTP Email
+* Pengiriman email otomatis menggunakan Nodemailer
+* Monitoring aktivitas login pengguna
 
 ---
 
@@ -182,11 +207,22 @@ Fitur unggulan versi 3.0:
 
 * AutoResponder berbasis Artificial Intelligence
 * Dukungan multi-bahasa
-* Integrasi API AI eksternal
 * Otomatisasi percakapan pelanggan
 * Sistem lisensi pengguna
 * Pengelolaan masa aktif lisensi
 * Respon otomatis untuk customer service
+* Integrasi dengan Live Chat Support
+* Dukungan context memory dan multi-session chat
+
+### Update AI AutoResponder Terbaru
+
+* Menggunakan Ollama sebagai AI Runtime Engine.
+* Menggunakan model **Qwen 2.5 3B** sebagai model utama.
+* Mendukung deployment lokal tanpa ketergantungan pada API AI eksternal.
+* Biaya operasional AI lebih rendah.
+* Waktu respon lebih cepat.
+* Mendukung integrasi dengan dashboard admin dan live chat secara real-time.
+* Mendukung penggunaan Customer Service AI 24/7.
 
 ---
 
@@ -253,6 +289,7 @@ Menggunakan Socket.IO untuk:
 * Riwayat percakapan
 * Monitoring aktivitas pelanggan
 * Notifikasi pesan masuk
+* Integrasi AI AutoResponder berbasis Ollama Qwen 2.5 3B
 
 ---
 
@@ -276,6 +313,8 @@ Menggunakan Socket.IO untuk:
 * JWT Authentication
 * bcrypt
 * Axios
+* Nodemailer
+* Ollama API
 
 ## Frontend
 
@@ -299,6 +338,7 @@ Menggunakan Socket.IO untuk:
 * OTP Provider API
 * Virtual Number API
 * AI API Integration
+* Ollama API
 
 ---
 
@@ -309,12 +349,16 @@ Melalui pengembangan SeraPay v3.0, saya berhasil membangun dan mengelola:
 * Full-Stack Web Application Development
 * REST API Development
 * Authentication & Authorization System
+* Email OTP Verification System
+* Nodemailer SMTP Integration
 * Payment Gateway Integration
 * Gmail API Integration
 * Real-Time System menggunakan Socket.IO
 * Marketplace Management System
 * Relational Database Design menggunakan MySQL
 * AI AutoResponder Integration
+* Ollama Integration
+* Qwen 2.5 3B Integration
 * Transaction Automation System
 * Infrastructure Migration (JSON → MySQL)
 * Bug Fixing dan System Optimization
@@ -327,4 +371,4 @@ Melalui pengembangan SeraPay v3.0, saya berhasil membangun dan mengelola:
 
 **Ganang Saputra**
 
-SeraPay Digital Platform dikembangkan sebagai proyek portfolio untuk menunjukkan kemampuan dalam merancang dan membangun aplikasi web skala menengah hingga kompleks yang mencakup pengembangan backend, frontend, database relasional, integrasi API pihak ketiga, sistem real-time, keamanan aplikasi, otomatisasi transaksi digital, serta implementasi fitur berbasis Artificial Intelligence.
+SeraPay Digital Platform dikembangkan sebagai proyek portfolio untuk menunjukkan kemampuan dalam merancang dan membangun aplikasi web skala menengah hingga kompleks yang mencakup pengembangan backend, frontend, database relasional, integrasi API pihak ketiga, sistem real-time, keamanan aplikasi, otomatisasi transaksi digital, serta implementasi fitur berbasis Artificial Intelligence modern menggunakan teknologi Large Language Model (LLM) lokal berbasis Ollama dan Qwen 2.5 3B.

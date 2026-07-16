@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+  <title>Daftar Akun • Serapay</title>
+  	<link rel="icon" href="/img/favicon.png" sizes="32x32">
+    <link rel="icon" href="/img/favicon.png" sizes="16x16">
+    <link rel="shortcut icon" href="/img/favicon.png">
+  <meta name="description" content="Daftar akun Serapay untuk membeli akun game online terpercaya dengan garansi 100% aman.">
+  <meta name="keywords" content="daftar akun game, jual akun game terpercaya, serapay register">
+
+  <link rel="stylesheet" href="/css/register.css">
+</head>
+
+<body>
+
+<div class="auth-container">
+  <div class="auth-box">
+
+    <div class="logo-box">
+      <img src="/img/logo.png" alt="Serapay Logo">
+    </div>
+
+    <h2>Daftar Akun Baru</h2>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-text">
+        Langkah <span id="currentStep">1</span> / 6
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <form id="registerForm">
+
+<!-- STEP 1 -->
+<div class="step active">
+
+  <div class="form-group">
+    <label>Nama Lengkap</label>
+
+<input
+    type="text"
+    id="name"
+    name="name"
+    placeholder="Nama lengkap"
+    autocomplete="name"
+    required
+    oninput="validateName()"
+>
+
+<small id="nameHelp" style="display:block;margin-top:6px;color:#dc2626;font-size:12px;">
+    Nama hanya boleh berisi huruf.
+</small>
+
+  </div>
+
+</div>
+
+
+
+<!-- STEP 2 -->
+<div class="step">
+  <div class="form-group">
+
+    <label>Email</label>
+
+    <input
+      type="email"
+      id="email"
+      name="email"
+      placeholder="contoh@gmail.com"
+      required
+      autocomplete="email"
+      oninput="validateGmail()"
+    >
+<small id="emailStatus"
+style="display:none;margin-top:6px;color:#dc2626;font-size:12px;">
+</small>
+
+  </div>
+</div>
+
+
+      <!-- STEP 3 -->
+      <div class="step">
+
+        <div class="form-group">
+          <label>No HP</label>
+<input
+  type="tel"
+  id="phone"
+  name="phone"
+  placeholder="08xxxxxxxxxx"
+  required
+  oninput="checkPhone()"
+>
+
+<small id="phoneStatus"
+style="display:none;margin-top:6px;color:#dc2626;font-size:12px;">
+</small>
+        </div>
+
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step">
+
+        <div class="form-group">
+          <label>Password</label>
+
+          <div style="position:relative;">
+
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="Minimal 6 karakter"
+              required
+              style="width:100%;padding-right:42px;"
+            >
+
+            <span
+              onclick="togglePassword('password')"
+              style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;"
+            >
+
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12"
+                  stroke="black"
+                  stroke-width="2"
+                  stroke-linecap="round"/>
+                <path d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12"
+                  stroke="black"
+                  stroke-width="2"
+                  stroke-linecap="round"/>
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="3"
+                  stroke="black"
+                  stroke-width="2"/>
+              </svg>
+
+            </span>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step">
+
+        <div class="form-group">
+          <label>Ulangi Password</label>
+
+          <div style="position:relative;">
+
+            <input
+              type="password"
+              name="confirm"
+              id="confirm"
+              placeholder="Ulangi password"
+              required
+              style="width:100%;padding-right:42px;"
+            >
+
+            <span
+              onclick="togglePassword('confirm')"
+              style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;"
+            >
+
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12"
+                  stroke="black"
+                  stroke-width="2"
+                  stroke-linecap="round"/>
+                <path d="M1 12C1 12 5 20 12 20C19 20 23 12 23 12"
+                  stroke="black"
+                  stroke-width="2"
+                  stroke-linecap="round"/>
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="3"
+                  stroke="black"
+                  stroke-width="2"/>
+              </svg>
+
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- STEP 6 -->
+      <div class="step">
+
+        <div style="font-size:12px;color:#666;line-height:1.6;">
+
+          <label style="display:flex;gap:8px;align-items:flex-start;">
+
+            <input
+              type="checkbox"
+              id="agreeTerms"
+              required
+              style="margin-top:3px;accent-color:#ec4899;"
+            >
+
+            <span>
+
+              Saya menyetujui
+
+              <a
+                href="/syarat-dan-ketentuan-kebijakan-privasi.html#syarat"
+                style="color:#ec4899;text-decoration:none;"
+              >
+                Syarat & Ketentuan
+              </a>
+
+              dan
+
+              <a
+                href="/syarat-dan-ketentuan-kebijakan-privasi.html#privasi"
+                style="color:#ec4899;text-decoration:none;"
+              >
+                Kebijakan Privasi
+              </a>
+
+            </span>
+
+          </label>
+
+        </div>
+
+        <button
+          type="submit"
+          class="btn"
+          style="margin-top:20px;"
+        >
+          Daftar Sekarang
+        </button>
+
+      </div>
+
+      <div id="notif"
+           style="margin-top:12px;text-align:center;font-size:14px;">
+      </div>
+
+    </form>
+
+    <!-- Navigasi -->
+    <div class="wizard-buttons">
+
+      <button
+        type="button"
+        id="prevBtn"
+        class="btn-outline"
+        style="display:none;"
+      >
+        ← Kembali
+      </button>
+
+      <button
+        type="button"
+        id="nextBtn"
+        class="btn"
+      >
+        Lanjut →
+      </button>
+
+    </div>
+
+    <div class="extra-links">
+      Sudah punya akun?
+      <a href="/login">Login</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= OTP POPUP ================= -->
+
+<div id="otpModal" class="otp-modal">
+
+<div class="otp-box">
+
+<div class="otp-icon">
+📧
+</div>
+
+<h2>Verifikasi Email</h2>
+
+<p class="otp-text">
+  Kami telah mengirim kode OTP 6 digit ke email Anda. Periksa 
+  <strong class="warning-text">SPAM</strong> / 
+  <strong class="warning-text">Kotak Masuk</strong> Anda.
+</p>
+
+<style>
+.warning-text {
+  color: red;
+  font-weight: bold;
+}
+</style>
+
+<input
+id="otpInput"
+type="text"
+maxlength="6"
+placeholder="••••••"
+autocomplete="one-time-code"
+>
+
+<div id="otpTimer">
+05:00
+</div>
+<div 
+id="otpMessage"
+style="
+margin-top:10px;
+text-align:center;
+font-size:13px;
+color:#dc2626;
+">
+</div>
+
+<div class="otp-buttons">
+
+<button
+type="button"
+class="otp-btn otp-cancel"
+onclick="closeOtpModal()">
+Batal
+</button>
+
+<button
+type="button"
+class="otp-btn otp-submit"
+onclick="verifyOTP()">
+Verifikasi
+</button>
+
+</div>
+
+<div
+id="resendOTP"
+class="otp-resend"
+onclick="resendOTP()">
+
+Kirim ulang OTP
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+function showNotif(msg, type){
+  const el = document.getElementById("notif");
+
+  el.innerText = msg;
+  el.className = "";
+
+  el.style.padding = "8px";
+  el.style.borderRadius = "8px";
+  el.style.marginTop = "10px";
+  el.style.textAlign = "center";
+  el.style.fontSize = "14px";
+
+  if(type === "success"){
+    el.style.background = "#dcfce7";
+    el.style.color = "#166534";
+  } else {
+    el.style.background = "#fee2e2";
+    el.style.color = "#991b1b";
+  }
+
+  el.style.opacity = "1";
+
+  setTimeout(()=>{
+    el.style.opacity = "0";
+    setTimeout(()=> el.innerText = "", 300);
+  }, 2500);
+}
+
+function validateName(){
+
+    const input = document.getElementById("name");
+    const help = document.getElementById("nameHelp");
+
+    // Hanya huruf dan spasi
+    input.value = input.value.replace(/[^A-Za-zÀ-ÿ\s]/g, "");
+
+    const value = input.value.trim();
+
+    if(value === ""){
+
+        help.style.display = "block";
+        help.innerHTML = "Nama hanya boleh berisi huruf.";
+        help.style.color = "#dc2626";
+        input.setCustomValidity("");
+        return;
+
+    }
+
+    if(!/^[A-Za-zÀ-ÿ\s]+$/.test(value)){
+
+        help.style.display = "block";
+        help.innerHTML = "Nama tidak boleh mengandung angka atau simbol.";
+        help.style.color = "#dc2626";
+        input.setCustomValidity("Nama tidak valid");
+
+    }else{
+
+        help.style.display = "none";
+        input.setCustomValidity("");
+
+    }
+
+}
+
+function validateGmail(){
+
+    const email = document.getElementById("email");
+    const help = document.getElementById("emailHelp");
+
+    const value = email.value.trim().toLowerCase();
+
+    if(value === ""){
+
+        help.innerHTML = "Mohon gunakan email pribadi (@gmail.com).";
+        help.style.color = "#dc2626";
+        email.setCustomValidity("");
+        return;
+
+    }
+
+    if(!value.endsWith("@gmail.com")){
+
+        help.innerHTML = "Email harus menggunakan @gmail.com";
+        help.style.color = "#dc2626";
+
+        email.setCustomValidity("Gunakan email Gmail");
+
+    }else{
+
+        help.innerHTML = "";
+        help.style.color = "#16a34a";
+
+        email.setCustomValidity("");
+
+    }
+
+}
+
+const steps = document.querySelectorAll(".step");
+
+let current = Number(
+localStorage.getItem("register_step") || 0
+);
+
+function updateStep(){
+localStorage.setItem(
+"register_step",
+current
+);
+    steps.forEach(s=>s.classList.remove("active"));
+
+    steps[current].classList.add("active");
+
+    document.getElementById("currentStep").innerText = current+1;
+
+    document.getElementById("progressFill").style.width =
+        ((current+1)/steps.length*100)+"%";
+
+    prevBtn.style.display =
+        current===0 ? "none":"block";
+
+    nextBtn.style.display =
+        current===steps.length-1 ? "none":"block";
+}
+
+updateStep();
+
+nextBtn.onclick = function () {
+
+    const inputs = steps[current].querySelectorAll("input");
+
+    for (const input of inputs) {
+
+        if (!input.checkValidity()) {
+            input.reportValidity();
+            return;
+        }
+
+    }
+
+    // STEP 2 = Email
+    if (current === 1) {
+
+        const email = document.getElementById("email").value.trim().toLowerCase();
+
+        if (!email.endsWith("@gmail.com")) {
+
+            showNotif("Gunakan email Gmail (@gmail.com)", "error");
+            return;
+
+        }
+
+    }
+
+    if (current < steps.length - 1) {
+
+        current++;
+        updateStep();
+
+    }
+
+}
+
+prevBtn.onclick=function(){
+
+    if(current>0){
+
+        current--;
+
+        updateStep();
+
+    }
+
+}
+
+document.getElementById("registerForm").addEventListener("submit", async function (e) {
+
+    e.preventDefault();
+
+    const name = document.querySelector('[name="name"]').value.trim();
+    const email = document.querySelector('[name="email"]').value.trim();
+    const phone = document.querySelector('[name="phone"]').value.trim();
+    const password = document.querySelector('[name="password"]').value.trim();
+    const confirm = document.querySelector('[name="confirm"]').value.trim();
+
+    if (password !== confirm) {
+        return showNotif("Password tidak cocok", "error");
+    }
+
+    try {
+
+const res = await fetch("/api/register", {
+    credentials:"include",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                phone,
+                password
+            })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            return showNotif(data.message, "error");
+        }
+
+if (data.otpRequired) {
+
+
+    // simpan email untuk verify OTP
+    localStorage.setItem(
+        "registerEmail",
+        data.email
+    );
+
+
+    document.getElementById("otpModal")
+    .style.display="flex";
+
+
+    localStorage.setItem("otp_pending","true");
+
+
+    console.log("START TIMER:", data.expiredAt);
+
+
+    startOtpTimer(
+        Number(data.expiredAt)
+    );
+
+
+    return;
+
+}
+
+        showNotif("Registrasi berhasil", "success");
+
+    } catch (err) {
+
+        console.error(err);
+
+        showNotif("Server error", "error");
+
+    }
+
+});
+</script>
+<script>
+function togglePassword(id){
+  const input = document.getElementById(id);
+  input.type = input.type === "password" ? "text" : "password";
+}
+</script>
+<script>
+
+let otpCountdown;
+
+async function closeOtpModal(){
+
+    document.getElementById("otpModal")
+    .style.display="none";
+
+    clearInterval(otpCountdown);
+
+}
+
+function startOtpTimer(expiredAt){
+
+    clearInterval(otpCountdown);
+
+
+    const resendBtn = document.getElementById("resendOTP");
+
+    // disable kirim ulang selama timer berjalan
+    resendBtn.style.pointerEvents = "none";
+    resendBtn.style.opacity = "0.5";
+    resendBtn.innerHTML = "Kirim ulang";
+
+
+    function runTimer(){
+
+        const distance = Number(expiredAt) - Date.now();
+
+        if(distance <= 0){
+
+            document.getElementById("otpTimer")
+            .innerHTML="Kadaluarsa";
+
+
+            clearInterval(otpCountdown);
+
+
+            // aktifkan tombol resend
+            resendBtn.style.pointerEvents = "auto";
+            resendBtn.style.opacity = "1";
+            resendBtn.innerHTML = "Kirim ulang OTP";
+
+
+            return;
+        }
+
+
+        const totalSeconds = Math.floor(distance / 1000);
+
+
+        const minutes = Math.floor(totalSeconds / 60);
+
+        const seconds = totalSeconds % 60;
+
+
+        document.getElementById("otpTimer")
+        .innerHTML =
+        String(minutes).padStart(2,"0")
+        +
+        ":"
+        +
+        String(seconds).padStart(2,"0");
+
+    }
+
+
+    runTimer();
+
+
+    otpCountdown=setInterval(
+        runTimer,
+        1000
+    );
+
+}
+
+async function verifyOTP(){
+
+
+const otp=document
+.getElementById("otpInput")
+.value
+.trim();
+
+
+
+if(otp.length!=6){
+
+return showNotif(
+"OTP harus 6 digit",
+"error"
+);
+
+}
+
+
+
+const res=await fetch(
+"/api/register/verify",
+{
+    method:"POST",
+
+    headers:{
+        "Content-Type":"application/json"
+    },
+
+body:JSON.stringify({
+
+    otp,
+
+    email:localStorage.getItem("registerEmail")
+
+})
+
+});
+
+
+const data=await res.json();
+
+
+if(!data.success){
+
+    document.getElementById("otpMessage")
+    .innerHTML = data.message || "OTP salah";
+
+    return;
+
+}
+
+
+localStorage.removeItem("registerEmail");
+localStorage.removeItem("otp_pending");
+
+localStorage.setItem(
+"token",
+data.token
+);
+
+window.location="/home";
+
+
+}
+
+
+
+async function checkPendingOTP(){
+
+
+const res = await fetch(
+"/api/register/pending-otp?email="
++
+localStorage.getItem("registerEmail")
+);
+
+
+const data = await res.json();
+
+
+
+if(data.pending){
+
+
+    document.getElementById("otpModal")
+    .style.display="flex";
+
+
+console.log("OTP EXPIRED:",data.expiredAt);
+
+
+startOtpTimer(
+ Number(data.expiredAt)
+);
+
+
+}
+
+
+}
+
+
+
+async function resendOTP(){
+
+const btn=document.getElementById("resendOTP");
+
+
+btn.style.pointerEvents="none";
+btn.style.opacity="0.5";
+
+btn.innerHTML="Mengirim...";
+
+
+try{
+
+
+const res=await fetch(
+"/api/register/resend-otp",
+{
+    method:"POST",
+
+    headers:{
+        "Content-Type":"application/json"
+    },
+
+    body:JSON.stringify({
+
+        email:
+        localStorage.getItem("registerEmail")
+
+    })
+}
+);
+
+
+const data=await res.json();
+
+
+
+if(data.success){
+
+
+document.getElementById("otpMessage")
+.style.color="#16a34a";
+
+
+document.getElementById("otpMessage")
+.innerHTML="OTP baru telah dikirim";
+
+
+startOtpTimer(
+Number(data.expiredAt)
+);
+
+
+
+}else{
+
+
+document.getElementById("otpMessage")
+.innerHTML=
+data.message || "Gagal kirim OTP";
+
+
+btn.style.pointerEvents="auto";
+btn.style.opacity="1";
+btn.innerHTML="Kirim ulang OTP";
+
+
+}
+
+
+
+}catch(e){
+
+
+document.getElementById("otpMessage")
+.innerHTML="Server error";
+
+
+btn.style.pointerEvents="auto";
+btn.style.opacity="1";
+btn.innerHTML="Kirim ulang OTP";
+
+
+}
+
+
+}
+
+let emailTimer;
+
+document.getElementById("email").addEventListener("input", function(){
+
+    clearTimeout(emailTimer);
+
+    const email=this.value.trim();
+
+    if(!email.endsWith("@gmail.com")){
+        return;
+    }
+
+    emailTimer=setTimeout(async()=>{
+
+        const res=await fetch("/api/check-email?email="+email);
+
+        const data=await res.json();
+
+        const box=document.getElementById("emailStatus");
+
+
+        if(data.exists){
+
+            box.innerHTML="Email sudah digunakan di akun lain";
+            box.style.display="block";
+
+            this.setCustomValidity("Email sudah digunakan di akun lain");
+
+        }else{
+
+            box.innerHTML="";
+            box.style.display="none";
+
+            this.setCustomValidity("");
+
+        }
+
+
+    },500);
+
+});
+
+let phoneTimer;
+
+async function checkPhone(){
+
+    clearTimeout(phoneTimer);
+
+    const phone=document.getElementById("phone").value.trim();
+
+    if(phone.length < 10){
+        return;
+    }
+
+
+    phoneTimer=setTimeout(async()=>{
+
+
+        const res=await fetch("/api/check-phone?phone="+phone);
+
+        const data=await res.json();
+
+
+        const box=document.getElementById("phoneStatus");
+
+
+        if(data.exists){
+
+            box.innerHTML="Nomor sudah digunakan di akun lain";
+            box.style.display="block";
+
+            document.getElementById("phone")
+            .setCustomValidity("Nomor sudah digunakan di akun lain");
+
+
+        }else{
+
+            box.innerHTML="";
+            box.style.display="none";
+
+            document.getElementById("phone")
+            .setCustomValidity("");
+
+        }
+
+
+    },500);
+
+} 
+
+window.addEventListener(
+"load",
+()=>{
+
+checkPendingOTP();
+
+}
+);
+
+[
+"name",
+"email",
+"phone",
+"password",
+"confirm"
+].forEach(id=>{
+
+const el=document.getElementById(id);
+
+if(!el) return;
+
+
+el.value =
+localStorage.getItem(id) || "";
+
+
+el.addEventListener("input",()=>{
+
+localStorage.setItem(
+id,
+el.value
+);
+
+});
+
+
+});
+</script>
+</body>
+</html>

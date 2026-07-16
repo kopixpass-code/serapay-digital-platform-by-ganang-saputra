@@ -1,0 +1,2541 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SeraPay AI - AutoResponder AI Indonesia untuk Balas Chat Otomatis</title>
+
+<meta name="description"
+content="SeraPay AI menyediakan layanan AutoResponder AI Indonesia untuk membalas chat otomatis menggunakan AI. Mendukung custom prompt, API key, shortlink, dan integrasi aplikasi AutoResponder dengan proses cepat dan otomatis.">
+
+<meta name="keywords"
+content="serapay, sera pay, serapay ai, autoresponder ai indonesia, auto responder ai, chatbot ai indonesia, balas chat otomatis, ai whatsapp, ai facebook, ai instagram, custom prompt ai, api key ai, server ai indonesia">
+
+<meta name="robots"
+content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+<meta name="author" content="SeraPay">
+<meta name="publisher" content="SeraPay">
+<meta name="language" content="Indonesian">
+<meta name="geo.region" content="ID">
+<meta name="geo.country" content="Indonesia">
+<meta name="distribution" content="global">
+<meta name="rating" content="general">
+<meta name="theme-color" content="#ff0077">
+
+<link rel="canonical" href="https://gaslur.com/ai.html">
+
+<link rel="icon" type="image/png" sizes="32x32" href="https://gaslur.com/img/favicon.png">
+<link rel="apple-touch-icon" href="https://gaslur.com/img/favicon.png">
+<link rel="shortcut icon" href="https://gaslur.com/favicon.ico">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="id_ID">
+<meta property="og:site_name" content="SeraPay">
+<meta property="og:url" content="https://gaslur.com/ai.html">
+
+<meta property="og:title"
+content="SeraPay AI - AutoResponder AI Indonesia">
+
+<meta property="og:description"
+content="Hubungkan aplikasi AutoResponder ke server AI SeraPay dan balas chat otomatis menggunakan custom prompt serta API key.">
+
+<meta property="og:image"
+content="https://gaslur.com/img/favicon.png">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+
+<meta name="twitter:title"
+content="SeraPay AI - AutoResponder AI Indonesia">
+
+<meta name="twitter:description"
+content="Balas chat otomatis menggunakan AI dengan custom prompt dan API key dari SeraPay.">
+
+<meta name="twitter:image"
+content="https://gaslur.com/img/favicon.png">
+
+<meta name="application-name" content="SeraPay">
+<meta name="apple-mobile-web-app-title" content="SeraPay">
+<meta name="format-detection" content="telephone=no">
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"SoftwareApplication",
+  "name":"SeraPay AI",
+  "applicationCategory":"BusinessApplication",
+  "operatingSystem":"Android",
+  "description":"AutoResponder AI Indonesia untuk membalas chat otomatis menggunakan AI dengan custom prompt dan API key.",
+  "url":"https://gaslur.com/ai.html",
+  "publisher":{
+    "@type":"Organization",
+    "name":"SeraPay"
+  }
+}
+</script>
+
+<style>
+/* --- CSS MODERN PREMIUM (COMPACT PINK & WHITE THEME) --- */
+
+:root {
+    /* Color Palette */
+    --bg-main: #fcf6f8;         /* Latar belakang web soft pink-white */
+    --bg-card: #ffffff;         /* Putih bersih untuk kontainer/kartu */
+    --bg-input: #f8fafc;        /* Abu-abu terang untuk form input */
+    --pink-header: #db2777;     /* Pink pekat premium untuk Header & Sidebar */
+    --pink-header-hover: #be185d;/* Pink lebih gelap untuk hover menu */
+    --pink-primary: #ec4899;    /* Hot pink modern untuk tombol/aksen */
+    --pink-light: #fce7f3;      /* Pink pastel lembut untuk badge / input copy */
+    --text-main: #1e293b;       /* Slate gelap untuk tulisan utama */
+    --text-muted: #64748b;      /* Slate abu-abu untuk teks sekunder */
+    --border-color: #f1f5f9;    /* Garis pembatas super tipis */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-md: 0 10px 30px -5px rgba(219, 39, 119, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+}
+
+/* --- RESET & BASE STYLES --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    line-height: 1.4; /* Jarak baris dirapatkan agar compact */
+    -webkit-font-smoothing: antialiased;
+}
+
+/* --- LAYOUT WRAPPER --- */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    padding-top: 75px; /* Disesuaikan dengan tinggi topbar yang diperkecil */
+    padding-left: 10px;
+    padding-right: 10px;
+    transition: all 0.25s ease;
+}
+
+@media (min-width: 1024px) {
+    .wrapper {
+        padding-left: 250px; /* Lebar sidebar diperkecil agar proporsional */
+        padding-right: 20px;
+    }
+}
+
+/* --- AMBIL & GANTI BAGIAN TOPBAR DENGAN KODE INI --- */
+
+/* --- TOPBAR / HEADER (WHITE THEME) --- */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px; 
+    background-color: #ffffff; /* Mengubah background menjadi putih bersih */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color); /* Menambahkan border bawah tipis agar terpisah dari konten */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03); /* Memperhalus bayangan */
+}
+
+.topbar .left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Tombol Toggle Menu (Garis Tiga) di HP */
+.menu-toggle {
+    font-size: 20px; 
+    cursor: pointer;
+    color: var(--pink-header); /* Mengubah warna icon menjadi pink agar kontras di atas putih */
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.menu-toggle:hover {
+    background: var(--pink-light); /* Efek hover menjadi pink soft */
+}
+
+@media (min-width: 1024px) {
+    .menu-toggle {
+        display: none; 
+    }
+}
+
+/* --- USER INFO (TOPBAR RIGHT) - DISESUAIKAN UNTUK BG PUTIH --- */
+.user-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-input); /* Mengubah background info user menjadi abu-abu sangat terang */
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: none; 
+    max-width: 280px;
+}
+
+.avatar img {
+    width: 28px; 
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 1.5px solid var(--pink-primary); /* Border avatar diganti menjadi pink */
+}
+
+.user-info-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0px; 
+}
+
+.user-info-box .nama {
+    font-size: 11px; 
+    font-weight: 600;
+    color: var(--text-main); /* Mengubah warna nama menjadi gelap (slate) */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+}
+
+#userid {
+    font-size: 9px;
+    color: #ffffff; /* Mengubah teks ID menjadi putih */
+    background: var(--pink-header); /* Mengubah background badge ID menjadi pink */
+    padding: 0px 6px;
+    border-radius: 30px;
+    font-weight: 700;
+}
+
+.saldo {
+    font-size: 11px;
+    font-weight: 700;
+    color: #10b981; /* Mengubah warna hijau menjadi emerald yang lebih teduh di background putih */
+}
+
+/* --- SIDEBAR (PINK THEME) --- */
+.sidebar {
+    position: fixed;
+    top: 56px; /* Mengikuti tinggi topbar baru */
+    left: -230px;
+    width: 230px; /* Diperkecil dari 260px */
+    height: calc(100vh - 56px); 
+    background-color: var(--pink-header); /* Menggunakan warna pink */
+    border-right: none; /* BORDER DIHAPUS */
+    z-index: 99; 
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 12px 0;
+    overflow-y: auto;
+}
+
+.sidebar.active {
+    left: 0;
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.15);
+}
+
+@media (min-width: 1024px) {
+    .sidebar {
+        left: 0;
+    }
+}
+
+/* SIDEBAR MENU */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* Lebih rapat */
+    padding: 0 10px;
+}
+
+.menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.8); /* Teks putih transparan */
+    text-decoration: none;
+    padding: 9px 12px; /* Lebih tipis */
+    border-radius: 8px;
+    font-size: 13px; /* Font diperkecil */
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.menu a svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:white;
+  stroke-width:2;
+  flex-shrink:0;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+}
+
+a[href="/livechat"] svg,
+a[href="/livechat"] svg *{
+fill:#fff !important;
+stroke:#fff !important;
+}
+
+.menu a:hover{
+  background:rgba(255,255,255,0.2);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.35);
+}
+
+.menu a.logout {
+    margin-top: 20px;
+    color: #fca5a5;
+}
+
+.menu a.logout:hover {
+    background-color: #991b1b;
+    color: #ffffff;
+}
+
+/* OVERLAY MOBILE */
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 56px 0 0 0;
+    background: rgba(15, 23, 42, 0.15);
+    backdrop-filter: blur(2px);
+    z-index: 98;
+}
+
+.overlay.active {
+    display: block;
+}
+
+.confirm-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.4);
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+/* --- CARD BOX ORDER SEKEREN MUNGKIN --- */
+.card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: none; /* BORDER UTAMA DIHAPUS */
+    padding: 18px;
+    margin: 15px auto;
+    width: 100%;
+    max-width: 440px; /* Dibuat lebih ramping dan proporsional */
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efek background keren abstrak di balik card box order */
+.card::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 130px;
+    height: 130px;
+    background: radial-gradient(circle, rgba(236,72,153,0.08) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.card.license {
+    background: linear-gradient(180deg, #ffffff 0%, #fff5f8 100%);
+    margin-top: 20px;
+    padding-top: 25px; 
+}
+
+.card .title {
+    font-size: 15px; /* Font title lebih kalem */
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 16px;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- FORMS & INPUTS --- */
+.label {
+    font-size: 11px; /* Diperkecil */
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-top: 10px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+input, select {
+    width: 100%;
+    padding: 9px 12px; /* Lebih ramping */
+    background-color: var(--bg-input);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 13px; /* Font disesuaikan */
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--pink-primary);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px var(--pink-light);
+}
+
+input.copy {
+    cursor: pointer;
+    background-color: var(--pink-light);
+    border: 1px dashed var(--pink-primary);
+    color: var(--pink-dark);
+    font-weight: 600;
+    padding: 7px 12px;
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+    margin-top: 2px;
+}
+
+/* QUANTITY BUTTONS */
+.qty {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 130px;
+}
+
+.qty button {
+    width: 32px; /* Tombol disusutkan ukurannya */
+    height: 32px;
+    background: var(--pink-light);
+    border: none;
+    color: var(--pink-dark);
+    border-radius: 7px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.qty button:hover {
+    background: var(--pink-primary);
+    color: white;
+}
+
+.qty input {
+    text-align: center;
+    padding: 6px;
+    font-weight: 700;
+}
+
+/* NOTES & LINKS */
+.note {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.refund-note {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--pink-primary);
+    text-decoration: none;
+    margin-top: 8px;
+    font-weight: 600;
+}
+
+.refund-note:hover {
+    text-decoration: underline;
+}
+
+/* --- BUTTONS (TIDAK TERLALU BESAR) --- */
+button.order, button.extend, button.reset {
+    width: 100%;
+    padding: 10px 14px; /* Diperkecil agar pas digenggam dan tidak dominan */
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: all 0.15s ease;
+}
+
+button.order {
+    background: linear-gradient(135deg, var(--pink-primary), #db2777);
+    color: white;
+    box-shadow: 0 3px 10px rgba(236, 72, 153, 0.2);
+}
+
+button.extend { background: #0ea5e9; color: white; }
+button.reset { background: #ef4444; color: white; }
+
+button:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* --- LICENSE BADGES --- */
+.license-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    color: #10b981;
+    margin: 6px 0;
+}
+
+/* --- POPUP / MODAL --- */
+.popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.2);
+    backdrop-filter: blur(4px);
+    z-index: 101;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+
+.popup .box {
+    background: var(--bg-card);
+    border: none; /* BORDER DIHAPUS */
+    padding: 20px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 380px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.popup h3 {
+    font-size: 15px;
+    color: var(--text-main);
+    text-align: center;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.close-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* --- AI PROMPT TEXTAREA MODERN --- */
+.ai-prompt-box {
+    width: 100%;
+    min-height: 160px; /* Disesuaikan tinggi minimalnya */
+    padding: 12px;
+    background: var(--bg-input);
+    color: #9ca3af;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.4
+	;
+    resize: vertical;
+    outline: none;
+    transition: all .2s ease;
+}
+
+.ai-prompt-box:focus {
+    border-color: var(--pink-primary);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px var(--pink-light);
+}
+
+.ai-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--pink-primary);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ai-label span {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* PROMPT EDITOR */
+.prompt-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--pink-primary);
+}
+
+.prompt-editor {
+    margin-top: 8px;
+    background: var(--bg-card);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.ai-prompt-edit {
+    width: 100%;
+    height: 130px;
+    padding: 10px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+}
+
+.ai-prompt-edit:focus {
+    border-color: var(--pink-primary);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px var(--pink-light);
+}
+
+.prompt-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.save-prompt {
+    background: linear-gradient(135deg, var(--pink-primary), var(--pink-header-hover));
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* --- TOAST NOTIFICATION --- */
+#toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none; /* Tanpa border */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    opacity: 0;
+    pointer-events: none;
+    transition: all .3s ease;
+    z-index: 9999;
+    max-width: 90%;
+}
+
+#toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+#toast.success { color: #065f46; background: #e6fdf4; }
+#toast.error { color: #991b1b; background: #fdf2f2; }
+#toast.info { color: #075985; background: #f0f9ff; }
+
+/* --- CONFIRM MODAL --- */
+.confirm-box {
+    width: 100%;
+    max-width: 330px;
+    background: var(--bg-card);
+    border: none; /* Border dihapus */
+    border-radius: 16px;
+    padding: 18px;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.confirm-box h3 {
+    color: var(--text-main);
+    font-size: 15px;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.confirm-box p {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+.confirm-actions button {
+    padding: 9px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.btn-cancel {
+    background: var(--bg-input);
+    color: var(--text-main);
+}
+
+.main-layout{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:24px;
+    width:100%;
+    max-width:1500px;
+    margin:20px auto;
+    padding:0 20px;
+}
+
+.order-column,
+.result-column{
+    min-width:0;
+}
+
+.order-column .card,
+.result-column .card{
+    width:100%;
+    margin:0;
+    max-width:none;
+}
+
+.result-column #licenseContainer{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media (min-width:1024px){
+
+    .main-layout{
+        grid-template-columns:430px minmax(0,1fr);
+        height:calc(100vh - 76px);
+        overflow:hidden;
+        align-items:stretch;
+    }
+
+    .order-column,
+    .result-column{
+        height:100%;
+        overflow-y:auto;
+        overscroll-behavior:contain;
+        padding-right:8px;
+    }
+
+    .order-column::-webkit-scrollbar,
+    .result-column::-webkit-scrollbar{
+        width:8px;
+    }
+
+    .order-column::-webkit-scrollbar-thumb,
+    .result-column::-webkit-scrollbar-thumb{
+        background:#f3a4c7;
+        border-radius:20px;
+    }
+
+    .order-column::-webkit-scrollbar-track,
+    .result-column::-webkit-scrollbar-track{
+        background:#f7f7f7;
+        border-radius:20px;
+    }
+
+}
+
+/* Monitor besar */
+
+@media (min-width:1400px){
+
+    .main-layout{
+        grid-template-columns:460px minmax(0,1fr);
+    }
+
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width:1023px){
+
+    .main-layout{
+        grid-template-columns:1fr;
+        height:auto;
+        padding:0 12px;
+        overflow:visible;
+    }
+
+    .order-column,
+    .result-column{
+        height:auto;
+        overflow:visible;
+        padding-right:0;
+    }
+
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="wrapper">
+
+<div id="overlay"
+class="overlay"
+onclick="closeMenu()">
+</div>
+
+<div class="sidebar" id="sidebar">
+<div class="menu">
+
+  <a href="/home">
+    <svg viewBox="0 0 32 32">
+      <polyline points="3,17 16,4 29,17"/>
+      <polyline points="6,14 6,27 13,27 13,17 19,17 19,27 26,27 26,14"/>
+    </svg>
+    Home
+  </a>
+
+  <a href="/riwayat.html">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 8v5l3 2"/>
+      <path d="M3 12a9 9 0 1 0 3-6.7"/>
+      <path d="M3 4v5h5"/>
+    </svg>
+    Riwayat
+  </a>
+  
+<a href="/ai.html">
+
+<svg
+viewBox="0 0 512 512"
+width="20"
+height="20"
+xmlns="http://www.w3.org/2000/svg">
+
+<path fill="white"
+d="M384 128V384H128V128H384ZM235.75 192H198.4L128 384H161.6L175.2 346.4H259.2L272.4 384H307.2L235.75 192ZM320 192H286.4V384H320V192ZM216 224L248 315H184L216 224ZM416 384H480V448H416V384ZM128 416H192V480H128V416ZM256 416H320V480H256V416ZM128 0H192V64H128V0ZM256 0H320V64H256V0ZM384 256H448V320H384V256ZM0 256H64V320H0V256ZM384 128H448V192H384V128ZM0 128H64V192H0V128Z"/>
+
+</svg>
+
+Autoresponder AI
+
+</a>
+
+  <a href="/deposit.html">
+    <svg viewBox="0 0 24 24">
+      <rect x="2" y="6" width="20" height="12" rx="2"/>
+      <circle cx="16" cy="12" r="2"/>
+    </svg>
+    Isi Saldo
+  </a>
+
+  <a href="/pengaturan.html">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06
+      a2 2 0 1 1-2.83 2.83l-.06-.06
+      a1.65 1.65 0 0 0-1.82-.33
+      1.65 1.65 0 0 0-1 1.51V21
+      a2 2 0 1 1-4 0v-.09
+      a1.65 1.65 0 0 0-1-1.51
+      1.65 1.65 0 0 0-1.82.33l-.06.06
+      a2 2 0 1 1-2.83-2.83l.06-.06
+      a1.65 1.65 0 0 0 .33-1.82
+      1.65 1.65 0 0 0-1.51-1H3
+      a2 2 0 1 1 0-4h.09
+      a1.65 1.65 0 0 0 1.51-1
+      1.65 1.65 0 0 0-.33-1.82l-.06-.06
+      a2 2 0 1 1 2.83-2.83l.06.06
+      a1.65 1.65 0 0 0 1.82.33H9
+      a1.65 1.65 0 0 0 1-1.51V3
+      a2 2 0 1 1 4 0v.09
+      a1.65 1.65 0 0 0 1 1.51
+      1.65 1.65 0 0 0 1.82-.33l.06-.06
+      a2 2 0 1 1 2.83 2.83l-.06.06
+      a1.65 1.65 0 0 0-.33 1.82V9
+      a1.65 1.65 0 0 0 1.51 1H21
+      a2 2 0 1 1 0 4h-.09
+      a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    Pengaturan
+  </a>
+
+
+  
+<a href="/faq.html">
+<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 1a11 11 0 1 0 11 11A11 11 0 0 0 12 1z"/>
+  <path d="M12 17h.01"/>
+  <path d="M10.6 9a2.4 2.4 0 1 1 4.8 0c0 2-2.4 2.2-2.4 4"/>
+</svg>
+  FAQ
+</a>
+
+<a href="/setoran/setor-facebook-fresh.html">
+<svg
+viewBox="0 0 32 32"
+width="20"
+height="20"
+xmlns="http://www.w3.org/2000/svg">
+
+<path fill="white" d="M9.5,9h2C11.776,9,12,9.224,12,9.5S11.776,10,11.5,10h-2C9.224,10,9,9.776,9,9.5S9.224,9,9.5,9z
+M19,9.5c0,0.276,0.224,0.5,0.5,0.5h2c0.276,0,0.5-0.224,0.5-0.5S21.776,9,21.5,9h-2C19.224,9,19,9.224,19,9.5z
+M4.5,19C4.224,19,4,19.224,4,19.5v2C4,21.776,4.224,22,4.5,22S5,21.776,5,21.5v-2C5,19.224,4.776,19,4.5,19z
+M4.5,14C4.224,14,4,14.224,4,14.5v2C4,16.776,4.224,17,4.5,17S5,16.776,5,16.5v-2C5,14.224,4.776,14,4.5,14z
+M6.5,9h-2C4.224,9,4,9.224,4,9.5v2C4,11.776,4.224,12,4.5,12S5,11.776,5,11.5V10h1.5C6.776,10,7,9.776,7,9.5S6.776,9,6.5,9z
+M4.5,24C4.224,24,4,24.224,4,24.5v2C4,26.776,4.224,27,4.5,27S5,26.776,5,26.5v-2C5,24.224,4.776,24,4.5,24z
+M26.5,9h-2C24.224,9,24,9.224,24,9.5s0.224,0.5,0.5,0.5H26v21H5v-1.5C5,29.224,4.776,29,4.5,29S4,29.224,4,29.5v2C4,31.776,4.224,32,4.5,32h22
+c0.276,0,0.5-0.224,0.5-0.5v-22C27,9.224,26.776,9,26.5,9z
+M16,21c0.276,0,0.5-0.224,0.5-0.5V1.707l4.146,4.147
+c0.195,0.195,0.512,0.195,0.707,0s0.195-0.512,0-0.707l-5-5
+c-0.195-0.195-0.512-0.195-0.707,0l-5,5
+c-0.195,0.195-0.195,0.512,0,0.707
+c0.195,0.195,0.512,0.195,0.707,0L15.5,1.707V20.5C15.5,20.776,15.724,21,16,21z"/>
+
+</svg>
+  Setor Akun
+</a>
+
+<a href="/livechat">
+<svg
+version="1.1"
+xmlns="http://www.w3.org/2000/svg"
+viewBox="0 0 490 490"
+fill="#fff">
+
+<g>
+<g>
+<path d="M385.987,222.307c-6.738,0-12.2,5.467-12.2,12.209v112.818c0,6.74,5.462,5.469,12.2,12.209c6.739,0,12.21-5.469,12.21-12.209V234.516C398.197,227.773,392.727,222.307,385.987,222.307z"/>
+
+<path d="M104.013,222.307c-6.743,0-12.21,5.467-12.21,12.209v112.818c0,6.74,5.467,12.209,12.21,12.209c6.737,0,12.2-5.469,12.2-12.209V234.516C116.213,227.773,110.75,222.307,104.013,222.307z"/>
+</g>
+
+<g>
+<path d="M462.781,228.545c-0.727-57.113-23.29-110.707-63.765-151.182c-41.14-41.139-95.84-63.793-154.018-63.793S132.123,36.225,90.981,77.363c-40.475,40.475-63.035,94.068-63.763,151.184C10.806,239.682,0,258.492,0,279.772v22.307c0,34.105,27.75,61.855,61.859,61.855c9.169,0,16.597-7.432,16.597-16.6V234.516c0-9.17-7.428-16.598-16.597-16.598c-1.655,0-3.282,0.08-4.904,0.209c3.415-48.891,25.546-92.693,59.262-124.285c0.761,3.357,2.092,6.643,4.041,9.719c9.1,14.344,28.101,18.594,42.445,9.492c24.45-15.514,52.905-23.715,82.296-23.715c29.392,0,57.846,8.201,82.295,23.715c14.346,9.102,33.347,4.852,42.447-9.492c1.95-3.076,3.281-6.361,4.042-9.719c33.714,31.592,55.845,75.395,59.262,124.285c-1.624-0.129-3.249-0.209-4.904-0.209c-9.169,0-16.597,7.428-16.597,16.598v112.818c0,6.832,4.125,12.697,10.022,15.238c-2.12,6.299-4.604,12.322-7.537,17.984c-14.252,27.492-37.34,44.205-71.321,51.18c-4.743-8.389-13.737-14.053-24.055-14.053h-46.292c-15.25,0-27.621,12.367-27.621,27.625v3.502c0,15.254,12.371,27.619,27.621,27.619h46.292c10.75,0,20.056-6.146,24.624-15.109c17.612-3.15,33.261-8.4,46.774-15.76c21.522-11.715,38.341-29.051,49.983-51.531c5.727-11.047,10.02-22.992,13.239-35.449C474.892,348.928,490,327.238,490,302.078v-22.307C490,258.492,479.195,239.682,462.781,228.545z"/>
+</g>
+</g>
+
+</svg>
+
+Live Chat
+</a>
+
+<a href="/notepad.html" class="menu-item">
+    <svg viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
+        <g fill="currentColor" fill-rule="evenodd">
+            <path d="M106.667 267H320v213.333h853.33V267h213.34v160h106.66V160.333h-329.1C1142.26 98.19 1083 53.667 1013.33 53.667H480c-69.665 0-128.931 44.523-150.896 106.666H0V1867h1493.33v-320h-106.66v213.33H106.667V267Zm320 106.667v-160c0-29.456 23.878-53.334 53.333-53.334h533.33c29.46 0 53.34 23.878 53.34 53.334v160H426.667Z"/>
+            <path d="m1677.57 528.309 225.88 225.883c22.02 22.023 22.02 57.713 0 79.849L1225.8 1511.69c-10.62 10.5-24.96 16.49-39.98 16.49H959.937c-31.171 0-56.47-25.3-56.47-56.47v-225.89c0-15.02 5.986-29.36 16.489-39.86L1597.6 528.309c22.14-22.136 57.83-22.136 79.97 0Zm-155.41 235.144 146.03 146.033 115.43-115.426-146.04-146.033-115.42 115.426Zm-505.75 651.787h146.03l425.9-425.9-146.03-146.038-425.9 425.898v146.04Z"/>
+        </g>
+    </svg>
+    Notepad
+</a>
+
+  <a href="#" onclick="event.preventDefault(); logout()" class="logout">
+    <svg viewBox="0 0 24 24">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+    Logout
+  </a>
+
+</div>
+  
+</div>
+
+<div class="topbar">
+
+<div class="left">
+
+<span
+class="menu-toggle"
+onclick="toggleMenu()">
+
+☰
+
+</span>
+
+<b style="color:#be185d">
+
+Autoresponder For AI
+
+</b>
+
+</div>
+
+<div class="user-right">
+
+    <div class="avatar">
+        <img id="avatar"
+             src="/css/img/avatar1.png">
+    </div>
+
+    <div class="user-info-box">
+
+        <div class="nama" id="nama">
+            Silahkan Login...
+        </div>
+
+        <span id="userid">-</span>
+
+        <div class="saldo">
+            <span id="saldo">0</span>
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="main-layout">
+
+    <!-- =========================
+         KOLOM KIRI : FORM ORDER
+    ========================== -->
+    <div class="order-column">
+
+        <div class="card">
+
+            <div class="title">
+                Order Lisensi Key AutoResponder AI
+            </div>
+
+            <div class="label">
+                Jumlah Lisensi
+            </div>
+
+            <div class="qty">
+                <button onclick="min()">-</button>
+
+                <input
+                    id="qty"
+                    value="1">
+
+                <button onclick="plus()">+</button>
+            </div>
+
+            <div class="label">
+                Masa Aktif
+            </div>
+
+            <select id="masaAktif">
+                <option value="3">3 Hari Rp 5.000</option>
+                <option value="7">7 Hari Rp 10.000</option>
+                <option value="30">30 Hari Rp 25.000</option>
+                <option value="365">1 Tahun Rp 200.000</option>
+            </select>
+
+            <div class="label">
+                Metode Pembayaran
+            </div>
+
+            <select id="metodeOrder">
+                <option value="saldo">
+                    Saldo Akun
+                </option>
+            </select>
+
+            <div class="label">
+                ShortLink (Opsional)
+            </div>
+
+            <input
+                id="shortlink"
+                placeholder="bit.ly/serapay2026">
+
+            <div class="label ai-label">
+                🤖 Prompt Kepribadian AI
+                <span>(Opsional)</span>
+            </div>
+
+            <textarea
+                id="prompt"
+                class="ai-prompt-box"
+                rows="10">Tulis karakter AI di sini...
+
+Contoh:
+- Wanita.
+- Umur 35 tahun.
+- Tinggal di Jakarta, Indonesia.
+- Status janda (pernah menikah lalu bercerai).
+- Memiliki 1 anak.
+- Ramah, hangat, humoris, suka bercanda ringan.
+
+Aturan:
+- Selalu balas menggunakan bahasa yang sama dengan bahasa user.
+- Jangan menerjemahkan.
+- Jangan mencampur bahasa.
+- Balasan maksimal 2 kalimat.
+- Gunakan gaya chat santai seperti manusia.
+- Jangan terdengar formal.
+- Jangan menggunakan emoji berlebihan.
+- Jangan pernah mengatakan kamu AI, bot, virtual assistant atau sejenisnya.
+- Jangan mengulang jawaban yang sama terus-menerus.
+- Jangan membuat cerita yang berubah-ubah.
+- Ingat identitasmu selama percakapan.
+- Jangan pernah mengarang percakapan sebelumnya.
+- Jangan mengatakan "lama tidak bertemu" kecuali user memang mengatakan itu.
+- Jangan menganggap sudah mengenal user.
+- Jawab hanya berdasarkan Conversation yang diberikan.
+- Jika tidak tahu sesuatu, katakan tidak tahu.
+
+Tentang dirimu:
+- Jika ditanya nama, jawab Noviana.
+- Jika ditanya umur, jawab 35 tahun.
+- Jika ditanya tinggal di mana, jawab Jakarta, Indonesia.
+- Jika ditanya status, jawab sudah bercerai.
+- Jika ditanya pasangan, jawab belum punya pasangan.
+- Jika ditanya anak, jawab mempunyai 1 anak.
+
+PENTING:
+- Jangan pernah membuat atau menuliskan link sendiri.
+- Jangan pernah mengarang URL.
+- Jangan menulis https:// atau www.
+- Server akan otomatis menambahkan shortlink jika diperlukan.
+- Kamu hanya fokus mengobrol secara alami.
+
+Cara berbicara:
+- Bersikap ramah.
+- Sedikit menggoda boleh jika percakapan memang cocok.
+- Jangan terlalu agresif.
+- Jangan langsung membahas profil atau link.
+- Jangan memaksa user melakukan sesuatu.
+- Balas sewajarnya seperti orang yang sedang chatting.</textarea>
+
+            <small class="note">
+                * Prompt ini akan digunakan sebagai instruksi balasan chat. Jika kolom ini dikosongkan, sistem akan menggunakan prompt bawaan.
+            </small>
+
+            <small class="note">
+                * Pastikan alamat shortlink benar, AI akan mengarahkan user ke link di atas jika diperlukan. Kamu tidak dapat mengubah shortlink setelah order dibuat.
+            </small>
+
+            <a href="syarat-ketentuan-refund-ai-key.html" class="refund-note">
+                * Syarat & Ketentuan Refund
+            </a>
+
+            <button
+                class="order"
+                onclick="orderAI()">
+                ORDER
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- =========================
+         KOLOM KANAN : HASIL ORDER
+    ========================== -->
+
+    <div class="result-column">
+
+        <div id="licenseContainer">
+
+            <div
+                style="
+                text-align:center;
+                padding:25px;
+                color:#999;
+                background:#fff;
+                border-radius:16px;
+                box-shadow:var(--shadow-md);">
+
+                Belum ada lisensi aktif
+
+            </div>
+
+        </div>
+</div>
+    </div>
+
+</div>
+
+<!-- =========================
+     POPUP PERPANJANG
+========================== -->
+
+<div
+    class="popup"
+    id="pop">
+
+    <div class="box">
+
+        <button
+            class="close-btn"
+            onclick="closeExtendPopup()">
+            ✕
+        </button>
+
+        <h3>
+            Perpanjang Masa Aktif
+        </h3>
+
+        <br>
+
+        <select id="extendHari">
+            <option value="3">3 Hari 5RB</option>
+            <option value="7">7 Hari 10RB</option>
+            <option value="30">30 Hari 25RB</option>
+            <option value="365">1 Tahun 200RB</option>
+        </select>
+
+        <br><br>
+
+        <select id="metodeBayar">
+            <option value="saldo">
+                Saldo Akun
+            </option>
+        </select>
+
+        <br><br>
+
+        <button
+            class="order"
+            onclick="showQR()">
+            OK
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+async function loadUser(){
+
+const token=
+localStorage.getItem(
+"token"
+);
+
+if(!token){
+
+location.href=
+"/login";
+
+return;
+
+}
+
+try{
+
+const res=
+await fetch(
+"/api/me",
+{
+headers:{
+authorization:
+token
+}
+}
+);
+
+const data=
+await res.json();
+
+if(
+!data.success
+){
+
+alert(
+"Login expired"
+);
+
+localStorage.removeItem(
+"token"
+);
+
+location.href=
+"/login";
+
+return;
+
+}
+
+const user=
+data.user;
+
+
+document
+.getElementById(
+"nama"
+)
+.innerText=
+user.name;
+
+
+document
+.getElementById(
+"userid"
+)
+.innerText=
+user.id;
+
+
+document
+.getElementById(
+"saldo"
+)
+.innerText=
+"Rp"+
+Number(
+user.saldo||0
+)
+.toLocaleString(
+"id-ID");
+
+
+document
+.getElementById(
+"avatar"
+)
+.src=
+"/css/img/avatar1.png";
+
+
+}catch(err){
+
+console.log(
+"ERROR:",
+err
+);
+
+}
+
+}
+
+loadUser();
+
+function plus(){
+
+let x=
+document.getElementById("qty");
+
+x.value=
+parseInt(x.value)+1;
+
+}
+
+function min(){
+
+let x=
+document.getElementById("qty");
+
+if(x.value>1){
+
+x.value=
+parseInt(x.value)-1;
+
+}
+
+}
+
+let lisensi=[];
+
+async function loadLisensi(){
+
+const token=
+localStorage.getItem(
+"token"
+);
+
+const res=
+await fetch(
+"/api/autoresponder",
+{
+headers:{
+authorization:
+token
+}
+}
+);
+
+const data=
+await res.json();
+
+if(
+data.success
+){
+
+lisensi=
+data.data;
+
+renderLicense();
+
+}
+
+}
+
+loadLisensi();
+
+
+async function orderAI(){
+
+let link=
+document
+.getElementById(
+"shortlink"
+)
+.value
+.trim();
+
+const prompt =
+document
+.getElementById("prompt")
+.value
+.trim();
+
+const qty=
+Number(
+document
+.getElementById(
+"qty"
+).value
+);
+
+const expired=
+Number(
+document
+.getElementById(
+"masaAktif"
+).value
+);
+
+const metode=
+document
+.getElementById(
+"metodeOrder"
+).value;
+
+const hargaMap={
+
+3:5000,
+7:10000,
+30:25000,
+365:200000
+
+};
+
+const total=
+(
+hargaMap[expired]
+||0
+)
+*
+qty;
+
+if(
+metode==="qris"
+){
+
+const qr=
+await fetch(
+"/api/topup/create",
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+authorization:
+localStorage.getItem(
+"token"
+)
+
+},
+
+body:
+JSON.stringify({
+
+nominal:total
+
+})
+
+}
+
+);
+
+const data=
+await qr.json();
+
+if(
+!data.success
+){
+
+alert(
+"Gagal membuat QR"
+);
+
+return;
+
+}
+
+document
+.getElementById(
+"qr"
+).innerHTML=
+
+`<img
+src="${
+data.payment.qrUrl
+}"
+style="
+width:100%
+">`;
+
+document
+.getElementById(
+"pop"
+).style.display=
+"flex";
+
+return;
+
+}
+
+const token=
+localStorage.getItem(
+"token"
+);
+
+const res=
+await fetch(
+"/api/autoresponder/order",
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+authorization:
+token
+
+},
+
+body: JSON.stringify({
+
+qty,
+shortlink: link,
+prompt,
+expired,
+metode
+
+})
+
+}
+
+);
+
+const data=
+await res.json();
+
+if(
+data.success
+){
+
+loadLisensi();
+
+toast(
+"Order berhasil",
+"success"
+);
+
+}
+
+}
+
+
+function renderLicense(){
+
+let wrap=
+document
+.getElementById(
+"licenseContainer"
+);
+
+if(
+!lisensi.length
+){
+
+wrap.innerHTML=`
+
+<div
+style="
+text-align:center;
+padding:25px;
+color:#999">
+
+Belum ada lisensi aktif
+
+</div>
+
+`;
+
+return;
+
+}
+
+wrap.innerHTML="";
+
+lisensi.forEach((item,index)=>{
+
+function escapeHtml(str = "") {
+
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+const expired = Number(item.expired_at || item.expiredAt || 0);
+
+const expiredStatus = Date.now() >= expired;
+
+const hari = Math.max(
+    0,
+    Math.ceil((expired - Date.now()) / 86400000)
+);
+wrap.innerHTML+=`
+
+<div class="card license">
+
+<div style="
+display:flex;
+justify-content:flex-end;
+align-items:center;
+gap:5px;
+width:100%;
+margin-bottom:18px;
+">
+
+<div style="
+display:inline-flex;
+align-items:center;
+justify-content:center;
+height:26px;
+padding:0 10px;
+border-radius:5px;
+background:${expiredStatus ? "#dc2626" : "#16a34a"};
+color:#fff;
+font-size:11px;
+font-weight:600;
+white-space:nowrap;
+">
+${expiredStatus ? "❌ Kadaluarsa" : "⏳ " + hari + " Hari Lagi"}
+</div>
+
+${
+Number(item.used_once) === 0
+?
+`
+<button
+onclick="hapusLisensi('${item.id}')"
+style="
+display:inline-flex;
+align-items:center;
+justify-content:center;
+height:26px;
+padding:0 10px;
+background:#dc2626;
+color:#fff;
+border:none;
+border-radius:20px;
+font-size:11px;
+font-weight:600;
+cursor:pointer;
+white-space:nowrap;
+">
+🗑 Batalkan
+</button>
+`
+:
+""
+}
+
+</div>
+
+<h3>Lisensi ${index+1}</h3>
+
+<h3 class="license-title">
+Lisensi AI Aktif
+</h3>
+
+<button
+class="extend"
+onclick="popup('${item.id}')">
+
+Perpanjang Lisensi
+
+</button>
+
+
+<div class="label" style="
+margin-top:12px;
+font-size:15px;
+font-weight:bold;
+text-align:center;
+color:#ff2d7a;">
+
+Masukan ke Aplikasi Autoresponder!
+
+</div>
+
+
+<div class="label">
+URL
+</div>
+
+<input
+readonly
+class="copy"
+onclick="copyText(this)"
+value="${escapeHtml(item.url)}">
+
+
+<div class="label" style="
+margin-top:16px;
+font-size:14px;
+font-weight:bold;">
+
+🔐 BASIC AUTH
+
+</div>
+
+<div class="row">
+
+<div style="flex:1">
+
+<div style="
+font-size:11px;
+color:#777;
+margin-bottom:5px;">
+
+Nama pengguna
+
+</div>
+
+<input
+readonly
+class="copy"
+onclick="copyText(this)"
+value="${escapeHtml(item.username)}">
+
+</div>
+
+
+<div style="flex:1">
+
+<div style="
+font-size:11px;
+color:#777;
+margin-bottom:5px;">
+
+Kata sandi
+
+</div>
+
+<input
+readonly
+class="copy"
+onclick="copyText(this)"
+value="${escapeHtml(item.password)}">
+
+</div>
+
+</div>
+
+
+
+<div class="label" style="
+margin-top:16px;
+font-size:14px;
+font-weight:bold;">
+
+📌 HEADERS
+
+</div>
+
+<div class="row">
+
+<div style="flex:1">
+
+<div style="
+font-size:11px;
+color:#777;
+margin-bottom:5px;">
+
+Kunci
+
+</div>
+
+<input
+readonly
+class="copy"
+onclick="copyText(this)"
+value="x-api-key">
+
+</div>
+
+
+<div style="flex:1">
+
+<div style="
+font-size:11px;
+color:#777;
+margin-bottom:5px;">
+
+Nilai
+
+</div>
+
+<input
+readonly
+class="copy"
+onclick="copyText(this)"
+value="${escapeHtml(item.apikey)}">
+
+</div>
+
+</div>
+
+
+<div class="label"
+style="margin-top:16px">
+
+🔗 ShortLink Aktif
+
+</div>
+
+<input
+readonly
+class="copy"
+onclick="copyText(this)"
+value="${escapeHtml(item.shortlink || '-')}">
+
+<div class="label"
+style="margin-top:16px">
+
+<div class="label prompt-title">
+
+📝 Prompt AI
+<span>Edit karakter & gaya bicara AI</span>
+
+</div>
+
+
+<div class="prompt-editor">
+
+<textarea
+id="prompt-${item.id}"
+class="ai-prompt-edit"
+placeholder="Tulis instruksi AI di sini..."
+>${escapeHtml(item.prompt || "")}</textarea>
+
+<div class="prompt-footer">
+
+<button
+class="save-prompt"
+onclick="simpanPrompt('${item.id}')">
+
+💾 Ubah Prompt
+
+</button>
+
+</div>
+
+</div>
+
+
+<div class="label"
+style="margin-top:16px">
+
+Status Penggunaan
+
+</div>
+
+<div style="
+margin-top:8px">
+
+<span style="
+display:inline-block;
+padding:3px 8px;
+border-radius:5px;
+
+background:
+${item.status==="sudah digunakan"
+?"#27ae60"
+:"#ff9800"};
+
+color:#fff;
+font-size:10px;
+font-weight:600;
+">
+
+${item.status}
+
+</span>
+
+</div>
+
+
+<button
+class="reset"
+onclick="
+resetPerangkat(
+'${item.id}'
+)
+">
+
+RESET PERANGKAT
+
+</button>
+
+</div>
+
+`;
+
+});
+
+}
+
+
+function copyText(el){
+
+navigator
+.clipboard
+.writeText(
+el.value
+);
+
+toast(
+"Berhasil disalin",
+"success"
+);
+
+}
+
+
+let selectedLicense=null;
+
+function closeExtendPopup(){
+
+document.getElementById(
+"pop"
+).style.display="none";
+
+}
+
+function popup(id){
+
+selectedLicense=id;
+
+document
+.getElementById(
+"pop"
+).style.display=
+"flex";
+
+}
+
+
+async function showQR(){
+
+const token=
+localStorage.getItem(
+"token"
+);
+
+const hari=
+Number(
+document
+.getElementById(
+"extendHari"
+).value
+);
+
+const metode=
+document
+.getElementById(
+"metodeBayar"
+).value;
+
+const hargaMap={
+
+3:5000,
+7:10000,
+30:25000,
+365:200000
+
+};
+
+const harga=
+hargaMap[hari];
+
+if(
+metode==="saldo"
+){
+
+const res=
+await fetch(
+"/api/autoresponder/extend",
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+authorization:
+token
+
+},
+
+body:
+JSON.stringify({
+
+id:selectedLicense,
+hari,
+metode
+
+})
+
+}
+
+);
+
+const data=
+await res.json();
+
+if(data.success){
+
+document
+.getElementById(
+"pop"
+).style.display=
+"none";
+
+loadLisensi();
+
+loadUser();
+
+toast(
+"Lisensi berhasil diperpanjang",
+"success"
+);
+
+}else{
+
+alert(
+data.message
+);
+
+}
+
+return;
+
+}
+
+
+const qr=
+await fetch(
+"/api/topup/create",
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json",
+
+authorization:
+token
+
+},
+
+body:
+JSON.stringify({
+
+nominal:harga
+
+})
+
+}
+
+);
+
+const q=
+await qr.json();
+
+if(
+!q.success
+){
+
+alert(
+"Gagal membuat QR"
+);
+
+return;
+
+}
+
+document
+.getElementById(
+"qr"
+).innerHTML=
+
+`<img
+src="${q.payment.qrUrl}"
+style="
+width:100%;
+border-radius:12px
+">`;
+
+}
+
+</script>
+
+<script>
+
+async function resetPerangkat(id) {
+
+
+    showConfirm(
+        "Reset Perangkat",
+        "Perangkat lama akan terputus. Lanjutkan?",
+        async function(){
+
+
+            try {
+
+
+                const res = await fetch(
+                    "/api/autoresponder/reset",
+                    {
+                        method:"POST",
+
+                        headers:{
+                            "Content-Type":"application/json",
+                            authorization:
+                            localStorage.getItem("token")
+                        },
+
+                        body:JSON.stringify({
+                            id:id
+                        })
+                    }
+                );
+
+
+                const data =
+                await res.json();
+
+
+
+                toast(
+                    data.message,
+                    data.success
+                    ? "success"
+                    : "error"
+                );
+
+
+
+                if(data.success){
+
+                    await loadLisensi();
+
+                }
+
+
+
+            } catch(err){
+
+
+                toast(
+                    "Gagal menghubungi server",
+                    "error"
+                );
+
+
+            }
+
+
+        }
+    );
+
+
+}
+
+function openLiveChat() {
+    window.location.href = "/livechat.html";
+}
+
+function toggleMenu(){
+
+document
+.getElementById(
+"sidebar"
+)
+.classList.toggle(
+"active"
+);
+
+document
+.getElementById(
+"overlay"
+)
+.classList.toggle(
+"active"
+);
+
+}
+
+function closeMenu(){
+
+document
+.getElementById(
+"sidebar"
+)
+.classList.remove(
+"active"
+);
+
+document
+.getElementById(
+"overlay"
+)
+.classList.remove(
+"active"
+);
+
+}
+
+function logout(){
+
+localStorage.removeItem(
+"token"
+);
+
+location.href=
+"/index.html";
+
+}
+
+async function hapusLisensi(id){
+
+
+    showConfirm(
+        "Batalkan Lisensi",
+        "Lisensi akan dihapus dan saldo akan dikembalikan. Lanjutkan?",
+        async function(){
+
+
+            try {
+
+
+                const res =
+                await fetch(
+                    "/api/autoresponder/delete",
+                    {
+                        method:"POST",
+
+                        headers:{
+                            "Content-Type":"application/json",
+                            authorization:
+                            localStorage.getItem("token")
+                        },
+
+                        body:JSON.stringify({
+                            id:id
+                        })
+                    }
+                );
+
+
+
+                const data =
+                await res.json();
+
+
+
+                toast(
+                    data.message,
+                    data.success
+                    ? "success"
+                    : "error"
+                );
+
+
+
+                if(data.success){
+
+
+                    await loadLisensi();
+
+                    await loadUser();
+
+
+                }
+
+
+
+            } catch(err){
+
+
+                toast(
+                    "Gagal menghubungi server",
+                    "error"
+                );
+
+
+            }
+
+
+        }
+    );
+
+
+}
+
+async function simpanPrompt(id){
+
+    const prompt =
+        document
+        .getElementById("prompt-" + id)
+        .value
+        .trim();
+
+    const res = await fetch(
+        "/api/autoresponder/update-prompt",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json",
+                authorization:localStorage.getItem("token")
+            },
+            body:JSON.stringify({
+                id,
+                prompt
+            })
+        }
+    );
+
+    const data = await res.json();
+
+    toast(
+"❌ " + data.message,
+"error"
+);
+}
+
+function toast(
+    pesan,
+    tipe="info"
+){
+
+    const box =
+    document.getElementById(
+        "toast"
+    );
+
+
+    box.innerText =
+    pesan;
+
+
+    box.className =
+    "";
+
+
+    box.classList.add(
+        tipe,
+        "show"
+    );
+
+
+    setTimeout(()=>{
+
+        box.classList.remove(
+            "show"
+        );
+
+    },3000);
+
+}
+
+let confirmCallback = null;
+
+
+function showConfirm(
+    title,
+    text,
+    callback
+){
+
+    document
+    .getElementById("confirmTitle")
+    .innerText = title;
+
+
+    document
+    .getElementById("confirmText")
+    .innerText = text;
+
+
+    confirmCallback = callback;
+
+
+    document
+    .getElementById("confirmModal")
+    .style.display="flex";
+
+
+}
+
+
+
+function closeConfirm(){
+
+    document
+    .getElementById("confirmModal")
+    .style.display="none";
+
+    confirmCallback=null;
+
+}
+
+
+
+document.addEventListener(
+"DOMContentLoaded",
+function(){
+
+    const btn =
+    document.getElementById(
+        "confirmButton"
+    );
+
+
+    if(btn){
+
+        btn.onclick=function(){
+
+            if(confirmCallback){
+
+                confirmCallback();
+
+            }
+
+            closeConfirm();
+
+        };
+
+    }
+
+});
+
+</script>
+<div id="toast"></div>
+<div 
+id="confirmModal"
+class="confirm-overlay">
+
+    <div class="confirm-box">
+
+        <h3 id="confirmTitle">
+            Konfirmasi
+        </h3>
+
+        <p id="confirmText">
+            Apakah yakin?
+        </p>
+
+
+        <div class="confirm-actions">
+
+            <button
+            class="btn-cancel"
+            onclick="closeConfirm()">
+
+                Batal
+
+            </button>
+
+
+            <button
+            class="btn-danger"
+            id="confirmButton">
+
+                Ya
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login • SeraPay</title>
+	<link rel="icon" href="/img/favicon.png" sizes="32x32">
+    <link rel="icon" href="/img/favicon.png" sizes="16x16">
+    <link rel="shortcut icon" href="/img/favicon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+ <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-tr from-pink-100 via-white to-pink-50 min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8">
+
+  <!-- Card Login -->
+  <div class="bg-white/80 backdrop-blur-md shadow-xl border border-pink-100 rounded-3xl p-6 sm:p-8 w-full max-w-md transition-all duration-300 hover:shadow-2xl">
+
+    <!-- Logo / Title -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-pink-500 to-pink-600 bg-clip-text text-transparent">SeraPay</h1>
+      <p class="text-gray-400 text-sm mt-1.5 font-medium">Masuk ke akun untuk melanjutkan</p>
+    </div>
+
+    <!-- STEP 1 : EMAIL -->
+    <div id="emailStep" class="space-y-5">
+      <div>
+        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Alamat Email</label>
+        <input
+          type="email"
+          id="email"
+          class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all text-gray-700 bg-gray-50/50 focus:bg-white placeholder:text-gray-400"
+          placeholder="nama@email.com"
+          required
+        >
+        <p id="emailError" class="text-red-500 text-xs mt-1.5 hidden font-medium"></p>
+      </div>
+
+      <button
+        type="button"
+        id="nextBtn"
+        class="w-full bg-pink-500 hover:bg-pink-600 active:scale-[0.98] text-white py-3 rounded-xl font-bold transition-all shadow-md shadow-pink-200 hover:shadow-lg"
+      >
+        Lanjutkan
+      </button>
+    </div>
+
+    <!-- STEP 2 : PASSWORD -->
+    <form id="loginForm" class="space-y-5 hidden">
+      <div class="bg-pink-50/70 border border-pink-100/50 rounded-xl p-3 text-center transition-all">
+        <p class="text-xs text-pink-500 font-medium">Kamu masuk sebagai</p>
+        <div class="flex items-center justify-center gap-2 mt-0.5">
+          <span id="showEmail" class="font-bold text-sm text-gray-700 truncate max-w-[200px]"></span>
+          <button
+            type="button"
+            id="changeEmail"
+            class="text-pink-600 text-xs font-bold hover:underline"
+          >
+            Ubah
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Kata Sandi</label>
+        <div class="relative">
+          <input
+            type="password"
+            id="password"
+            class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all text-gray-700 bg-gray-50/50 focus:bg-white placeholder:text-gray-400"
+            placeholder="Masukkan kata sandi"
+            required
+          >
+          <button
+            type="button"
+            id="togglePassword"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-pink-500 transition-colors"
+          >
+            <!-- Ikon Mata Modern -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-pink-500 hover:bg-pink-600 active:scale-[0.98] text-white py-3 rounded-xl font-bold transition-all shadow-md shadow-pink-200 hover:shadow-lg"
+      >
+        Masuk
+      </button>
+    </form>
+
+    <!-- NOTIF -->
+    <div id="notif" class="hidden mt-4 text-xs font-medium px-4 py-3 rounded-xl text-center transition-all"></div>
+
+    <!-- EXTRA CENTER LINKS -->
+    <div class="flex items-center justify-between text-xs font-semibold mt-6 pt-5 border-t border-gray-100">
+      <a href="/lupapassword" class="text-gray-400 hover:text-pink-500 transition-colors">Lupa Password?</a>
+      <a href="/daftar" class="text-pink-500 hover:text-pink-600 transition-colors bg-pink-50 px-3 py-1.5 rounded-lg">Buat Akun Baru</a>
+    </div>
+
+    <!-- TERMS & PRIVACY (Disatukan di paling bawah) -->
+    <p class="text-[11px] text-gray-400 text-center leading-relaxed mt-6">
+      Dengan masuk, kamu menyetujui 
+      <a href="/syarat-dan-ketentuan-kebijakan-privasi.html#syarat" class="text-pink-400 hover:text-pink-500 hover:underline font-medium">Syarat & Ketentuan</a> 
+      serta 
+      <a href="/syarat-dan-ketentuan-kebijakan-privasi.html#privasi" class="text-pink-400 hover:text-pink-500 hover:underline font-medium">Kebijakan Privasi</a> kami.
+    </p>
+
+  </div>
+
+
+  <script>
+function showToast(message, type="success"){
+  const toast = document.getElementById("toast");
+  const box = document.getElementById("toastBox");
+  const msg = document.getElementById("toastMsg");
+
+  msg.innerText = message;
+
+  // warna beda
+  if(type === "success"){
+    box.className = "px-4 py-3 rounded-lg shadow-lg text-white text-sm flex items-center gap-2 bg-green-500";
+  }else{
+    box.className = "px-4 py-3 rounded-lg shadow-lg text-white text-sm flex items-center gap-2 bg-red-500";
+  }
+
+  toast.classList.remove("hidden");
+
+  // animasi masuk
+  setTimeout(()=>{
+    box.classList.remove("opacity-0","translate-y-2");
+  },10);
+
+  // hilang otomatis
+  setTimeout(()=>{
+    box.classList.add("opacity-0","translate-y-2");
+    setTimeout(()=> toast.classList.add("hidden"),300);
+  },2500);
+}
+</script>
+
+<script>
+function showNotif(message, type="success"){
+  const notif = document.getElementById("notif");
+
+  notif.innerText = message;
+  notif.classList.remove("hidden");
+
+  // reset class dulu
+  notif.className = "mt-3 text-sm px-3 py-2 rounded-lg";
+
+  if(type === "success"){
+    notif.classList.add("bg-green-100","text-green-700");
+  }else{
+    notif.classList.add("bg-red-100","text-red-700");
+  }
+
+  // hilang otomatis
+  setTimeout(()=>{
+    notif.classList.add("hidden");
+  },3000);
+}
+</script>
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try{
+
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      // simpan token
+      localStorage.setItem("token", data.token);
+
+      showNotif("Login berhasil", "success");
+      const redirect =
+  localStorage.getItem(
+    "redirectAfterLogin"
+  );
+
+if (redirect) {
+
+  localStorage.removeItem(
+    "redirectAfterLogin"
+  );
+
+  window.location.href =
+    redirect;
+
+} else {
+
+  window.location.href =
+    "/home";
+
+}
+    }else{
+      showNotif("Password salah", "error");
+    }
+
+  }catch(err){
+    showToast("Server error", "error");
+  }
+});
+</script>
+
+<script>
+const emailStep = document.getElementById("emailStep");
+const loginForm = document.getElementById("loginForm");
+const emailInput = document.getElementById("email");
+const showEmail = document.getElementById("showEmail");
+const changeEmail = document.getElementById("changeEmail");
+
+document.getElementById("nextBtn").addEventListener("click", async () => {
+
+  const errorBox = document.getElementById("emailError");
+
+  errorBox.classList.add("hidden");
+  emailInput.classList.remove("border-red-500");
+
+  if (!emailInput.value.trim()) {
+    emailInput.reportValidity();
+    return;
+  }
+
+  if (!emailInput.checkValidity()) {
+    emailInput.reportValidity();
+    return;
+  }
+
+try {
+
+  const res = await fetch(
+    "/api/check-email?email=" +
+    encodeURIComponent(emailInput.value)
+  );
+
+  const data = await res.json();
+
+    if (!data.exists) {
+      errorBox.textContent = "Email tidak ditemukan";
+      errorBox.classList.remove("hidden");
+      emailInput.classList.add("border-red-500");
+      return;
+    }
+
+    showEmail.textContent = emailInput.value;
+    emailStep.classList.add("hidden");
+    loginForm.classList.remove("hidden");
+
+  } catch (err) {
+    errorBox.textContent = "Terjadi kesalahan, coba lagi.";
+    errorBox.classList.remove("hidden");
+  }
+
+});
+
+changeEmail.addEventListener("click", () => {
+  loginForm.classList.add("hidden");
+  emailStep.classList.remove("hidden");
+  emailInput.focus();
+});
+</script>
+
+<script>
+const password = document.getElementById("password");
+const toggle = document.getElementById("togglePassword");
+
+toggle.addEventListener("click", () => {
+
+  if (password.type === "password") {
+    password.type = "text";
+    toggle.textContent = "🙈";
+  } else {
+    password.type = "password";
+    toggle.textContent = "👁";
+  }
+
+});
+</script>
+
+<div id="toast" class="fixed top-5 right-5 z-50 hidden">
+  <div id="toastBox"
+    class="px-4 py-3 rounded-lg shadow-lg text-white text-sm flex items-center gap-2 transition-all duration-300 opacity-0 translate-y-2">
+    
+    <span id="toastMsg">Pesan</span>
+  </div>
+</div>
+
+</body>
+</html>

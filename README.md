@@ -1,8 +1,8 @@
 # SeraPay Digital Platform v3.0
 
-## Overview
-
-**SeraPay Digital Platform** adalah aplikasi web full-stack yang dikembangkan untuk mengotomatisasi transaksi berbagai layanan digital dalam satu sistem terintegrasi. Platform ini menyediakan marketplace akun digital, layanan OTP, virtual number, email rental, sistem saldo, payment gateway, AI AutoResponder, serta dashboard administrasi yang mendukung pengelolaan bisnis digital secara real-time.
+🌐 **Website:** https://gaslur.com  
+📚 **Repository:** https://github.com/<username>/serapay-digital-platform  
+👨‍💻 **Developer:** Ganang Saputra
 
 Versi terbaru **SeraPay v3.0** menghadirkan peningkatan signifikan pada performa, keamanan, infrastruktur database, serta penambahan berbagai layanan digital baru yang dirancang untuk meningkatkan skalabilitas dan pengalaman pengguna.
 

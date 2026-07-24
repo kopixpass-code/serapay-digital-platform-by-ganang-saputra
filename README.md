@@ -1,12 +1,12 @@
 # SeraPay Digital Platform v3.0
 
-| Information | Value |
-|-------------|-------|
-| 🌐 **Website** | https://gaslur.com |
-| 📚 **Repository** | https://github.com/ganang-saputra/serapay-digital-platform |
-| 👨‍💻 **Developer** | Ganang Saputra |
+| Information         | Value                                                      |
+| ------------------- | ---------------------------------------------------------- |
+| 🌐 **Website**      | https://gaslur.com                                         |
+| 📚 **Repository**   | https://github.com/ganang-saputra/serapay-digital-platform |
+| 👨‍💻 **Developer** | Ganang Saputra                                             |
 
-Versi terbaru **SeraPay v3.0** menghadirkan peningkatan signifikan pada performa, keamanan, infrastruktur database, serta penambahan berbagai layanan digital baru yang dirancang untuk meningkatkan skalabilitas dan pengalaman pengguna.
+The latest **SeraPay Digital Platform v3.0** introduces significant improvements in performance, security, database architecture, and new digital services designed to enhance scalability, reliability, and user experience.
 
 ---
 
@@ -17,294 +17,353 @@ Versi terbaru **SeraPay v3.0** menghadirkan peningkatan signifikan pada performa
 </tr>
 </table>
 
-## Pencapaian Utama pada Versi 3.0
+# What's New in Version 3.0
 
-### Infrastruktur Database Modern
+## Modern Database Infrastructure
 
-* Migrasi penuh dari penyimpanan berbasis JSON ke MySQL Database.
-* Optimalisasi query untuk meningkatkan kecepatan akses data.
-* Struktur relasional yang lebih aman dan mudah dikembangkan.
-* Dukungan transaksi database yang lebih stabil untuk volume data yang lebih besar.
-* Pengurangan risiko korupsi data yang umum terjadi pada penyimpanan berbasis file.
-
-### Peningkatan Keamanan Sistem
-
-* JWT Authentication untuk manajemen sesi pengguna.
-* Password hashing menggunakan bcrypt.
-* Validasi data pada seluruh endpoint API.
-* Pembatasan akses berdasarkan autentikasi pengguna.
-* Proteksi terhadap manipulasi data transaksi.
-* Session invalidation setelah perubahan password.
-* Rate limiting pada endpoint autentikasi.
-* Audit log aktivitas login pengguna.
-* Verifikasi email sebelum aktivasi akun.
-* Perbaikan berbagai celah keamanan pada sistem versi sebelumnya.
-
-### Update Sistem Login dan Verifikasi OTP Email
-
-Versi terbaru menghadirkan sistem autentikasi generasi baru untuk meningkatkan keamanan akun pengguna.
-
-#### Fitur Baru
-
-* Update halaman Login dengan sistem keamanan terbaru.
-* Update halaman Registrasi pengguna.
-* Update halaman Lupa Password.
-* Verifikasi menggunakan OTP Email.
-* Pengiriman OTP otomatis menggunakan Nodemailer.
-* OTP memiliki masa berlaku terbatas untuk meningkatkan keamanan.
-* Pembatasan jumlah percobaan verifikasi OTP.
-* Regenerasi OTP secara otomatis apabila kode kedaluwarsa.
-* Aktivasi akun menggunakan verifikasi email.
-* Enkripsi token verifikasi pada sisi server.
-
-### Performa dan Stabilitas
-
-* Refactoring backend untuk meningkatkan maintainability dan skalabilitas kode.
-* Optimasi proses transaksi real-time.
-* Migrasi penyimpanan data dari JSON ke MySQL untuk meningkatkan performa dan konsistensi data.
-* Pengurangan penggunaan file storage untuk data kritikal.
-* Perbaikan bug JavaScript pada sisi frontend dan backend.
-* Peningkatan stabilitas layanan saat menangani banyak transaksi secara bersamaan.
-* Implementasi sistem monitoring dan kontrol layanan yang lebih terintegrasi.
-
-### Telegram Bot Administration System
-
-SeraPay dilengkapi dengan Telegram Bot khusus administrator yang memungkinkan pengelolaan platform secara jarak jauh tanpa harus membuka dashboard web.
-
-#### Fitur Telegram Bot Admin
-
-* Membalas pesan Live Chat pelanggan langsung dari Telegram.
-* Menyetujui atau menolak pengajuan setoran akun.
-* Menyetujui atau menolak permintaan withdraw pengguna.
-* Deposit saldo pengguna secara manual.
-* Monitoring notifikasi transaksi secara real-time.
-* Monitoring aktivitas pengguna dan sistem.
-
-#### Command Management
-
-* `/deposit` — Menambahkan saldo pengguna secara manual.
-* `/restock` — Menambahkan stok produk secara instan.
-* `/stop` — Menonaktifkan sementara layanan setoran akun.
-* `/on` — Mengaktifkan kembali layanan setoran akun.
-* Command tambahan untuk pengelolaan layanan dan monitoring sistem secara real-time.
-
-Sistem ini membantu administrator melakukan operasional harian dengan lebih cepat, efisien, dan responsif tanpa bergantung pada akses dashboard web.
+* Fully migrated from JSON-based storage to MySQL.
+* Optimized SQL queries for faster data access.
+* Improved relational database architecture.
+* Better transaction handling for high-volume operations.
+* Reduced risk of data corruption associated with file-based storage.
+* Improved scalability for future platform expansion.
 
 ---
 
-# Fitur Utama
+# Problem, Solution & Results
 
-## Manajemen Pengguna
+## Problem
 
-* Registrasi dan Login pengguna
+When developing **SeraPay**, several technical and operational challenges needed to be addressed:
+
+* JSON-based data storage became increasingly difficult to maintain as the platform grew.
+* Simultaneous transactions could lead to inconsistent data and reduced system reliability.
+* Customer support required significant manual effort, increasing response times.
+* User authentication lacked advanced security features such as email verification and OTP-based login.
+* Administrators needed to constantly access the web dashboard to monitor transactions and manage daily operations.
+* Real-time updates for payments, transactions, and customer activities were limited.
+* Integrating multiple third-party services (Payment Gateway, Gmail API, Virtual Number API, Telegram Bot, and AI services) into a single platform required a scalable architecture.
+
+---
+
+## Solution
+
+To overcome these challenges, I redesigned and modernized the platform by implementing:
+
+* Migrated the entire data storage layer from JSON files to a relational MySQL database.
+* Redesigned the backend architecture using Express.js and RESTful APIs.
+* Implemented JWT Authentication, bcrypt password hashing, Email OTP Verification, and secure session management.
+* Built a real-time communication system using Socket.IO for live transaction updates and notifications.
+* Developed a Telegram Administration Bot to enable remote platform management without relying on the web dashboard.
+* Integrated multiple third-party APIs, including Payment Gateway, Gmail API, Virtual Number API, and Telegram Bot API.
+* Built an AI-powered customer support system using Ollama with the Qwen 2.5 3B model, allowing local AI deployment without external LLM APIs.
+* Refactored critical services to improve maintainability, scalability, and long-term development.
+
+---
+
+## Results
+
+The improvements delivered measurable technical and operational benefits:
+
+* Faster and more reliable database operations after migrating to MySQL.
+* Improved data consistency through relational database design and transaction handling.
+* Stronger application security with JWT authentication, encrypted passwords, and Email OTP verification.
+* Real-time synchronization of payments, orders, chat messages, and transaction statuses.
+* Reduced administrator workload through Telegram-based remote management and operational automation.
+* Lower AI operational costs by deploying a local Large Language Model using Ollama instead of relying entirely on paid external AI APIs.
+* Better application maintainability thanks to backend refactoring and modular architecture.
+* Increased platform scalability, making it easier to introduce new digital services and future feature expansions.
+* Improved user experience with faster response times, automated workflows, and secure authentication.
+
+
+## Security Improvements
+
+* JWT Authentication for secure session management.
+* Password hashing using bcrypt.
+* API input validation across all endpoints.
+* User-based access control and authorization.
+* Protection against transaction manipulation.
+* Automatic session invalidation after password changes.
+* Authentication rate limiting.
+* Login activity audit logs.
+* Email verification before account activation.
+* Multiple security vulnerabilities fixed from previous versions.
+
+---
+
+## New Authentication & Email OTP Verification
+
+Version 3.0 introduces a redesigned authentication system focused on improving account security.
+
+### New Features
+
+* Redesigned Login page.
+* Updated User Registration page.
+* Updated Forgot Password flow.
+* Email OTP Verification.
+* Automatic OTP delivery via Nodemailer.
+* OTP expiration mechanism.
+* OTP verification attempt limitation.
+* Automatic OTP regeneration.
+* Email-based account activation.
+* Encrypted verification tokens.
+
+---
+
+## Performance & Stability
+
+* Backend refactoring for improved maintainability.
+* Optimized real-time transaction processing.
+* Migrated critical data from JSON to MySQL.
+* Reduced dependency on file-based storage.
+* Fixed numerous frontend and backend JavaScript issues.
+* Improved stability under concurrent transactions.
+* Integrated monitoring and service management system.
+
+---
+
+# Telegram Administration Bot
+
+SeraPay includes a dedicated Telegram Bot that enables administrators to manage platform operations remotely without opening the web dashboard.
+
+## Features
+
+* Reply to customer live chat directly from Telegram.
+* Approve or reject account submissions.
+* Approve or reject withdrawal requests.
+* Manual user balance adjustments.
+* Real-time transaction notifications.
+* User activity monitoring.
+* Platform monitoring.
+
+## Available Commands
+
+* `/deposit` — Add user balance manually.
+* `/restock` — Instantly restock digital products.
+* `/stop` — Temporarily disable account submission services.
+* `/on` — Re-enable account submission services.
+* Additional management and monitoring commands.
+
+This automation significantly improves operational efficiency and allows administrators to manage the platform from anywhere.
+
+---
+
+# Core Features
+
+## User Management
+
+* User Registration & Login
 * JWT Authentication
-* Enkripsi password menggunakan bcrypt
-* Reset dan perubahan password
-* Pengelolaan profil pengguna
-* Riwayat aktivitas pengguna
-* Login menggunakan Email OTP Verification
-* Registrasi menggunakan Email OTP Verification
-* Lupa Password menggunakan verifikasi OTP Email
-* Pengiriman email otomatis menggunakan Nodemailer
-* Monitoring aktivitas login pengguna
+* bcrypt Password Encryption
+* Password Reset & Change
+* User Profile Management
+* Activity History
+* Email OTP Login
+* Email OTP Registration
+* Forgot Password via Email OTP
+* Automatic Email Delivery using Nodemailer
+* Login Activity Monitoring
 
 ---
 
-## Marketplace Akun Digital
+# Digital Account Marketplace
 
-### Produk yang Tersedia
+## Available Products
 
-* Akun Gmail Fresh
-* Akun Gmail Used/Bekas
-* Akun Facebook Fresh
-* Akun Facebook Used/Bekas
-* Email Backup
-* Email Custom
+* Gmail Fresh Accounts
+* Gmail Used Accounts
+* Facebook Fresh Accounts
+* Facebook Used Accounts
+* Backup Email Accounts
+* Custom Email Accounts
 
-### Fitur Marketplace
+## Marketplace Features
 
-* Sistem stok otomatis
-* Monitoring stok real-time
-* Pengiriman akun instan setelah pembayaran
-* Riwayat pembelian lengkap
-* Tracking status transaksi
-
----
-
-## Sistem Setoran Akun
-
-### Setoran Facebook
-
-Pengguna dapat menjual akun Facebook miliknya langsung melalui platform dengan sistem verifikasi dan pencatatan transaksi otomatis.
-
-### Setoran Gmail
-
-Pengguna dapat melakukan setoran akun Gmail untuk dijual melalui marketplace SeraPay.
-
-### Fitur Setoran
-
-* Pengajuan setoran akun
-* Verifikasi data akun
-* Monitoring status setoran
-* Histori transaksi setoran
-* Penarikan saldo hasil penjualan akun
+* Automatic stock management.
+* Real-time inventory monitoring.
+* Instant account delivery after payment.
+* Purchase history.
+* Transaction status tracking.
 
 ---
 
-## Sistem Saldo dan Withdraw
+# Account Submission System
 
-* Dompet digital internal
-* Saldo transaksi pengguna
-* Saldo hasil setoran akun
-* Riwayat mutasi saldo
-* Sistem withdraw otomatis
-* Penyimpanan data rekening pengguna
-* Pembatasan transaksi harian
-* Monitoring histori penarikan dana
+Users can sell their digital accounts directly through the marketplace.
 
----
+## Supported Accounts
 
-## Layanan OTP dan Virtual Number
+* Facebook Accounts
+* Gmail Accounts
 
-### Virtual Number
+## Features
 
-* Pembelian nomor virtual otomatis
-* Monitoring status nomor
-* Verifikasi OTP real-time
-* Pengelolaan layanan secara otomatis
-
-### Sewa Nomor
-
-Fitur baru pada versi 3.0:
-
-* Sewa nomor 20 menit
-* Sewa nomor 24 jam (1 hari penuh)
-* Monitoring OTP secara real-time
-* Pengelolaan masa aktif otomatis
+* Account submission requests.
+* Account verification.
+* Submission status monitoring.
+* Submission history.
+* Withdrawal of earnings.
 
 ---
 
-## Email Rental Service
+# Wallet & Withdrawal System
 
-### Sewa Gmail
-
-Fitur baru yang memungkinkan pengguna menyewa akun Gmail untuk kebutuhan verifikasi dan penerimaan email.
-
-### Sewa Domain Email
-
-Mendukung berbagai domain email tambahan untuk kebutuhan OTP dan verifikasi akun digital.
-
-### Fitur
-
-* Monitoring email masuk real-time
-* Sinkronisasi dengan transaksi pengguna
-* Riwayat email dan OTP
-* Integrasi Gmail API
+* Internal digital wallet.
+* User transaction balance.
+* Seller earnings balance.
+* Balance history.
+* Automated withdrawal processing.
+* Bank account management.
+* Daily transaction limitations.
+* Withdrawal monitoring.
 
 ---
 
-## AI AutoResponder
+# OTP & Virtual Number Services
 
-Fitur unggulan versi 3.0:
+## Virtual Numbers
 
-* AutoResponder berbasis Artificial Intelligence
-* Dukungan multi-bahasa
-* Otomatisasi percakapan pelanggan
-* Sistem lisensi pengguna
-* Pengelolaan masa aktif lisensi
-* Respon otomatis untuk customer service
-* Integrasi dengan Live Chat Support
-* Dukungan context memory dan multi-session chat
+* Automatic virtual number purchase.
+* Number status monitoring.
+* Real-time OTP verification.
+* Automated number management.
 
-### Update AI AutoResponder Terbaru
+## Number Rental
 
-* Menggunakan Ollama sebagai AI Runtime Engine.
-* Menggunakan model **Qwen 2.5 3B** sebagai model utama.
-* Mendukung deployment lokal tanpa ketergantungan pada API AI eksternal.
-* Biaya operasional AI lebih rendah.
-* Waktu respon lebih cepat.
-* Mendukung integrasi dengan dashboard admin dan live chat secara real-time.
-* Mendukung penggunaan Customer Service AI 24/7.
+New in Version 3.0:
+
+* 20-minute rental.
+* 24-hour rental.
+* Real-time OTP monitoring.
+* Automatic expiration management.
 
 ---
 
-## Sistem Pembayaran
+# Email Rental Service
 
-### Payment Gateway
+## Gmail Rental
 
-* Integrasi iPaymu Payment Gateway
-* QRIS Payment
-* Verifikasi pembayaran otomatis
-* Update saldo real-time
-* Histori transaksi pembayaran
+Users can rent Gmail accounts for OTP verification and email reception.
 
----
+## Custom Email Domains
 
-## Sistem Refund
+Supports multiple email domains for digital verification services.
 
-* Pengajuan refund oleh pengguna
-* Persetujuan refund oleh admin
-* Penolakan refund dengan status terintegrasi
-* Pengembalian saldo otomatis
-* Histori refund lengkap
+## Features
+
+* Real-time incoming email monitoring.
+* Transaction synchronization.
+* OTP & email history.
+* Gmail API Integration.
 
 ---
 
-## Dashboard Admin
+# AI AutoResponder
 
-### Monitoring Sistem
+One of the flagship features of Version 3.0.
 
-* Manajemen pengguna
-* Monitoring transaksi
-* Monitoring pembayaran
-* Monitoring stok produk
-* Pengelolaan layanan digital
-* Verifikasi setoran akun
-* Persetujuan refund
-* Monitoring aktivitas sistem
+## Features
 
-### Manajemen Data
+* AI-powered AutoResponder.
+* Multi-language support.
+* Automated customer conversations.
+* User license management.
+* License expiration management.
+* AI Customer Service.
+* Live Chat integration.
+* Context memory.
+* Multi-session conversations.
 
-* Pengelolaan produk digital
-* Pengelolaan saldo pengguna
-* Pengelolaan lisensi AI
-* Pengelolaan virtual number
-* Pengelolaan email rental
+## Latest AI Improvements
 
----
-
-## Komunikasi Real-Time
-
-Menggunakan Socket.IO untuk:
-
-* Notifikasi transaksi langsung
-* Update status pesanan real-time
-* Monitoring pembayaran secara langsung
-* Sinkronisasi data tanpa refresh halaman
-* Live update dashboard admin
+* Powered by Ollama.
+* Uses Qwen 2.5 3B as the primary language model.
+* Fully deployable on local infrastructure.
+* No dependency on external AI APIs.
+* Lower operational costs.
+* Faster response times.
+* Real-time integration with Admin Dashboard.
+* 24/7 AI Customer Support.
 
 ---
 
-## Live Chat Support
+# Payment System
 
-* Chat real-time antara pengguna dan admin
-* Riwayat percakapan
-* Monitoring aktivitas pelanggan
-* Notifikasi pesan masuk
-* Integrasi AI AutoResponder berbasis Ollama Qwen 2.5 3B
+## Payment Gateway
 
----
-
-## Sistem Catatan Digital
-
-* Catatan pribadi pengguna
-* Penyimpanan data terpusat
-* Berbagi catatan melalui tautan publik
-* Pengelolaan data transaksi dan aktivitas
+* iPaymu Payment Gateway Integration.
+* QRIS Payments.
+* Automatic payment verification.
+* Real-time balance updates.
+* Payment history.
 
 ---
 
-# Teknologi yang Digunakan
+# Refund Management
+
+* Refund requests.
+* Admin approval workflow.
+* Refund rejection management.
+* Automatic balance restoration.
+* Refund history.
+
+---
+
+# Admin Dashboard
+
+## System Monitoring
+
+* User management.
+* Transaction monitoring.
+* Payment monitoring.
+* Product inventory monitoring.
+* Digital service management.
+* Account submission verification.
+* Refund approval.
+* System activity monitoring.
+
+## Data Management
+
+* Digital product management.
+* User balance management.
+* AI license management.
+* Virtual number management.
+* Email rental management.
+
+---
+
+# Real-Time Communication
+
+Powered by Socket.IO
+
+* Instant transaction notifications.
+* Real-time order status updates.
+* Live payment monitoring.
+* Automatic data synchronization.
+* Live Admin Dashboard updates.
+
+---
+
+# Live Chat Support
+
+* Real-time messaging.
+* Conversation history.
+* Customer activity monitoring.
+* Instant notifications.
+* AI AutoResponder powered by Ollama & Qwen 2.5 3B.
+
+---
+
+# Digital Notes System
+
+* Personal notes.
+* Centralized data storage.
+* Public note sharing.
+* Transaction and activity documentation.
+
+---
+
+# Technology Stack
 
 ## Backend
 
@@ -323,15 +382,15 @@ Menggunakan Socket.IO untuk:
 * HTML5
 * CSS3
 * JavaScript (ES6+)
-* Responsive Mobile Design
+* Responsive Web Design
 
 ## Database
 
-* MySQL Database Server
+* MySQL
 * Relational Database Design
 * Query Optimization
 
-## Integrasi API
+## API Integrations
 
 * Gmail API
 * Google OAuth 2.0
@@ -344,26 +403,26 @@ Menggunakan Socket.IO untuk:
 
 ---
 
-# Highlight Kemampuan Teknis
+# Technical Highlights
 
-Melalui pengembangan SeraPay v3.0, saya berhasil membangun dan mengelola:
+During the development of **SeraPay Digital Platform v3.0**, I designed and implemented:
 
 * Full-Stack Web Application Development
-* REST API Development
-* Authentication & Authorization System
-* Email OTP Verification System
-* Nodemailer SMTP Integration
+* RESTful API Development
+* Authentication & Authorization Systems
+* Email OTP Verification
+* SMTP Integration using Nodemailer
 * Payment Gateway Integration
 * Gmail API Integration
-* Real-Time System menggunakan Socket.IO
+* Real-Time Communication with Socket.IO
 * Marketplace Management System
-* Relational Database Design menggunakan MySQL
+* Relational Database Design with MySQL
 * AI AutoResponder Integration
-* Ollama Integration
+* Ollama Deployment
 * Qwen 2.5 3B Integration
-* Transaction Automation System
+* Transaction Automation
 * Infrastructure Migration (JSON → MySQL)
-* Bug Fixing dan System Optimization
+* Bug Fixing & Performance Optimization
 * Security Hardening
 * Responsive Web Development
 
@@ -371,6 +430,8 @@ Melalui pengembangan SeraPay v3.0, saya berhasil membangun dan mengelola:
 
 # Developer
 
-**Ganang Saputra**
+## Ganang Saputra
 
-SeraPay Digital Platform dikembangkan sebagai proyek portfolio untuk menunjukkan kemampuan dalam merancang dan membangun aplikasi web skala menengah hingga kompleks yang mencakup pengembangan backend, frontend, database relasional, integrasi API pihak ketiga, sistem real-time, keamanan aplikasi, otomatisasi transaksi digital, serta implementasi fitur berbasis Artificial Intelligence modern menggunakan teknologi Large Language Model (LLM) lokal berbasis Ollama dan Qwen 2.5 3B.
+**SeraPay Digital Platform** was developed as a portfolio project demonstrating my expertise in building medium to large-scale full-stack web applications. The project showcases experience in backend and frontend development, relational database design, REST API development, third-party API integrations, real-time systems, authentication and security, digital transaction automation, and modern AI-powered applications using locally deployed Large Language Models (LLMs) with **Ollama** and **Qwen 2.5 3B**.
+
+The platform emphasizes scalable software architecture, maintainable code, secure system design, and production-ready engineering practices suitable for modern digital service platforms.

@@ -1,7 +1,8 @@
 # SeraPay Digital Platform v3.0
 
-🌐 **Website:** https://gaslur.com  
-📚 **Repository:** https://github.com/<username>/serapay-digital-platform  
+🌐 **Website:** https://gaslur.com
+📚 **Repository:** https://github.com/ganang-saputra/serapay-digital-platform
+
 👨‍💻 **Developer:** Ganang Saputra
 
 Versi terbaru **SeraPay v3.0** menghadirkan peningkatan signifikan pada performa, keamanan, infrastruktur database, serta penambahan berbagai layanan digital baru yang dirancang untuk meningkatkan skalabilitas dan pengalaman pengguna.
